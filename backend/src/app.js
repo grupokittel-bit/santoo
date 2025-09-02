@@ -75,10 +75,15 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// === IMPORTAR ROTAS (vamos criar depois) ===
-// app.use('/api/users', require('./routes/users'));
-// app.use('/api/videos', require('./routes/videos'));
-// app.use('/api/auth', require('./routes/auth'));
+// === ARQUIVOS ESTÁTICOS ===
+app.use('/uploads', express.static('src/uploads')); // Serve arquivos de upload
+
+// === ROTAS DA API ===
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/videos', require('./routes/videos'));
+app.use('/api/categories', require('./routes/categories'));
+app.use('/api/comments', require('./routes/comments'));
 
 // === MIDDLEWARE DE ERRO GLOBAL ===
 app.use((error, req, res, next) => {
@@ -127,7 +132,34 @@ async function startServer() {
       
       console.log('📋 ROTAS DISPONÍVEIS:');
       console.log('   GET  / - Status do servidor');
-      console.log('   GET  /health - Saúde do sistema\n');
+      console.log('   GET  /health - Saúde do sistema');
+      console.log('');
+      console.log('🔐 AUTENTICAÇÃO:');
+      console.log('   POST /api/auth/register - Criar conta');
+      console.log('   POST /api/auth/login - Fazer login');
+      console.log('   POST /api/auth/verify - Verificar token');
+      console.log('');
+      console.log('👥 USUÁRIOS:');
+      console.log('   GET  /api/users - Listar usuários');
+      console.log('   GET  /api/users/:username - Perfil público');
+      console.log('   GET  /api/users/me - Meu perfil');
+      console.log('   PUT  /api/users/me - Atualizar perfil');
+      console.log('   POST /api/users/:id/follow - Seguir usuário');
+      console.log('');
+      console.log('🎥 VÍDEOS:');
+      console.log('   GET  /api/videos - Feed de vídeos');
+      console.log('   POST /api/videos - Upload de vídeo');
+      console.log('   GET  /api/videos/:id - Detalhes do vídeo');
+      console.log('   POST /api/videos/:id/like - Curtir vídeo');
+      console.log('');
+      console.log('📂 CATEGORIAS:');
+      console.log('   GET  /api/categories - Listar categorias');
+      console.log('   GET  /api/categories/:id - Vídeos da categoria');
+      console.log('');
+      console.log('💬 COMENTÁRIOS:');
+      console.log('   GET  /api/comments/video/:id - Comentários do vídeo');
+      console.log('   POST /api/comments - Adicionar comentário');
+      console.log('');
     });
     
   } catch (error) {
