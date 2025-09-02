@@ -1,0 +1,829 @@
+/**
+ * SANTOO - Main JavaScript Application
+ * Manages app initialization, routing, and core functionality
+ */
+
+class SantooApp {
+  constructor() {
+    this.currentPage = 'home';
+    this.user = null;
+    this.isLoading = true;
+    
+    this.init();
+  }
+
+  /**
+   * Initialize the application
+   */
+  async init() {
+    console.log('🙏 Inicializando Santoo...');
+    
+    // Show loading screen
+    this.showLoading();
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.onDOMReady());
+    } else {
+      this.onDOMReady();
+    }
+  }
+
+  /**
+   * Handle DOM ready state
+   */
+  async onDOMReady() {
+    try {
+      // Initialize components
+      this.setupEventListeners();
+      this.setupNavigation();
+      this.setupModals();
+      
+      // Check for saved user session
+      await this.checkUserSession();
+      
+      // Initialize current page
+      this.initCurrentPage();
+      
+      // Hide loading screen
+      await this.hideLoading();
+      
+      console.log('✅ Santoo inicializado com sucesso!');
+      
+    } catch (error) {
+      console.error('❌ Erro ao inicializar Santoo:', error);
+      this.showError('Erro ao carregar a aplicação. Tente recarregar a página.');
+    }
+  }
+
+  /**
+   * Show loading screen
+   */
+  showLoading() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const app = document.getElementById('app');
+    
+    if (loadingScreen) {
+      loadingScreen.style.display = 'flex';
+    }
+    
+    if (app) {
+      app.style.display = 'none';
+    }
+  }
+
+  /**
+   * Hide loading screen with animation
+   */
+  async hideLoading() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const app = document.getElementById('app');
+        
+        if (loadingScreen) {
+          loadingScreen.style.opacity = '0';
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 300);
+        }
+        
+        if (app) {
+          app.style.display = 'flex';
+          app.style.opacity = '0';
+          app.style.animation = 'fadeIn 500ms ease-in-out forwards';
+        }
+        
+        resolve();
+      }, 1500); // Show loading for at least 1.5s for smooth experience
+    });
+  }
+
+  /**
+   * Setup event listeners
+   */
+  setupEventListeners() {
+    // Navigation clicks
+    document.addEventListener('click', (e) => this.handleClick(e));
+    
+    // Form submissions
+    document.addEventListener('submit', (e) => this.handleSubmit(e));
+    
+    // Window events
+    window.addEventListener('popstate', (e) => this.handlePopState(e));
+    window.addEventListener('resize', () => this.handleResize());
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+    
+    // Upload drag and drop
+    this.setupDragAndDrop();
+    
+    console.log('📱 Event listeners configurados');
+  }
+
+  /**
+   * Handle click events
+   */
+  handleClick(e) {
+    const target = e.target.closest('[data-page]');
+    if (target) {
+      e.preventDefault();
+      const page = target.dataset.page;
+      this.navigateTo(page);
+      return;
+    }
+    
+    // Handle modal triggers
+    const modalTrigger = e.target.closest('[data-modal]');
+    if (modalTrigger) {
+      e.preventDefault();
+      const modalId = modalTrigger.dataset.modal;
+      this.openModal(modalId);
+      return;
+    }
+    
+    // Handle dropdown toggles
+    const dropdownToggle = e.target.closest('#userMenuBtn');
+    if (dropdownToggle) {
+      e.preventDefault();
+      this.toggleDropdown('userDropdown');
+      return;
+    }
+    
+    // Handle auth buttons
+    if (e.target.matches('#loginBtn')) {
+      this.openAuthModal('login');
+    } else if (e.target.matches('#registerBtn')) {
+      this.openAuthModal('register');
+    } else if (e.target.matches('#logoutBtn')) {
+      this.logout();
+    }
+    
+    // Handle filter buttons
+    const filterBtn = e.target.closest('.filter-btn');
+    if (filterBtn) {
+      this.handleFilterClick(filterBtn);
+      return;
+    }
+    
+    // Close dropdowns when clicking outside
+    if (!e.target.closest('.dropdown')) {
+      this.closeAllDropdowns();
+    }
+  }
+
+  /**
+   * Handle form submissions
+   */
+  handleSubmit(e) {
+    e.preventDefault();
+    
+    const form = e.target;
+    const formType = form.dataset.type;
+    
+    switch (formType) {
+      case 'login':
+        this.handleLogin(form);
+        break;
+      case 'register':
+        this.handleRegister(form);
+        break;
+      case 'upload':
+        this.handleUpload(form);
+        break;
+      default:
+        console.log('Formulário não reconhecido:', formType);
+    }
+  }
+
+  /**
+   * Setup navigation
+   */
+  setupNavigation() {
+    // Update nav link states
+    this.updateNavigation();
+    
+    // Handle hash changes
+    const hash = window.location.hash.replace('#', '');
+    if (hash && this.isValidPage(hash)) {
+      this.currentPage = hash;
+    }
+    
+    console.log('🧭 Navegação configurada');
+  }
+
+  /**
+   * Navigate to page
+   */
+  navigateTo(page) {
+    if (!this.isValidPage(page)) {
+      console.error('Página inválida:', page);
+      return;
+    }
+    
+    // Update current page
+    this.currentPage = page;
+    
+    // Update URL
+    window.history.pushState({ page }, '', `#${page}`);
+    
+    // Update navigation
+    this.updateNavigation();
+    
+    // Show page
+    this.showPage(page);
+    
+    console.log(`📄 Navegando para: ${page}`);
+  }
+
+  /**
+   * Update navigation state
+   */
+  updateNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+      const page = link.dataset.page;
+      if (page === this.currentPage) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+  }
+
+  /**
+   * Show specific page
+   */
+  showPage(page) {
+    // Hide all pages
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(p => {
+      p.classList.remove('active');
+    });
+    
+    // Show target page
+    const targetPage = document.getElementById(`${page}Page`);
+    if (targetPage) {
+      targetPage.classList.add('active');
+      this.initCurrentPage();
+    }
+  }
+
+  /**
+   * Initialize current page
+   */
+  initCurrentPage() {
+    switch (this.currentPage) {
+      case 'home':
+        this.initHomePage();
+        break;
+      case 'discover':
+        this.initDiscoverPage();
+        break;
+      case 'upload':
+        this.initUploadPage();
+        break;
+      case 'live':
+        this.initLivePage();
+        break;
+      case 'profile':
+        this.initProfilePage();
+        break;
+      default:
+        this.initHomePage();
+    }
+  }
+
+  /**
+   * Initialize home page
+   */
+  async initHomePage() {
+    console.log('🏠 Inicializando página inicial');
+    
+    try {
+      // Load video feed
+      await this.loadVideoFeed();
+      
+    } catch (error) {
+      console.error('Erro ao carregar feed:', error);
+      this.showError('Erro ao carregar vídeos');
+    }
+  }
+
+  /**
+   * Load video feed
+   */
+  async loadVideoFeed() {
+    const videoFeed = document.getElementById('videoFeed');
+    if (!videoFeed) return;
+    
+    // Simulate loading
+    await this.delay(1000);
+    
+    // Replace loading placeholders with demo videos
+    videoFeed.innerHTML = this.generateDemoVideos();
+    
+    console.log('📹 Feed de vídeos carregado');
+  }
+
+  /**
+   * Generate demo videos for development
+   */
+  generateDemoVideos() {
+    const demoVideos = [
+      {
+        id: 1,
+        title: 'Mensagem de Esperança - Salmo 23',
+        author: 'Pastor João',
+        avatar: 'assets/images/default-avatar.svg',
+        thumbnail: 'assets/images/video-thumb-1.jpg',
+        duration: '3:45',
+        views: 1234,
+        likes: 89,
+        category: 'pregação'
+      },
+      {
+        id: 2,
+        title: 'Hino: Como é Grande o Meu Deus',
+        author: 'Coral Santoo',
+        avatar: 'assets/images/default-avatar.svg',
+        thumbnail: 'assets/images/video-thumb-2.jpg',
+        duration: '4:12',
+        views: 2567,
+        likes: 156,
+        category: 'musica'
+      },
+      {
+        id: 3,
+        title: 'Testemunho: Deus Mudou Minha Vida',
+        author: 'Maria Santos',
+        avatar: 'assets/images/default-avatar.svg',
+        thumbnail: 'assets/images/video-thumb-3.jpg',
+        duration: '2:33',
+        views: 891,
+        likes: 67,
+        category: 'testemunho'
+      }
+    ];
+    
+    return demoVideos.map(video => this.createVideoCard(video)).join('');
+  }
+
+  /**
+   * Create video card HTML
+   */
+  createVideoCard(video) {
+    return `
+      <div class="video-card" data-video-id="${video.id}">
+        <div class="video-thumbnail">
+          <img src="${video.thumbnail}" alt="${video.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K'">
+          <div class="video-duration">${video.duration}</div>
+        </div>
+        <div class="video-info">
+          <h3 class="video-title">${video.title}</h3>
+          <div class="video-author">
+            <div class="avatar avatar-sm">
+              <img src="${video.avatar}" alt="${video.author}" onerror="this.src='assets/images/default-avatar.svg'">
+            </div>
+            <span>${video.author}</span>
+          </div>
+          <div class="video-stats">
+            <div class="video-stat">
+              <span>👁️</span>
+              <span>${this.formatNumber(video.views)}</span>
+            </div>
+            <div class="video-stat">
+              <span>❤️</span>
+              <span>${this.formatNumber(video.likes)}</span>
+            </div>
+            <div class="video-stat">
+              <span class="badge">${video.category}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Initialize upload page
+   */
+  initUploadPage() {
+    console.log('📤 Inicializando página de upload');
+    // Upload functionality will be handled by upload.js
+  }
+
+  /**
+   * Initialize profile page
+   */
+  initProfilePage() {
+    console.log('👤 Inicializando página de perfil');
+    this.updateProfileDisplay();
+  }
+
+  /**
+   * Update profile display based on user state
+   */
+  updateProfileDisplay() {
+    const profilePage = document.getElementById('profilePage');
+    if (!profilePage) return;
+    
+    if (this.user) {
+      // Show user profile
+      this.showUserProfile();
+    } else {
+      // Show auth prompt (already in HTML)
+      console.log('Usuário não logado - mostrando prompt de autenticação');
+    }
+  }
+
+  /**
+   * Setup modals
+   */
+  setupModals() {
+    // Close modal when clicking overlay
+    const modalOverlay = document.getElementById('modalOverlay');
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+          this.closeAllModals();
+        }
+      });
+    }
+    
+    // Close modal buttons
+    document.addEventListener('click', (e) => {
+      if (e.target.matches('.btn-close') || e.target.closest('.btn-close')) {
+        this.closeAllModals();
+      }
+    });
+    
+    // Escape key to close modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeAllModals();
+      }
+    });
+    
+    console.log('🔲 Modais configurados');
+  }
+
+  /**
+   * Open authentication modal
+   */
+  openAuthModal(type = 'login') {
+    const modal = document.getElementById('authModal');
+    const modalTitle = document.getElementById('authModalTitle');
+    const modalBody = modal.querySelector('.modal-body');
+    
+    // Set title
+    modalTitle.textContent = type === 'login' ? 'Entrar no Santoo' : 'Criar Conta';
+    
+    // Set form content
+    modalBody.innerHTML = this.getAuthFormHTML(type);
+    
+    // Show modal
+    this.openModal('authModal');
+  }
+
+  /**
+   * Get authentication form HTML
+   */
+  getAuthFormHTML(type) {
+    if (type === 'login') {
+      return `
+        <form data-type="login" class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">Senha</label>
+            <input type="password" id="loginPassword" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+          </div>
+          <div class="text-center">
+            <p>Não tem conta? <a href="#" onclick="santooApp.openAuthModal('register')">Criar conta</a></p>
+          </div>
+        </form>
+      `;
+    } else {
+      return `
+        <form data-type="register" class="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="registerName">Nome</label>
+            <input type="text" id="registerName" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="registerEmail">Email</label>
+            <input type="email" id="registerEmail" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="registerPassword">Senha</label>
+            <input type="password" id="registerPassword" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Criar Conta</button>
+          </div>
+          <div class="text-center">
+            <p>Já tem conta? <a href="#" onclick="santooApp.openAuthModal('login')">Entrar</a></p>
+          </div>
+        </form>
+      `;
+    }
+  }
+
+  /**
+   * Handle login
+   */
+  async handleLogin(form) {
+    const formData = new FormData(form);
+    const email = formData.get('email') || form.querySelector('#loginEmail').value;
+    const password = formData.get('password') || form.querySelector('#loginPassword').value;
+    
+    console.log('🔐 Tentativa de login:', email);
+    
+    try {
+      // Simulate API call
+      await this.delay(1000);
+      
+      // Mock successful login
+      this.user = {
+        id: 1,
+        name: 'Usuário Teste',
+        email: email,
+        avatar: 'assets/images/default-avatar.svg'
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('santoo_user', JSON.stringify(this.user));
+      
+      // Close modal
+      this.closeAllModals();
+      
+      // Update UI
+      this.updateUserUI();
+      
+      console.log('✅ Login realizado com sucesso');
+      this.showSuccess('Login realizado com sucesso!');
+      
+    } catch (error) {
+      console.error('❌ Erro no login:', error);
+      this.showError('Erro ao fazer login. Tente novamente.');
+    }
+  }
+
+  /**
+   * Handle register
+   */
+  async handleRegister(form) {
+    const formData = new FormData(form);
+    const name = formData.get('name') || form.querySelector('#registerName').value;
+    const email = formData.get('email') || form.querySelector('#registerEmail').value;
+    const password = formData.get('password') || form.querySelector('#registerPassword').value;
+    
+    console.log('📝 Tentativa de registro:', email);
+    
+    try {
+      // Simulate API call
+      await this.delay(1000);
+      
+      // Mock successful registration
+      this.user = {
+        id: Date.now(),
+        name: name,
+        email: email,
+        avatar: 'assets/images/default-avatar.svg'
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('santoo_user', JSON.stringify(this.user));
+      
+      // Close modal
+      this.closeAllModals();
+      
+      // Update UI
+      this.updateUserUI();
+      
+      console.log('✅ Registro realizado com sucesso');
+      this.showSuccess('Conta criada com sucesso! Bem-vindo ao Santoo!');
+      
+    } catch (error) {
+      console.error('❌ Erro no registro:', error);
+      this.showError('Erro ao criar conta. Tente novamente.');
+    }
+  }
+
+  /**
+   * Logout user
+   */
+  logout() {
+    this.user = null;
+    localStorage.removeItem('santoo_user');
+    this.updateUserUI();
+    console.log('👋 Usuário desconectado');
+    this.showSuccess('Você foi desconectado');
+  }
+
+  /**
+   * Check for saved user session
+   */
+  async checkUserSession() {
+    try {
+      const savedUser = localStorage.getItem('santoo_user');
+      if (savedUser) {
+        this.user = JSON.parse(savedUser);
+        console.log('👤 Sessão de usuário restaurada:', this.user.name);
+      }
+    } catch (error) {
+      console.error('Erro ao restaurar sessão:', error);
+      localStorage.removeItem('santoo_user');
+    }
+  }
+
+  /**
+   * Update user interface based on auth state
+   */
+  updateUserUI() {
+    const userAvatar = document.getElementById('userAvatar');
+    
+    if (this.user && userAvatar) {
+      userAvatar.src = this.user.avatar;
+      userAvatar.alt = this.user.name;
+    }
+    
+    // Update profile page if currently viewing
+    if (this.currentPage === 'profile') {
+      this.updateProfileDisplay();
+    }
+  }
+
+  /**
+   * Utility functions
+   */
+  openModal(modalId) {
+    const overlay = document.getElementById('modalOverlay');
+    const modal = document.getElementById(modalId);
+    
+    if (overlay && modal) {
+      overlay.classList.add('active');
+      modal.style.display = 'block';
+    }
+  }
+
+  closeAllModals() {
+    const overlay = document.getElementById('modalOverlay');
+    const modals = overlay.querySelectorAll('.modal');
+    
+    if (overlay) {
+      overlay.classList.remove('active');
+      modals.forEach(modal => {
+        modal.style.display = 'none';
+      });
+    }
+  }
+
+  toggleDropdown(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    if (dropdown) {
+      dropdown.classList.toggle('active');
+    }
+  }
+
+  closeAllDropdowns() {
+    const dropdowns = document.querySelectorAll('.dropdown-menu');
+    dropdowns.forEach(dropdown => {
+      dropdown.classList.remove('active');
+    });
+  }
+
+  handleFilterClick(filterBtn) {
+    // Remove active class from all filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    filterBtn.classList.add('active');
+    
+    const filter = filterBtn.dataset.filter;
+    console.log('🔍 Filtro selecionado:', filter);
+    
+    // Here you would filter the video feed
+    // For now, just log the filter
+  }
+
+  setupDragAndDrop() {
+    const uploadZone = document.getElementById('uploadZone');
+    if (!uploadZone) return;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, () => {
+        uploadZone.classList.add('drag-over');
+      });
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadZone.addEventListener(eventName, () => {
+        uploadZone.classList.remove('drag-over');
+      });
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        this.handleFileSelect(files[0]);
+      }
+    });
+  }
+
+  handleFileSelect(file) {
+    console.log('📁 Arquivo selecionado:', file.name);
+    // File handling will be implemented in upload.js
+  }
+
+  // Utility methods
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  formatNumber(num) {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  }
+
+  isValidPage(page) {
+    const validPages = ['home', 'discover', 'upload', 'live', 'profile'];
+    return validPages.includes(page);
+  }
+
+  showSuccess(message) {
+    console.log('✅ Sucesso:', message);
+    // Toast notification implementation would go here
+  }
+
+  showError(message) {
+    console.error('❌ Erro:', message);
+    // Toast notification implementation would go here
+  }
+
+  handlePopState(e) {
+    const state = e.state;
+    if (state && state.page) {
+      this.currentPage = state.page;
+      this.showPage(state.page);
+      this.updateNavigation();
+    }
+  }
+
+  handleResize() {
+    // Handle responsive behavior
+    console.log('📐 Redimensionamento detectado');
+  }
+
+  handleKeyboard(e) {
+    // Handle keyboard shortcuts
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case '/':
+          e.preventDefault();
+          // Focus search
+          break;
+        case 'u':
+          e.preventDefault();
+          this.navigateTo('upload');
+          break;
+      }
+    }
+  }
+
+  // Initialize other pages (stubs for now)
+  initDiscoverPage() {
+    console.log('🔍 Inicializando página de descoberta');
+  }
+
+  initLivePage() {
+    console.log('🔴 Inicializando página de lives');
+  }
+}
+
+// Initialize app when script loads
+const santooApp = new SantooApp();
+
+// Make app globally accessible for debugging
+window.santooApp = santooApp;

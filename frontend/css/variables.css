@@ -1,0 +1,224 @@
+/*
+  SANTOO CSS VARIABLES
+  Design System - Dark Theme (#1a1a1a)
+*/
+
+:root {
+  /* === COLORS === */
+  
+  /* Primary Background Colors */
+  --color-bg-primary: #1a1a1a;        /* Main dark background */
+  --color-bg-secondary: #2d2d2d;      /* Cards, modals, elevated surfaces */
+  --color-bg-tertiary: #3a3a3a;       /* Hover states, active elements */
+  --color-bg-hover: #404040;          /* Interactive hover states */
+  
+  /* Text Colors */
+  --color-text-primary: #ffffff;      /* Main text, headings */
+  --color-text-secondary: #b3b3b3;    /* Subtitles, descriptions */
+  --color-text-tertiary: #8a8a8a;     /* Placeholder, disabled text */
+  --color-text-inverse: #1a1a1a;      /* Text on light backgrounds */
+  
+  /* Accent Colors */
+  --color-accent: #4a90e2;            /* Primary blue - gospel theme */
+  --color-accent-hover: #3a7bc8;      /* Darker blue for hover */
+  --color-accent-light: #6ba3e8;      /* Lighter blue for highlights */
+  
+  /* Semantic Colors */
+  --color-success: #27ae60;           /* Success messages, checkmarks */
+  --color-success-hover: #219a52;     /* Success hover */
+  --color-warning: #f39c12;           /* Warnings, alerts */
+  --color-warning-hover: #e67e22;     /* Warning hover */
+  --color-error: #e74c3c;             /* Errors, delete actions */
+  --color-error-hover: #c0392b;       /* Error hover */
+  --color-info: #3498db;              /* Information, links */
+  --color-info-hover: #2980b9;        /* Info hover */
+  
+  /* Border Colors */
+  --color-border-primary: #404040;    /* Main borders */
+  --color-border-secondary: #333333;  /* Subtle borders */
+  --color-border-focus: var(--color-accent); /* Focus indicators */
+  
+  /* Gospel Accent Colors */
+  --color-gospel-gold: #ffd700;       /* Special highlights */
+  --color-gospel-purple: #8e44ad;     /* Alternative accent */
+  --color-gospel-cross: #cd853f;      /* Warm gold for religious elements */
+  
+  /* === TYPOGRAPHY === */
+  
+  /* Font Families */
+  --font-primary: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-secondary: 'Georgia', 'Times New Roman', serif; /* For biblical quotes */
+  --font-mono: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+  
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  
+  /* === SPACING === */
+  
+  /* Base unit: 4px */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+  
+  /* === BORDER RADIUS === */
+  --radius-sm: 0.125rem;    /* 2px */
+  --radius-base: 0.25rem;   /* 4px */
+  --radius-md: 0.375rem;    /* 6px */
+  --radius-lg: 0.5rem;      /* 8px */
+  --radius-xl: 0.75rem;     /* 12px */
+  --radius-2xl: 1rem;       /* 16px */
+  --radius-3xl: 1.5rem;     /* 24px */
+  --radius-full: 9999px;    /* Fully rounded */
+  
+  /* === SHADOWS === */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  
+  /* Dark theme specific shadows */
+  --shadow-dark-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-dark-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-dark-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  
+  /* === TRANSITIONS === */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+  --transition-slower: 500ms ease-in-out;
+  
+  /* Specific transition properties */
+  --transition-colors: color 150ms ease-in-out, background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+  --transition-transform: transform 200ms ease-in-out;
+  --transition-opacity: opacity 200ms ease-in-out;
+  
+  /* === Z-INDEX SCALE === */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  
+  /* === BREAKPOINTS === */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  
+  /* === LAYOUT === */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+  
+  /* Header */
+  --header-height: 4rem;        /* 64px */
+  --header-height-mobile: 3.5rem; /* 56px */
+  
+  /* Sidebar */
+  --sidebar-width: 16rem;       /* 256px */
+  --sidebar-width-collapsed: 4rem; /* 64px */
+  
+  /* === ANIMATIONS === */
+  --animation-spin: spin 1s linear infinite;
+  --animation-ping: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animation-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animation-bounce: bounce 1s infinite;
+  
+  /* === GRADIENTS === */
+  --gradient-primary: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-light) 100%);
+  --gradient-gospel: linear-gradient(135deg, var(--color-gospel-gold) 0%, var(--color-gospel-cross) 100%);
+  --gradient-dark: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%);
+}
+
+/* === KEYFRAMES === */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}

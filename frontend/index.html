@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="description" content="Santoo - Plataforma gospel de vídeos curtos e lives. Compartilhe mensagens, testemunhos e pregações.">
+    
+    <!-- SEO Meta Tags -->
+    <meta property="og:title" content="Santoo - Plataforma Gospel de Vídeos">
+    <meta property="og:description" content="Compartilhe vídeos gospel, testemunhos e pregações com a comunidade cristã">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://santoo.app">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+    <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Georgia:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/main.css">
+    
+    <title>Santoo - Plataforma Gospel de Vídeos</title>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="logo-container">
+                <h1 class="logo">Santoo</h1>
+                <p class="tagline">Compartilhando a Palavra</p>
+            </div>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app" style="display: none;">
+        
+        <!-- Header / Navigation -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1 class="app-logo">
+                        <span class="logo-icon">🙏</span>
+                        Santoo
+                    </h1>
+                </div>
+                
+                <nav class="main-nav">
+                    <a href="#home" class="nav-link active" data-page="home">
+                        <span class="nav-icon">🏠</span>
+                        Início
+                    </a>
+                    <a href="#discover" class="nav-link" data-page="discover">
+                        <span class="nav-icon">🔍</span>
+                        Descobrir
+                    </a>
+                    <a href="#upload" class="nav-link" data-page="upload">
+                        <span class="nav-icon">➕</span>
+                        Postar
+                    </a>
+                    <a href="#live" class="nav-link" data-page="live">
+                        <span class="nav-icon">🔴</span>
+                        Ao Vivo
+                    </a>
+                    <a href="#profile" class="nav-link" data-page="profile">
+                        <span class="nav-icon">👤</span>
+                        Perfil
+                    </a>
+                </nav>
+                
+                <div class="user-actions">
+                    <button class="btn-icon" id="searchBtn" title="Buscar">
+                        <span>🔍</span>
+                    </button>
+                    <button class="btn-icon" id="notificationsBtn" title="Notificações">
+                        <span>🔔</span>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="user-menu">
+                        <button class="user-avatar" id="userMenuBtn">
+                            <img src="assets/images/default-avatar.svg" alt="Usuário" id="userAvatar">
+                        </button>
+                        <div class="dropdown-menu" id="userDropdown">
+                            <a href="#profile" class="dropdown-item">Meu Perfil</a>
+                            <a href="#settings" class="dropdown-item">Configurações</a>
+                            <hr class="dropdown-divider">
+                            <button class="dropdown-item" id="logoutBtn">Sair</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Home Page -->
+            <section id="homePage" class="page active">
+                <div class="page-header">
+                    <h2>Para Você</h2>
+                    <div class="feed-filters">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="pregacao">Pregação</button>
+                        <button class="filter-btn" data-filter="musica">Música</button>
+                        <button class="filter-btn" data-filter="testemunho">Testemunho</button>
+                    </div>
+                </div>
+                
+                <div class="video-feed" id="videoFeed">
+                    <!-- Videos will be loaded here -->
+                    <div class="loading-videos">
+                        <div class="video-placeholder"></div>
+                        <div class="video-placeholder"></div>
+                        <div class="video-placeholder"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Page -->
+            <section id="uploadPage" class="page">
+                <div class="page-header">
+                    <h2>Compartilhar Vídeo</h2>
+                    <p>Compartilhe sua mensagem com a comunidade</p>
+                </div>
+                
+                <div class="upload-container">
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-content">
+                            <div class="upload-icon">📹</div>
+                            <h3>Selecione ou arraste seu vídeo</h3>
+                            <p>MP4, MOV ou WebM até 100MB</p>
+                            <button class="btn-primary" id="selectVideoBtn">Escolher Arquivo</button>
+                            <input type="file" id="videoFileInput" accept="video/*" hidden>
+                        </div>
+                    </div>
+                    
+                    <div class="upload-form" id="uploadForm" style="display: none;">
+                        <!-- Upload form will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Page -->
+            <section id="profilePage" class="page">
+                <div class="profile-header">
+                    <div class="profile-cover"></div>
+                    <div class="profile-info">
+                        <div class="profile-avatar">
+                            <img src="assets/images/default-avatar.svg" alt="Avatar do usuário">
+                        </div>
+                        <h2 class="profile-name">Usuário Convidado</h2>
+                        <p class="profile-bio">Bem-vindo ao Santoo! Faça login para personalizar seu perfil.</p>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <strong>0</strong>
+                                <span>Seguidores</span>
+                            </div>
+                            <div class="stat">
+                                <strong>0</strong>
+                                <span>Seguindo</span>
+                            </div>
+                            <div class="stat">
+                                <strong>0</strong>
+                                <span>Vídeos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-content">
+                    <div class="auth-prompt">
+                        <h3>Junte-se à comunidade Santoo</h3>
+                        <p>Faça login ou crie uma conta para começar a compartilhar</p>
+                        <div class="auth-buttons">
+                            <button class="btn-primary" id="loginBtn">Entrar</button>
+                            <button class="btn-secondary" id="registerBtn">Criar Conta</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay">
+        <!-- Auth Modal -->
+        <div id="authModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="authModalTitle">Entrar no Santoo</h3>
+                    <button class="btn-close" id="closeAuthModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Auth forms will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/upload.js"></script>
+    <script src="js/video-player.js"></script>
+    <script src="js/main.js"></script>
+    
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
