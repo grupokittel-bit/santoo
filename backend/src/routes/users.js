@@ -5,6 +5,7 @@ const express = require('express');
 const { Op } = require('sequelize');
 const { User, Video, Follow } = require('../models');
 const { authMiddleware, optionalAuth } = require('../middleware/auth');
+const { uploadImageOnly, handleUploadError, validateImageMetadata } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -128,15 +129,14 @@ router.get('/:username', optionalAuth, async (req, res) => {
   }
 });
 
-// PUT /users/me - Atualiza perfil do usuário logado
-router.put('/me', authMiddleware, async (req, res) => {
+// PUT /users/me - Atualiza perfil do usuário logado (com avatar opcional)
+router.put('/me', authMiddleware, uploadImageOnly, validateImageMetadata, async (req, res) => {
   try {
     const {
       displayName,
       bio,
       location,
-      website,
-      avatar
+      website
     } = req.body;
     
     // Campos permitidos para atualização
@@ -146,7 +146,11 @@ router.put('/me', authMiddleware, async (req, res) => {
     if (bio !== undefined) updatedFields.bio = bio;
     if (location !== undefined) updatedFields.location = location;
     if (website !== undefined) updatedFields.website = website;
-    if (avatar !== undefined) updatedFields.avatar = avatar;
+    
+    // Se foi enviado um arquivo de avatar
+    if (req.file) {
+      updatedFields.avatar = `/uploads/avatars/${req.file.filename}`;
+    }
     
     // Atualiza usuário
     await req.user.update(updatedFields);
@@ -351,5 +355,8 @@ router.get('/me/feed', authMiddleware, async (req, res) => {
     });
   }
 });
+
+// === MIDDLEWARE DE ERRO DE UPLOAD ===
+router.use(handleUploadError);
 
 module.exports = router;

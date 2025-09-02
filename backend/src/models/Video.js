@@ -31,18 +31,12 @@ const Video = sequelize.define('Video', {
   // === ARQUIVOS ===
   videoUrl: {
     type: DataTypes.STRING(500),    // URL do arquivo de vídeo
-    allowNull: false,               // Obrigatório
-    validate: {
-      isUrl: true                   // Deve ser URL válida
-    }
+    allowNull: false                // Obrigatório (sem validação isUrl para paths locais)
   },
   
   thumbnailUrl: {
     type: DataTypes.STRING(500),    // URL da thumbnail/capa
-    allowNull: true,                // Opcional
-    validate: {
-      isUrl: true                   // Deve ser URL válida se preenchida
-    }
+    allowNull: true                 // Opcional (sem validação isUrl para paths locais)
   },
   
   // === METADADOS ===

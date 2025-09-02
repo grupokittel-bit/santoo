@@ -2,50 +2,19 @@
 // Endpoints para upload, feed, curtir, comentar, buscar vídeos
 
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { Op } = require('sequelize');
 const { Video, User, Category, Comment, Like } = require('../models');
 const { authMiddleware, optionalAuth } = require('../middleware/auth');
+const { 
+  uploadVideoComplete, 
+  handleUploadError, 
+  validateVideoMetadata, 
+  validateImageMetadata,
+  removeFile 
+} = require('../middleware/upload');
 
 const router = express.Router();
 
-// === CONFIGURAÇÃO MULTER PARA UPLOAD DE VÍDEOS ===
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = 'src/uploads/videos';
-    
-    // Cria pasta se não existir
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    // Nome único: timestamp + nome original
-    const uniqueName = Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname);
-    cb(null, uniqueName);
-  }
-});
-
-// Filtro para aceitar apenas vídeos
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('video/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Apenas arquivos de vídeo são permitidos!'), false);
-  }
-};
-
-const upload = multer({ 
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 100 * 1024 * 1024 // 100MB máximo
-  }
-});
 
 // === ROTAS PÚBLICAS ===
 
@@ -86,10 +55,10 @@ router.get('/', optionalAuth, async (req, res) => {
     let orderClause = [];
     switch (sortBy) {
       case 'popular':
-        orderClause = [['views', 'DESC'], ['createdAt', 'DESC']];
+        orderClause = [['viewsCount', 'DESC'], ['createdAt', 'DESC']];
         break;
       case 'trending':
-        orderClause = [['likes', 'DESC'], ['views', 'DESC']];
+        orderClause = [['likesCount', 'DESC'], ['viewsCount', 'DESC']];
         break;
       default: // recent
         orderClause = [['createdAt', 'DESC']];
@@ -189,7 +158,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
     }
     
     // Incrementa views
-    await video.increment('views');
+    await video.increment('viewsCount');
     
     // Verifica se usuário curtiu (se logado)
     let userLiked = false;
@@ -223,23 +192,25 @@ router.get('/:id', optionalAuth, async (req, res) => {
 
 // === ROTAS PROTEGIDAS ===
 
-// POST /videos - Upload de novo vídeo
-router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
+// POST /videos - Upload de novo vídeo (com thumbnail opcional)
+router.post('/', authMiddleware, uploadVideoComplete, validateVideoMetadata, validateImageMetadata, async (req, res) => {
   try {
     const {
       title,
       description,
       categoryId,
-      tags,
-      thumbnail
+      tags
     } = req.body;
     
     // Validações
-    if (!title || !req.file) {
+    if (!title || !req.files || !req.files.video) {
       return res.status(400).json({
         error: 'Título e arquivo de vídeo são obrigatórios'
       });
     }
+    
+    const videoFile = req.files.video[0];
+    const thumbnailFile = req.files.thumbnail ? req.files.thumbnail[0] : null;
     
     // Verifica se categoria existe
     if (categoryId) {
@@ -251,16 +222,21 @@ router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
       }
     }
     
+    // URLs públicas dos arquivos
+    const videoUrl = `/uploads/videos/${videoFile.filename}`;
+    const thumbnailUrl = thumbnailFile ? `/uploads/thumbnails/${thumbnailFile.filename}` : null;
+    
     // Cria vídeo
     const video = await Video.create({
       title,
       description,
       categoryId: categoryId || null,
       tags: tags || '',
-      thumbnail: thumbnail || null,
-      fileName: req.file.filename,
-      filePath: req.file.path,
-      fileSize: req.file.size,
+      videoUrl,
+      thumbnailUrl,
+      fileName: videoFile.filename,
+      filePath: videoFile.path,
+      fileSize: videoFile.size,
       userId: req.user.id
     });
     
@@ -291,9 +267,14 @@ router.post('/', authMiddleware, upload.single('video'), async (req, res) => {
   } catch (error) {
     console.error('Erro no upload:', error);
     
-    // Remove arquivo se erro aconteceu
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    // Remove arquivos se erro aconteceu
+    if (req.files) {
+      if (req.files.video && req.files.video[0]) {
+        removeFile(req.files.video[0].path);
+      }
+      if (req.files.thumbnail && req.files.thumbnail[0]) {
+        removeFile(req.files.thumbnail[0].path);
+      }
     }
     
     if (error.name === 'SequelizeValidationError') {
@@ -374,9 +355,13 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       });
     }
     
-    // Remove arquivo físico
-    if (video.filePath && fs.existsSync(video.filePath)) {
-      fs.unlinkSync(video.filePath);
+    // Remove arquivos físicos
+    if (video.filePath) {
+      removeFile(video.filePath);
+    }
+    if (video.thumbnailUrl) {
+      const thumbnailPath = video.thumbnailUrl.replace('/uploads/', 'src/uploads/');
+      removeFile(thumbnailPath);
     }
     
     // Remove do banco
@@ -418,12 +403,12 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
     if (existingLike) {
       // Remove curtida
       await existingLike.destroy();
-      await video.decrement('likes');
+      await video.decrement('likesCount');
       
       res.json({
         message: 'Curtida removida',
         liked: false,
-        likes: video.likes - 1
+        likes: video.likesCount - 1
       });
     } else {
       // Adiciona curtida
@@ -431,12 +416,12 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
         userId: req.user.id,
         videoId: id
       });
-      await video.increment('likes');
+      await video.increment('likesCount');
       
       res.json({
         message: 'Vídeo curtido!',
         liked: true,
-        likes: video.likes + 1
+        likes: video.likesCount + 1
       });
     }
     
@@ -447,5 +432,8 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
     });
   }
 });
+
+// === MIDDLEWARE DE ERRO DE UPLOAD ===
+router.use(handleUploadError);
 
 module.exports = router;

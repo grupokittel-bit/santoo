@@ -19,7 +19,10 @@ const User = sequelize.define('User', {
     unique: true,                   // Único no sistema
     validate: {
       len: [3, 50],                 // Entre 3 e 50 caracteres
-      isAlphanumeric: true          // Só letras e números
+      is: {
+        args: /^[a-zA-Z0-9_]+$/,    // Letras, números e underscore
+        msg: 'Username deve conter apenas letras, números e underscore'
+      }
     }
   },
   
@@ -81,7 +84,7 @@ const User = sequelize.define('User', {
   },
   
   role: {
-    type: DataTypes.ENUM('user', 'moderator', 'admin'), // Tipo de usuário
+    type: DataTypes.ENUM('user', 'moderator', 'admin', 'pastor'), // Tipo de usuário
     defaultValue: 'user'
   },
   

@@ -162,7 +162,7 @@ router.post('/', authMiddleware, async (req, res) => {
     });
     
     // Incrementa contador de comentários no vídeo
-    await video.increment('comments');
+    await video.increment('commentsCount');
     
     // Busca comentário criado com dados do usuário
     const newComment = await Comment.findByPk(comment.id, {
@@ -281,7 +281,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     // Decrementa contador no vídeo
     const video = await Video.findByPk(comment.videoId);
     if (video) {
-      await video.decrement('comments');
+      await video.decrement('commentsCount');
     }
     
     res.json({

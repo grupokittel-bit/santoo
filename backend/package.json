@@ -7,8 +7,12 @@
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
     "test": "echo \"Tests coming soon...\"",
+    "test:api": "node test-api.js",
     "db:create": "node src/scripts/createDatabase.js",
-    "db:migrate": "node src/scripts/migrate.js"
+    "db:migrate": "node src/scripts/migrate.js",
+    "db:seed": "node src/scripts/seedData.js",
+    "db:clear": "node src/scripts/seedData.js --clear",
+    "db:reset": "npm run db:migrate && npm run db:seed"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
