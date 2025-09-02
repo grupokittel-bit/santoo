@@ -1,0 +1,47 @@
+{
+  "name": "santoo",
+  "version": "1.0.0",
+  "description": "Santoo - Plataforma Gospel de Vídeos. Uma versão gospel do TikTok para compartilhar mensagens, testemunhos, pregações e música cristã.",
+  "main": "frontend/index.html",
+  "scripts": {
+    "dev": "live-server frontend/ --port=8000 --no-browser --wait=200 --watch=frontend/",
+    "start": "serve frontend/ -s -p 8000",
+    "build": "echo 'Build não necessário para projeto HTML/CSS/JS puro'",
+    "serve": "python3 -m http.server 8000 --directory frontend",
+    "preview": "serve frontend/ -s -p 3000",
+    "lint": "echo 'Lint configurado para futuro uso'",
+    "format": "echo 'Prettier configurado para futuro uso'"
+  },
+  "keywords": [
+    "santoo",
+    "gospel",
+    "videos",
+    "christian",
+    "tiktok",
+    "streaming",
+    "bible",
+    "church",
+    "faith",
+    "testimony"
+  ],
+  "author": "Grupo Kittel <grupokittel@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grupokittel-bit/santoo.git"
+  },
+  "homepage": "https://github.com/grupokittel-bit/santoo#readme",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "not IE_Mob 11"
+  ]
+}
