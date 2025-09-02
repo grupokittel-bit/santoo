@@ -30,18 +30,21 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  justify-content: center;
 }
 
 .logo-container {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 .logo-image {
   width: 400px;
   height: 400px;
   object-fit: contain;
-  margin-bottom: var(--space-3);
   filter: drop-shadow(0 4px 8px rgba(74, 144, 226, 0.3));
   animation: logoGlow 2s ease-in-out infinite alternate;
 }
