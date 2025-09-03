@@ -137,8 +137,26 @@ class SantooApp {
             console.log('✅ Chamando showRegisterModal() diretamente...');
             showRegisterModal();
           } else {
-            console.log('⚠️ showRegisterModal não disponível, usando fallback...');
-            this.openAuthModal('register');
+            console.log('⚠️ showRegisterModal não disponível! Aguardando carregamento...');
+            // Tentar várias vezes com delays crescentes
+            let attempts = 0;
+            const maxAttempts = 10;
+            
+            const tryShowModal = () => {
+              attempts++;
+              if (typeof showRegisterModal === 'function') {
+                console.log('✅ showRegisterModal agora disponível, chamando...');
+                showRegisterModal();
+              } else if (attempts < maxAttempts) {
+                console.log(`🔄 Tentativa ${attempts}/${maxAttempts} - aguardando mais um pouco...`);
+                setTimeout(tryShowModal, attempts * 50); // delay crescente: 50ms, 100ms, 150ms...
+              } else {
+                console.error('❌ showRegisterModal ainda não disponível após todas as tentativas');
+                console.error('🔧 Tentando forçar carregamento do auth.js...');
+              }
+            };
+            
+            setTimeout(tryShowModal, 50);
           }
         }, true); // Use capturing to ensure it runs first
         console.log('✅ Direct listener adicionado ao registerBtn');
@@ -156,8 +174,16 @@ class SantooApp {
             console.log('✅ Chamando showLoginModal() diretamente...');
             showLoginModal();
           } else {
-            console.log('⚠️ showLoginModal não disponível, usando fallback...');
-            this.openAuthModal('login');
+            console.log('⚠️ showLoginModal não disponível! Aguardando carregamento...');
+            // Tentar novamente após pequeno delay para aguardar carregamento
+            setTimeout(() => {
+              if (typeof showLoginModal === 'function') {
+                console.log('✅ showLoginModal agora disponível, chamando...');
+                showLoginModal();
+              } else {
+                console.error('❌ showLoginModal ainda não disponível após delay');
+              }
+            }, 100);
           }
         }, true); // Use capturing to ensure it runs first
         console.log('✅ Direct listener adicionado ao loginBtn');
@@ -209,8 +235,16 @@ class SantooApp {
         console.log('✅ showLoginModal está disponível, chamando...');
         showLoginModal();
       } else {
-        console.log('⚠️ showLoginModal não disponível, usando fallback');
-        this.openAuthModal('login');
+        console.log('⚠️ showLoginModal não disponível! Aguardando carregamento...');
+        // Tentar novamente após pequeno delay para aguardar carregamento
+        setTimeout(() => {
+          if (typeof showLoginModal === 'function') {
+            console.log('✅ showLoginModal agora disponível, chamando...');
+            showLoginModal();
+          } else {
+            console.error('❌ showLoginModal ainda não disponível após delay');
+          }
+        }, 100);
       }
     } else if (e.target.matches('#registerBtn')) {
       console.log('🚀 RegisterBtn clicado!');
@@ -220,9 +254,25 @@ class SantooApp {
         console.log('✅ showRegisterModal está disponível, chamando...');
         showRegisterModal();
       } else {
-        console.log('⚠️ showRegisterModal não disponível, usando fallback');
-        console.log('🔄 Tentando openAuthModal(register)...');
-        this.openAuthModal('register');
+        console.log('⚠️ showRegisterModal não disponível! Aguardando carregamento...');
+        // Tentar várias vezes com delays crescentes
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        const tryShowModal = () => {
+          attempts++;
+          if (typeof showRegisterModal === 'function') {
+            console.log('✅ showRegisterModal agora disponível, chamando...');
+            showRegisterModal();
+          } else if (attempts < maxAttempts) {
+            console.log(`🔄 Tentativa ${attempts}/${maxAttempts} - aguardando mais um pouco...`);
+            setTimeout(tryShowModal, attempts * 50); // delay crescente: 50ms, 100ms, 150ms...
+          } else {
+            console.error('❌ showRegisterModal ainda não disponível após todas as tentativas');
+          }
+        };
+        
+        setTimeout(tryShowModal, 50);
       }
     } else if (e.target.matches('#logoutBtn')) {
       this.logout();
@@ -625,70 +675,33 @@ class SantooApp {
   }
 
   /**
-   * Open authentication modal
+   * Open authentication modal (DEPRECATED - usar showLoginModal/showRegisterModal do auth.js)
+   * MANTIDO APENAS PARA COMPATIBILIDADE LEGADA
    */
   openAuthModal(type = 'login') {
-    const modal = document.getElementById('authModal');
-    const modalTitle = document.getElementById('authModalTitle');
-    const modalBody = modal.querySelector('.modal-body');
+    console.warn('⚠️ openAuthModal() é DEPRECATED! Use showLoginModal() ou showRegisterModal() do auth.js');
     
-    // Set title
-    modalTitle.textContent = type === 'login' ? 'Entrar no Santoo' : 'Criar Conta';
+    // Redirecionar para funções profissionais do auth.js
+    if (type === 'login' && typeof showLoginModal === 'function') {
+      console.log('🔄 Redirecionando para showLoginModal()...');
+      showLoginModal();
+      return;
+    } else if (type === 'register' && typeof showRegisterModal === 'function') {
+      console.log('🔄 Redirecionando para showRegisterModal()...');
+      showRegisterModal();
+      return;
+    }
     
-    // Set form content
-    modalBody.innerHTML = this.getAuthFormHTML(type);
-    
-    // Show modal
-    this.openModal('authModal');
+    console.error('❌ Funções profissionais de auth não disponíveis. Modal antigo não será exibido.');
   }
 
   /**
-   * Get authentication form HTML
+   * Get authentication form HTML (DEPRECATED - usar auth.js)
+   * REMOVIDO para evitar confusão com modais profissionais
    */
   getAuthFormHTML(type) {
-    if (type === 'login') {
-      return `
-        <form data-type="login" class="auth-form">
-          <div class="form-group">
-            <label class="form-label" for="loginEmail">Email</label>
-            <input type="email" id="loginEmail" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="loginPassword">Senha</label>
-            <input type="password" id="loginPassword" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
-          </div>
-          <div class="text-center">
-            <p>Não tem conta? <a href="#" onclick="showRegisterModal()">Criar conta</a></p>
-          </div>
-        </form>
-      `;
-    } else {
-      return `
-        <form data-type="register" class="auth-form">
-          <div class="form-group">
-            <label class="form-label" for="registerName">Nome</label>
-            <input type="text" id="registerName" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="registerEmail">Email</label>
-            <input type="email" id="registerEmail" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="registerPassword">Senha</label>
-            <input type="password" id="registerPassword" class="form-input" required>
-          </div>
-          <div class="form-group">
-            <button type="submit" class="btn btn-primary" style="width: 100%;">Criar Conta</button>
-          </div>
-          <div class="text-center">
-            <p>Já tem conta? <a href="#" onclick="showLoginModal()">Entrar</a></p>
-          </div>
-        </form>
-      `;
-    }
+    console.warn('⚠️ getAuthFormHTML() é DEPRECATED! Use as funções do auth.js');
+    return '<p>Modal antigo removido. Use showLoginModal() ou showRegisterModal().</p>';
   }
 
   /**

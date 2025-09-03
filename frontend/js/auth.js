@@ -755,8 +755,8 @@ function bindLoginForm() {
     
     // Show loading
     submitBtn.disabled = true;
-    const textElement = submitBtn.querySelector('.nav-text');
-    const loadingElement = submitBtn.querySelector('.btn-loading');
+    let textElement = submitBtn.querySelector('.nav-text');
+    let loadingElement = submitBtn.querySelector('.btn-loading');
     
     if (textElement) textElement.style.display = 'none';
     if (loadingElement) loadingElement.style.display = 'inline';
@@ -783,8 +783,8 @@ function bindLoginForm() {
     
     // Hide loading
     submitBtn.disabled = false;
-    const textElement = submitBtn.querySelector('.nav-text');
-    const loadingElement = submitBtn.querySelector('.btn-loading');
+    textElement = submitBtn.querySelector('.nav-text');
+    loadingElement = submitBtn.querySelector('.btn-loading');
     
     if (textElement) textElement.style.display = 'inline';
     if (loadingElement) loadingElement.style.display = 'none';
@@ -819,8 +819,8 @@ function bindRegisterForm() {
     
     // Show loading
     submitBtn.disabled = true;
-    const textElement = submitBtn.querySelector('.nav-text');
-    const loadingElement = submitBtn.querySelector('.btn-loading');
+    let textElement = submitBtn.querySelector('.nav-text');
+    let loadingElement = submitBtn.querySelector('.btn-loading');
     
     if (textElement) textElement.style.display = 'none';
     if (loadingElement) loadingElement.style.display = 'inline';
@@ -847,8 +847,8 @@ function bindRegisterForm() {
     
     // Hide loading
     submitBtn.disabled = false;
-    const textElement = submitBtn.querySelector('.nav-text');
-    const loadingElement = submitBtn.querySelector('.btn-loading');
+    textElement = submitBtn.querySelector('.nav-text');
+    loadingElement = submitBtn.querySelector('.btn-loading');
     
     if (textElement) textElement.style.display = 'inline';
     if (loadingElement) loadingElement.style.display = 'none';
@@ -877,8 +877,8 @@ function bindResetForm() {
     
     // Show loading
     submitBtn.disabled = true;
-    const textElement = submitBtn.querySelector('.nav-text');
-    const loadingElement = submitBtn.querySelector('.btn-loading');
+    let textElement = submitBtn.querySelector('.nav-text');
+    let loadingElement = submitBtn.querySelector('.btn-loading');
     
     if (textElement) textElement.style.display = 'none';
     if (loadingElement) loadingElement.style.display = 'inline';
@@ -903,8 +903,8 @@ function bindResetForm() {
     
     // Hide loading
     submitBtn.disabled = false;
-    const textElement = submitBtn.querySelector('.nav-text');
-    const loadingElement = submitBtn.querySelector('.btn-loading');
+    textElement = submitBtn.querySelector('.nav-text');
+    loadingElement = submitBtn.querySelector('.btn-loading');
     
     if (textElement) textElement.style.display = 'inline';
     if (loadingElement) loadingElement.style.display = 'none';
