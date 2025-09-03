@@ -486,11 +486,166 @@ body {
   margin: 0 0 var(--space-6) 0;
 }
 
+/* === PROFESSIONAL AUTH SECTION === */
+
+.auth-prompt {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: var(--space-8);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border-secondary);
+}
+
+.auth-prompt-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.auth-prompt-icon {
+  width: 28px;
+  height: 28px;
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+}
+
+.auth-prompt h3 {
+  color: var(--color-text-primary);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.auth-prompt-description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--space-8) 0;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .auth-buttons {
   display: flex;
   gap: var(--space-4);
   justify-content: center;
   flex-wrap: wrap;
+  margin-bottom: var(--space-8);
+}
+
+/* Professional Auth Buttons */
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  font-family: var(--font-nav);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: var(--transition-colors), var(--transition-transform);
+  position: relative;
+  white-space: nowrap;
+  min-width: 160px;
+}
+
+.auth-btn:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+.auth-btn:active {
+  transform: translateY(1px);
+}
+
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-btn-icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  flex-shrink: 0;
+  transition: var(--transition-transform);
+}
+
+.auth-btn:hover .auth-btn-icon {
+  transform: scale(1.1);
+}
+
+.auth-btn-text {
+  font-weight: inherit;
+  transition: var(--transition-colors);
+}
+
+/* Auth Button Variants */
+.auth-btn-primary {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+  color: var(--color-text-inverse);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.auth-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-accent-hover) 0%, #2968a3 100%);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+  transform: translateY(-2px);
+}
+
+.auth-btn-secondary {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-btn-secondary:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Auth Features */
+.auth-features {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-secondary);
+}
+
+.auth-feature {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.feature-icon {
+  width: 16px;
+  height: 16px;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  flex-shrink: 0;
 }
 
 /* === RESPONSIVE === */
@@ -557,8 +712,32 @@ body {
     gap: var(--space-6);
   }
   
+  /* Professional Auth Section - Mobile */
+  .auth-prompt {
+    padding: var(--space-6);
+    margin: var(--space-4);
+  }
+  
   .auth-buttons {
     flex-direction: column;
+    gap: var(--space-3);
+    align-items: stretch;
+  }
+  
+  .auth-btn {
+    width: 100%;
+    min-width: auto;
+    padding: var(--space-4) var(--space-5);
+  }
+  
+  .auth-features {
+    flex-direction: column;
+    gap: var(--space-4);
+    text-align: center;
+  }
+  
+  .auth-feature {
+    justify-content: center;
   }
   
   .modal {
