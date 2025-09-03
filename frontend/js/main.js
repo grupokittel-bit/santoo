@@ -437,7 +437,7 @@ class SantooApp {
       : 'assets/images/default-avatar.svg';
     
     return `
-      <div class="video-card" data-video-id="${video.id}" onclick="this.playVideo('${video.id}')">
+      <div class="video-card" data-video-id="${video.id}" onclick="playVideo('${video.id}')">
         <div class="video-thumbnail">
           <img src="${thumbnailUrl}" alt="${SantooUtils.StringUtils.escapeHtml(video.title)}" 
                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K'">

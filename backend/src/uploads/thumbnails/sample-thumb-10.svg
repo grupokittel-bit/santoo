@@ -1,0 +1,7 @@
+<svg width="320" height="200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="320" height="200" fill="#1a1a2e"/>
+    <circle cx="160" cy="100" r="30" fill="#4a90e2"/>
+    <polygon points="150,85 150,115 175,100" fill="white"/>
+    <text x="160" y="140" text-anchor="middle" fill="white" font-family="Arial" font-size="14">Sample 10</text>
+    <text x="160" y="160" text-anchor="middle" fill="#4a90e2" font-family="Arial" font-size="12">Santoo Gospel</text>
+  </svg>
