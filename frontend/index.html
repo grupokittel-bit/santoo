@@ -212,14 +212,63 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/components.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/upload.js"></script>
-    <script src="js/video-player.js"></script>
-    <script src="js/main.js"></script>
+    <!-- Scripts with Cache Busting -->
+    <!-- CACHE BUSTING: Força browser a sempre carregar versão mais recente -->
+    <!-- PROBLEMA: F5 normal carrega arquivos corrompidos do cache -->
+    <!-- SOLUÇÃO: Timestamp impede cache de arquivos JS -->
+    <script>
+        // Cache busting timestamp
+        const CACHE_VERSION = Date.now();
+        
+        // Função para carregar script com cache busting
+        function loadScript(src) {
+            const script = document.createElement('script');
+            script.src = `${src}?v=${CACHE_VERSION}`;
+            script.async = false; // Mantém ordem de carregamento
+            document.head.appendChild(script);
+            
+            return new Promise((resolve, reject) => {
+                script.onload = resolve;
+                script.onerror = reject;
+            });
+        }
+        
+        // Lista de scripts na ordem correta
+        const scripts = [
+            'js/utils.js',
+            'js/api.js', 
+            'js/components.js',
+            'js/auth.js',
+            'js/upload.js',
+            'js/video-player.js',
+            'js/main.js'
+        ];
+        
+        // Carrega scripts sequencialmente com cache busting
+        console.log('🔄 Carregando scripts com cache-busting...');
+        
+        async function loadAllScripts() {
+            try {
+                for (const scriptSrc of scripts) {
+                    await loadScript(scriptSrc);
+                    console.log(`✅ Script carregado: ${scriptSrc}`);
+                }
+                console.log('🚀 Todos os scripts carregados com sucesso!');
+            } catch (error) {
+                console.error('❌ Erro ao carregar scripts:', error);
+                // Fallback: recarregar página com CTRL+F5 
+                console.log('🔄 Forçando recarga completa...');
+                location.reload(true);
+            }
+        }
+        
+        // Inicia carregamento quando DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadAllScripts);
+        } else {
+            loadAllScripts();
+        }
+    </script>
     
     <!-- PWA Service Worker -->
     <script>

@@ -3,10 +3,11 @@
  * PWA caching and offline functionality
  */
 
-const CACHE_NAME = 'santoo-v1.0.0';
+const CACHE_NAME = 'santoo-v1.1.0-no-js-cache';
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache for offline functionality
+// IMPORTANTE: Não cachear arquivos JS críticos para evitar cache corrompido
 const CACHE_FILES = [
   '/',
   '/index.html',
@@ -14,14 +15,19 @@ const CACHE_FILES = [
   '/css/variables.css',
   '/css/components.css',
   '/css/main.css',
+  '/assets/images/default-avatar.svg',
+  '/manifest.json'
+];
+
+// Arquivos JS que NUNCA devem ser cacheados (sempre carregar do servidor)
+const NO_CACHE_JS_FILES = [
   '/js/utils.js',
-  '/js/components.js',
+  '/js/api.js',
+  '/js/components.js', 
   '/js/auth.js',
   '/js/upload.js',
   '/js/video-player.js',
-  '/js/main.js',
-  '/assets/images/default-avatar.svg',
-  '/manifest.json'
+  '/js/main.js'
 ];
 
 /**
@@ -98,6 +104,23 @@ self.addEventListener('fetch', (event) => {
               return cachedResponse || caches.match(OFFLINE_URL);
             });
         })
+    );
+    return;
+  }
+  
+  // ESTRATÉGIA ESPECIAL: JavaScript crítico sempre do servidor
+  const isJSFile = NO_CACHE_JS_FILES.some(jsFile => request.url.includes(jsFile));
+  
+  if (isJSFile) {
+    console.log('🚫 SW: Forçando carregamento do servidor para JS:', request.url);
+    event.respondWith(
+      fetch(request).then((response) => {
+        console.log('✅ SW: JS carregado do servidor:', request.url);
+        return response;
+      }).catch((error) => {
+        console.error('❌ SW: Erro ao carregar JS:', request.url, error);
+        throw error;
+      })
     );
     return;
   }
