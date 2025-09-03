@@ -205,11 +205,11 @@ class SantooApp {
     // DEBUG: Log all clicks to help diagnose issues
     console.log('🖱️ Click detectado em:', e.target.tagName, e.target.id, e.target.className);
     
-    // Handle profile dropdown toggle PRIMEIRO - antes da navegação
-    const profileDropdownToggle = e.target.closest('#profileMenuBtn');
-    if (profileDropdownToggle) {
+    // Handle profile dropdown toggle - apenas para a setinha
+    const dropdownArrow = e.target.closest('.dropdown-arrow');
+    if (dropdownArrow && e.target.closest('#profileMenuBtn')) {
       e.preventDefault();
-      console.log('📋 Profile dropdown toggle clicado');
+      console.log('📋 Profile dropdown arrow clicado');
       this.toggleDropdown('profileSubmenu');
       return;
     }
