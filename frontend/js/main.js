@@ -313,19 +313,42 @@ class SantooApp {
   }
 
   /**
-   * Load video feed
+   * Load video feed from API
    */
-  async loadVideoFeed() {
+  async loadVideoFeed(filters = {}) {
     const videoFeed = document.getElementById('videoFeed');
     if (!videoFeed) return;
     
-    // Simulate loading
-    await this.delay(1000);
-    
-    // Replace loading placeholders with demo videos
-    videoFeed.innerHTML = this.generateDemoVideos();
-    
-    console.log('📹 Feed de vídeos carregado');
+    try {
+      console.log('📹 Carregando feed de vídeos da API...');
+      
+      // Show loading
+      videoFeed.innerHTML = this.getLoadingHTML();
+      
+      // Get videos from API
+      const response = await SantooAPI.videos.getFeed({
+        page: 1,
+        limit: 10,
+        ...filters
+      });
+      
+      if (response && response.videos) {
+        if (response.videos.length === 0) {
+          videoFeed.innerHTML = this.getEmptyStateHTML();
+        } else {
+          videoFeed.innerHTML = response.videos.map(video => this.createVideoCard(video)).join('');
+          this.setupVideoInteractions();
+        }
+        
+        console.log(`✅ ${response.videos.length} vídeos carregados`);
+      } else {
+        throw new Error('Resposta inválida da API');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar feed:', error);
+      videoFeed.innerHTML = this.getErrorStateHTML(error.message);
+    }
   }
 
   /**
@@ -372,35 +395,73 @@ class SantooApp {
   }
 
   /**
-   * Create video card HTML
+   * Create video card HTML with API data
    */
   createVideoCard(video) {
+    // Format duration from seconds to MM:SS
+    const duration = video.duration ? SantooUtils.StringUtils.formatDuration(video.duration) : '0:00';
+    
+    // Get thumbnail URL or fallback
+    const thumbnailUrl = video.thumbnailUrl 
+      ? `${SantooAPI.baseURL}${video.thumbnailUrl}` 
+      : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K';
+    
+    // Get avatar URL or fallback
+    const avatarUrl = video.User?.avatar 
+      ? `${SantooAPI.baseURL}${video.User.avatar}` 
+      : 'assets/images/default-avatar.svg';
+    
     return `
-      <div class="video-card" data-video-id="${video.id}">
+      <div class="video-card" data-video-id="${video.id}" onclick="this.playVideo('${video.id}')">
         <div class="video-thumbnail">
-          <img src="${video.thumbnail}" alt="${video.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K'">
-          <div class="video-duration">${video.duration}</div>
+          <img src="${thumbnailUrl}" alt="${SantooUtils.StringUtils.escapeHtml(video.title)}" 
+               onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K'">
+          <div class="video-duration">${duration}</div>
+          <div class="video-play-btn">▶️</div>
         </div>
+        
         <div class="video-info">
-          <h3 class="video-title">${video.title}</h3>
-          <div class="video-author">
+          <h3 class="video-title" title="${SantooUtils.StringUtils.escapeHtml(video.title)}">
+            ${SantooUtils.StringUtils.truncate(video.title, 50)}
+          </h3>
+          
+          <div class="video-author" onclick="event.stopPropagation(); this.viewProfile('${video.User?.username}')">
             <div class="avatar avatar-sm">
-              <img src="${video.avatar}" alt="${video.author}" onerror="this.src='assets/images/default-avatar.svg'">
+              <img src="${avatarUrl}" alt="${SantooUtils.StringUtils.escapeHtml(video.User?.displayName)}" 
+                   onerror="this.src='assets/images/default-avatar.svg'">
+              ${video.User?.isVerified ? '<div class="verified-badge">✓</div>' : ''}
             </div>
-            <span>${video.author}</span>
+            <span>${SantooUtils.StringUtils.escapeHtml(video.User?.displayName || 'Usuário')}</span>
           </div>
+          
           <div class="video-stats">
-            <div class="video-stat">
+            <div class="video-stat" title="Visualizações">
               <span>👁️</span>
-              <span>${this.formatNumber(video.views)}</span>
+              <span>${SantooUtils.NumberUtils.format(video.viewsCount || 0)}</span>
+            </div>
+            <div class="video-stat like-stat" title="Curtidas" 
+                 onclick="event.stopPropagation(); this.toggleLike('${video.id}')"
+                 data-liked="${video.userLiked || false}">
+              <span class="like-icon">${video.userLiked ? '❤️' : '🤍'}</span>
+              <span class="like-count">${SantooUtils.NumberUtils.format(video.likesCount || 0)}</span>
             </div>
             <div class="video-stat">
-              <span>❤️</span>
-              <span>${this.formatNumber(video.likes)}</span>
+              <span class="badge category-badge" style="background-color: ${video.Category?.color || '#6B7280'}" 
+                    title="${video.Category?.name}">
+                ${video.Category?.icon || '📹'} ${video.Category?.name || 'Vídeo'}
+              </span>
             </div>
-            <div class="video-stat">
-              <span class="badge">${video.category}</span>
-            </div>
+          </div>
+          
+          <div class="video-meta">
+            <span class="video-date" title="${SantooUtils.DateUtils.format(video.createdAt)}">
+              ${SantooUtils.DateUtils.getRelativeTime(video.createdAt)}
+            </span>
+            ${video.commentsCount > 0 ? `
+              <span class="video-comments" title="Comentários">
+                💬 ${SantooUtils.NumberUtils.format(video.commentsCount)}
+              </span>
+            ` : ''}
           </div>
         </div>
       </div>
@@ -810,6 +871,238 @@ class SantooApp {
           break;
       }
     }
+  }
+
+  // === VIDEO FEED HELPER FUNCTIONS ===
+
+  /**
+   * Get loading state HTML
+   */
+  getLoadingHTML() {
+    return `
+      <div class="feed-loading">
+        <div class="loading-spinner"></div>
+        <p>Carregando vídeos...</p>
+      </div>
+    `;
+  }
+
+  /**
+   * Get empty state HTML
+   */
+  getEmptyStateHTML() {
+    return `
+      <div class="feed-empty-state">
+        <div class="empty-icon">📹</div>
+        <h3>Nenhum vídeo encontrado</h3>
+        <p>Seja o primeiro a compartilhar conteúdo inspirador!</p>
+        <button class="btn-primary" onclick="santooApp.navigateTo('upload')">
+          Postar Vídeo
+        </button>
+      </div>
+    `;
+  }
+
+  /**
+   * Get error state HTML
+   */
+  getErrorStateHTML(errorMessage) {
+    return `
+      <div class="feed-error-state">
+        <div class="error-icon">⚠️</div>
+        <h3>Erro ao carregar vídeos</h3>
+        <p>${SantooUtils.StringUtils.escapeHtml(errorMessage)}</p>
+        <button class="btn-secondary" onclick="santooApp.loadVideoFeed()">
+          Tentar Novamente
+        </button>
+      </div>
+    `;
+  }
+
+  /**
+   * Setup video interactions (play, like, etc.)
+   */
+  setupVideoInteractions() {
+    // Add play video functionality
+    window.playVideo = async (videoId) => {
+      console.log('▶️ Reproduzindo vídeo:', videoId);
+      
+      try {
+        // TODO: Implement video player modal
+        const response = await SantooAPI.videos.getById(videoId);
+        
+        if (response && response.video) {
+          this.openVideoModal(response.video);
+          
+          // Increment views
+          setTimeout(() => {
+            this.incrementVideoViews(videoId);
+          }, 5000); // After 5 seconds of viewing
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar vídeo:', error);
+        this.showError('Erro ao carregar vídeo');
+      }
+    };
+
+    // Add profile view functionality
+    window.viewProfile = (username) => {
+      console.log('👤 Visualizando perfil:', username);
+      // TODO: Navigate to user profile
+      this.navigateTo(`profile/${username}`);
+    };
+
+    // Add like toggle functionality
+    window.toggleLike = async (videoId) => {
+      if (!santooAuth.isAuthenticated()) {
+        this.showLoginModal();
+        return;
+      }
+
+      try {
+        const likeButton = document.querySelector(`[onclick="toggleLike('${videoId}')"]`);
+        if (!likeButton) return;
+
+        const likeIcon = likeButton.querySelector('.like-icon');
+        const likeCount = likeButton.querySelector('.like-count');
+        const isCurrentlyLiked = likeButton.dataset.liked === 'true';
+
+        // Optimistic update
+        likeButton.dataset.liked = !isCurrentlyLiked;
+        likeIcon.textContent = !isCurrentlyLiked ? '❤️' : '🤍';
+        
+        const response = await SantooAPI.videos.toggleLike(videoId);
+        
+        if (response && response.success) {
+          likeCount.textContent = SantooUtils.NumberUtils.format(response.likes || 0);
+          console.log('👍 Like atualizado:', response.message);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao curtir vídeo:', error);
+        
+        // Revert optimistic update on error
+        const likeButton = document.querySelector(`[onclick="toggleLike('${videoId}')"]`);
+        if (likeButton) {
+          const isCurrentlyLiked = likeButton.dataset.liked === 'true';
+          likeButton.dataset.liked = !isCurrentlyLiked;
+          const likeIcon = likeButton.querySelector('.like-icon');
+          likeIcon.textContent = !isCurrentlyLiked ? '❤️' : '🤍';
+        }
+      }
+    };
+  }
+
+  /**
+   * Open video player modal
+   */
+  openVideoModal(video) {
+    // TODO: Implement full video player modal
+    const videoUrl = video.videoUrl ? `${SantooAPI.baseURL}${video.videoUrl}` : null;
+    
+    if (!videoUrl) {
+      this.showError('URL do vídeo não encontrada');
+      return;
+    }
+
+    // Simple video modal for now
+    const modalHTML = `
+      <div class="modal video-modal">
+        <div class="modal-content video-modal-content">
+          <div class="modal-header">
+            <h3>${SantooUtils.StringUtils.escapeHtml(video.title)}</h3>
+            <button class="btn-close" onclick="santooApp.closeAllModals()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <video 
+              controls 
+              autoplay 
+              style="width: 100%; height: auto; max-height: 70vh;"
+              poster="${video.thumbnailUrl ? SantooAPI.baseURL + video.thumbnailUrl : ''}"
+            >
+              <source src="${videoUrl}" type="video/mp4">
+              <source src="${videoUrl}" type="video/webm">
+              Seu navegador não suporta reprodução de vídeo.
+            </video>
+            
+            <div class="video-details" style="padding: 15px 0;">
+              <div class="video-author">
+                <img src="${video.User?.avatar ? SantooAPI.baseURL + video.User.avatar : 'assets/images/default-avatar.svg'}" 
+                     alt="${video.User?.displayName}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+                <div>
+                  <strong>${SantooUtils.StringUtils.escapeHtml(video.User?.displayName || 'Usuário')}</strong>
+                  <div style="font-size: 0.9em; color: #666;">
+                    ${SantooUtils.NumberUtils.format(video.viewsCount || 0)} visualizações • 
+                    ${SantooUtils.DateUtils.getRelativeTime(video.createdAt)}
+                  </div>
+                </div>
+              </div>
+              
+              ${video.description ? `
+                <div style="margin-top: 15px; line-height: 1.5;">
+                  ${SantooUtils.StringUtils.escapeHtml(video.description).replace(/\n/g, '<br>')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const overlay = document.getElementById('modalOverlay');
+    overlay.innerHTML = modalHTML;
+    overlay.style.display = 'flex';
+  }
+
+  /**
+   * Increment video views
+   */
+  async incrementVideoViews(videoId) {
+    try {
+      // In a real app, this would be handled by the video player
+      // For now, we'll assume the API handles view counting
+      console.log('📈 Incrementando visualizações do vídeo:', videoId);
+    } catch (error) {
+      console.error('❌ Erro ao incrementar visualizações:', error);
+    }
+  }
+
+  /**
+   * Handle filter button clicks with API integration
+   */
+  handleFilterClick(filterBtn) {
+    // Remove active class from all filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    filterBtn.classList.add('active');
+    
+    const filter = filterBtn.dataset.filter;
+    console.log('🔍 Aplicando filtro:', filter);
+    
+    // Load filtered feed
+    const filters = {};
+    
+    if (filter && filter !== 'all') {
+      // Map frontend filter names to API category IDs
+      const categoryMap = {
+        'pregacao': 1,
+        'musica': 2, 
+        'testemunho': 3,
+        'estudo': 4,
+        'jovens': 5,
+        'infantil': 6,
+        'live': 7,
+        'devocional': 8
+      };
+      
+      if (categoryMap[filter]) {
+        filters.category = categoryMap[filter];
+      }
+    }
+    
+    this.loadVideoFeed(filters);
   }
 
   // Initialize other pages (stubs for now)

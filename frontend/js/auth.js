@@ -1,14 +1,13 @@
 /**
- * SANTOO - Authentication Module
+ * SANTOO - Authentication Module  
  * Handles user authentication, registration, and session management
+ * INTEGRADO COM API REAL
  */
 
 class AuthManager {
   constructor() {
     this.user = null;
     this.token = null;
-    this.refreshToken = null;
-    this.apiBaseUrl = '/api'; // Will be configured later
     
     this.init();
   }
@@ -18,7 +17,7 @@ class AuthManager {
    */
   init() {
     this.loadStoredAuth();
-    console.log('🔐 Auth Manager inicializado');
+    console.log('🔐 Auth Manager inicializado com API real');
   }
 
   /**
@@ -26,22 +25,15 @@ class AuthManager {
    */
   loadStoredAuth() {
     try {
-      const storedUser = localStorage.getItem('santoo_user');
-      const storedToken = localStorage.getItem('santoo_token');
-      const storedRefreshToken = localStorage.getItem('santoo_refresh_token');
+      const storedUser = SantooUtils.StorageUtils.get('santoo_user');
+      const storedToken = SantooUtils.StorageUtils.get('santoo_token');
 
       if (storedUser && storedToken) {
-        this.user = JSON.parse(storedUser);
+        this.user = storedUser;
         this.token = storedToken;
-        this.refreshToken = storedRefreshToken;
         
-        // Validate token expiry (basic check)
-        if (this.isTokenExpired(this.token)) {
-          console.log('Token expirado, fazendo logout...');
-          this.logout();
-        } else {
-          console.log('Sessão restaurada para:', this.user.name);
-        }
+        // Validate token by testing API
+        this.validateStoredAuth();
       }
     } catch (error) {
       console.error('Erro ao carregar autenticação:', error);
@@ -50,10 +42,739 @@ class AuthManager {
   }
 
   /**
-   * Check if token is expired (basic JWT check)
+   * Validate stored authentication with API
    */
-  isTokenExpired(token) {
-    if (!token) return true;
+  async validateStoredAuth() {
+    try {
+      // Test if token is still valid by getting current user
+      const response = await SantooAPI.users.getMe();
+      
+      if (response && response.user) {
+        this.user = response.user;
+        console.log('✅ Sessão restaurada para:', this.user.displayName);
+        this.notifyAuthChange('restored');
+      }
+    } catch (error) {
+      console.log('🔄 Token expirado, fazendo logout...');
+      this.logout();
+    }
+  }
+
+  /**
+   * Login user with identifier and password
+   */
+  async login(identifier, password) {
+    try {
+      console.log('🔐 Tentando fazer login...', identifier);
+      
+      const response = await SantooAPI.auth.login({
+        identifier, // username ou email
+        password
+      });
+
+      if (response && response.user && response.token) {
+        this.user = response.user;
+        this.token = response.token;
+        
+        this.notifyAuthChange('login');
+        
+        console.log('✅ Login realizado com sucesso:', this.user.displayName);
+        return { success: true, user: this.user, message: response.message };
+      } else {
+        throw new Error(response.error || 'Erro no login');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no login:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Register new user
+   */
+  async register(userData) {
+    try {
+      console.log('📝 Tentando registrar usuário...', userData.email);
+      
+      // Validate input locally first
+      const validation = this.validateRegistrationData(userData);
+      if (!validation.valid) {
+        return { success: false, error: validation.message };
+      }
+      
+      const response = await SantooAPI.auth.register({
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.displayName,
+        bio: userData.bio || ''
+      });
+
+      if (response && response.user && response.token) {
+        this.user = response.user;
+        this.token = response.token;
+        
+        this.notifyAuthChange('register');
+        
+        console.log('✅ Registro realizado com sucesso:', this.user.displayName);
+        return { success: true, user: this.user, message: response.message };
+      } else {
+        throw new Error(response.error || 'Erro no registro');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no registro:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Logout current user
+   */
+  async logout() {
+    try {
+      console.log('🔓 Fazendo logout...');
+      
+      // Call API logout to invalidate token server-side
+      await SantooAPI.auth.logout();
+      
+      // Clear local state
+      this.user = null;
+      this.token = null;
+      
+      this.notifyAuthChange('logout');
+      
+      console.log('✅ Logout realizado com sucesso');
+      return { success: true };
+      
+    } catch (error) {
+      console.error('❌ Erro no logout:', error);
+      
+      // Clear local state anyway
+      this.user = null;
+      this.token = null;
+      this.notifyAuthChange('logout');
+      
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Update user profile
+   */
+  async updateProfile(updates) {
+    if (!this.isAuthenticated()) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      console.log('👤 Atualizando perfil...', Object.keys(updates));
+      
+      // Se updates contém arquivo, usa FormData
+      let formData;
+      if (updates.image) {
+        formData = new FormData();
+        Object.entries(updates).forEach(([key, value]) => {
+          formData.append(key, value);
+        });
+      } else {
+        formData = updates;
+      }
+      
+      const response = await SantooAPI.users.updateProfile(formData);
+      
+      if (response && response.user) {
+        this.user = response.user;
+        // Atualiza localStorage também
+        SantooUtils.StorageUtils.set('santoo_user', this.user);
+        
+        this.notifyAuthChange('profileUpdate');
+        
+        console.log('✅ Perfil atualizado com sucesso');
+        return { success: true, user: this.user, message: response.message };
+      } else {
+        throw new Error(response.error || 'Erro ao atualizar perfil');
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao atualizar perfil:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Follow/unfollow user
+   */
+  async toggleFollow(userId) {
+    if (!this.isAuthenticated()) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      const response = await SantooAPI.users.toggleFollow(userId);
+      
+      console.log('👥 Toggle follow:', response.message);
+      return { 
+        success: true, 
+        following: response.following, 
+        message: response.message 
+      };
+      
+    } catch (error) {
+      console.error('❌ Erro ao seguir usuário:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get user feed (videos from followed users)
+   */
+  async getUserFeed(params = {}) {
+    if (!this.isAuthenticated()) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      const response = await SantooAPI.users.getFeed(params);
+      
+      return { success: true, ...response };
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar feed:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(currentPassword, newPassword) {
+    if (!this.isAuthenticated()) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    try {
+      console.log('🔒 Alterando senha...');
+      
+      // Validate new password locally
+      const validation = SantooUtils.ValidationUtils.password(newPassword);
+      if (!validation.valid) {
+        return { success: false, error: validation.message };
+      }
+      
+      // TODO: Implement password change API when available
+      await SantooUtils.sleep(1000); // Temporary delay
+      
+      console.log('✅ Senha alterada com sucesso (simulado)');
+      return { success: true, message: 'Senha alterada com sucesso' };
+      
+    } catch (error) {
+      console.error('❌ Erro ao alterar senha:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Request password reset
+   */
+  async requestPasswordReset(email) {
+    try {
+      console.log('📧 Solicitando reset de senha para:', email);
+      
+      // Validate email
+      if (!SantooUtils.ValidationUtils.email(email)) {
+        return { success: false, error: 'Email inválido' };
+      }
+      
+      // TODO: Implement password reset API when available
+      await SantooUtils.sleep(1000); // Temporary delay
+      
+      return { 
+        success: true, 
+        message: 'Se esse email existir, você receberá instruções de recuperação' 
+      };
+      
+    } catch (error) {
+      console.error('❌ Erro ao solicitar reset:', error.message);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated() {
+    return !!(this.user && this.token);
+  }
+
+  /**
+   * Get current user
+   */
+  getCurrentUser() {
+    return this.user;
+  }
+
+  /**
+   * Get authentication token
+   */
+  getToken() {
+    return this.token;
+  }
+
+  /**
+   * Get authorization header for API requests
+   */
+  getAuthHeader() {
+    return this.token ? `Bearer ${this.token}` : null;
+  }
+
+  /**
+   * Validate registration data
+   */
+  validateRegistrationData(data) {
+    // Validate username
+    if (!data.username || data.username.length < 3) {
+      return { valid: false, message: 'Nome de usuário deve ter pelo menos 3 caracteres' };
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(data.username)) {
+      return { valid: false, message: 'Nome de usuário deve conter apenas letras, números e underscore' };
+    }
+
+    // Validate display name
+    const nameValidation = SantooUtils.ValidationUtils.username(data.displayName);
+    if (!nameValidation.valid) {
+      return nameValidation;
+    }
+
+    // Validate email
+    if (!SantooUtils.ValidationUtils.email(data.email)) {
+      return { valid: false, message: 'Email inválido' };
+    }
+
+    // Validate password
+    const passwordValidation = SantooUtils.ValidationUtils.password(data.password);
+    if (!passwordValidation.valid) {
+      return passwordValidation;
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Notify application of authentication changes
+   */
+  notifyAuthChange(event) {
+    console.log('📢 Auth Event:', event, this.isAuthenticated() ? this.user?.displayName : 'sem usuário');
+    
+    // Dispatch custom event
+    window.dispatchEvent(new CustomEvent('santooAuthChange', {
+      detail: { 
+        event, 
+        user: this.user, 
+        isAuthenticated: this.isAuthenticated() 
+      }
+    }));
+    
+    // Update app UI if available
+    if (window.santooApp && typeof window.santooApp.updateUserUI === 'function') {
+      window.santooApp.updateUserUI();
+    }
+
+    // Update video components if available
+    if (window.VideoComponents && typeof window.VideoComponents.updateAuthState === 'function') {
+      window.VideoComponents.updateAuthState(this.isAuthenticated(), this.user);
+    }
+  }
+
+  /**
+   * Clear stored authentication data
+   */
+  clearStoredAuth() {
+    SantooUtils.StorageUtils.remove('santoo_user');
+    SantooUtils.StorageUtils.remove('santoo_token');
+  }
+}
+
+// === AUTH UI HELPERS ===
+
+/**
+ * Show login modal
+ */
+function showLoginModal() {
+  const modal = document.getElementById('authModal');
+  const modalTitle = document.getElementById('authModalTitle');
+  const modalBody = modal.querySelector('.modal-body');
+  
+  modalTitle.textContent = 'Entrar no Santoo';
+  modalBody.innerHTML = `
+    <form id="loginForm" class="auth-form">
+      <div class="form-group">
+        <label for="loginIdentifier">Email ou Nome de Usuário</label>
+        <input 
+          type="text" 
+          id="loginIdentifier" 
+          name="identifier"
+          placeholder="Digite seu email ou @usuario"
+          required
+          autocomplete="username"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="loginPassword">Senha</label>
+        <input 
+          type="password" 
+          id="loginPassword" 
+          name="password"
+          placeholder="Digite sua senha"
+          required
+          autocomplete="current-password"
+        >
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="loginSubmitBtn">
+          <span class="btn-text">Entrar</span>
+          <span class="btn-loading" style="display: none;">Entrando...</span>
+        </button>
+      </div>
+      
+      <div class="form-footer">
+        <p>Não tem conta? <button type="button" class="link-btn" onclick="showRegisterModal()">Criar conta</button></p>
+        <button type="button" class="link-btn" onclick="showPasswordResetModal()">Esqueci a senha</button>
+      </div>
+      
+      <div id="loginError" class="error-message" style="display: none;"></div>
+      <div id="loginSuccess" class="success-message" style="display: none;"></div>
+    </form>
+  `;
+  
+  // Show modal
+  document.getElementById('modalOverlay').style.display = 'flex';
+  
+  // Bind form events
+  bindLoginForm();
+}
+
+/**
+ * Show register modal
+ */
+function showRegisterModal() {
+  const modal = document.getElementById('authModal');
+  const modalTitle = document.getElementById('authModalTitle');
+  const modalBody = modal.querySelector('.modal-body');
+  
+  modalTitle.textContent = 'Criar Conta no Santoo';
+  modalBody.innerHTML = `
+    <form id="registerForm" class="auth-form">
+      <div class="form-group">
+        <label for="registerUsername">Nome de Usuário</label>
+        <input 
+          type="text" 
+          id="registerUsername" 
+          name="username"
+          placeholder="seunomeunico"
+          required
+          autocomplete="username"
+        >
+        <small>Apenas letras, números e underscore</small>
+      </div>
+      
+      <div class="form-group">
+        <label for="registerDisplayName">Nome de Exibição</label>
+        <input 
+          type="text" 
+          id="registerDisplayName" 
+          name="displayName"
+          placeholder="Seu Nome Completo"
+          required
+          autocomplete="name"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="registerEmail">Email</label>
+        <input 
+          type="email" 
+          id="registerEmail" 
+          name="email"
+          placeholder="seu@email.com"
+          required
+          autocomplete="email"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="registerPassword">Senha</label>
+        <input 
+          type="password" 
+          id="registerPassword" 
+          name="password"
+          placeholder="Mínimo 6 caracteres"
+          required
+          autocomplete="new-password"
+        >
+      </div>
+      
+      <div class="form-group">
+        <label for="registerBio">Bio (opcional)</label>
+        <textarea 
+          id="registerBio" 
+          name="bio"
+          placeholder="Conte um pouco sobre você..."
+          maxlength="500"
+          rows="3"
+        ></textarea>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="registerSubmitBtn">
+          <span class="btn-text">Criar Conta</span>
+          <span class="btn-loading" style="display: none;">Criando...</span>
+        </button>
+      </div>
+      
+      <div class="form-footer">
+        <p>Já tem conta? <button type="button" class="link-btn" onclick="showLoginModal()">Entrar</button></p>
+      </div>
+      
+      <div id="registerError" class="error-message" style="display: none;"></div>
+      <div id="registerSuccess" class="success-message" style="display: none;"></div>
+    </form>
+  `;
+  
+  // Show modal
+  document.getElementById('modalOverlay').style.display = 'flex';
+  
+  // Bind form events
+  bindRegisterForm();
+}
+
+/**
+ * Show password reset modal
+ */
+function showPasswordResetModal() {
+  const modal = document.getElementById('authModal');
+  const modalTitle = document.getElementById('authModalTitle');
+  const modalBody = modal.querySelector('.modal-body');
+  
+  modalTitle.textContent = 'Recuperar Senha';
+  modalBody.innerHTML = `
+    <form id="resetForm" class="auth-form">
+      <p>Digite seu email para receber instruções de recuperação:</p>
+      
+      <div class="form-group">
+        <label for="resetEmail">Email</label>
+        <input 
+          type="email" 
+          id="resetEmail" 
+          name="email"
+          placeholder="seu@email.com"
+          required
+          autocomplete="email"
+        >
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="resetSubmitBtn">
+          <span class="btn-text">Enviar Instruções</span>
+          <span class="btn-loading" style="display: none;">Enviando...</span>
+        </button>
+      </div>
+      
+      <div class="form-footer">
+        <button type="button" class="link-btn" onclick="showLoginModal()">Voltar ao Login</button>
+      </div>
+      
+      <div id="resetError" class="error-message" style="display: none;"></div>
+      <div id="resetSuccess" class="success-message" style="display: none;"></div>
+    </form>
+  `;
+  
+  // Show modal
+  document.getElementById('modalOverlay').style.display = 'flex';
+  
+  // Bind form events
+  bindResetForm();
+}
+
+/**
+ * Hide auth modal
+ */
+function hideAuthModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+/**
+ * Bind login form events
+ */
+function bindLoginForm() {
+  const form = document.getElementById('loginForm');
+  const submitBtn = document.getElementById('loginSubmitBtn');
+  const errorDiv = document.getElementById('loginError');
+  const successDiv = document.getElementById('loginSuccess');
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(form);
+    const identifier = formData.get('identifier').trim();
+    const password = formData.get('password');
+    
+    // Clear previous messages
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    // Show loading
+    submitBtn.disabled = true;
+    submitBtn.querySelector('.btn-text').style.display = 'none';
+    submitBtn.querySelector('.btn-loading').style.display = 'inline';
     
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));\n      const now = Date.now() / 1000;\n      return payload.exp < now;\n    } catch (error) {\n      console.error('Erro ao validar token:', error);\n      return true;\n    }\n  }\n\n  /**\n   * Login user with email and password\n   */\n  async login(email, password) {\n    try {\n      console.log('Tentando fazer login...', email);\n      \n      // Simulate API call for development\n      await this.delay(1000);\n      \n      // Mock successful response\n      const response = {\n        success: true,\n        user: {\n          id: Date.now(),\n          name: email.split('@')[0],\n          email: email,\n          avatar: 'assets/images/default-avatar.svg',\n          verified: false,\n          createdAt: new Date().toISOString()\n        },\n        token: this.generateMockToken(),\n        refreshToken: this.generateMockRefreshToken()\n      };\n\n      if (response.success) {\n        this.user = response.user;\n        this.token = response.token;\n        this.refreshToken = response.refreshToken;\n        \n        this.storeAuth();\n        this.notifyAuthChange('login');\n        \n        return { success: true, user: this.user };\n      } else {\n        throw new Error(response.message || 'Erro no login');\n      }\n      \n    } catch (error) {\n      console.error('Erro no login:', error);\n      return { success: false, error: error.message };\n    }\n  }\n\n  /**\n   * Register new user\n   */\n  async register(userData) {\n    try {\n      console.log('Tentando registrar usuário...', userData.email);\n      \n      // Validate input\n      const validation = this.validateRegistrationData(userData);\n      if (!validation.valid) {\n        return { success: false, error: validation.message };\n      }\n      \n      // Simulate API call\n      await this.delay(1000);\n      \n      // Mock successful response\n      const response = {\n        success: true,\n        user: {\n          id: Date.now(),\n          name: userData.name,\n          email: userData.email,\n          avatar: 'assets/images/default-avatar.svg',\n          verified: false,\n          createdAt: new Date().toISOString()\n        },\n        token: this.generateMockToken(),\n        refreshToken: this.generateMockRefreshToken()\n      };\n\n      if (response.success) {\n        this.user = response.user;\n        this.token = response.token;\n        this.refreshToken = response.refreshToken;\n        \n        this.storeAuth();\n        this.notifyAuthChange('register');\n        \n        return { success: true, user: this.user };\n      } else {\n        throw new Error(response.message || 'Erro no registro');\n      }\n      \n    } catch (error) {\n      console.error('Erro no registro:', error);\n      return { success: false, error: error.message };\n    }\n  }\n\n  /**\n   * Logout current user\n   */\n  async logout() {\n    try {\n      console.log('Fazendo logout...');\n      \n      // Clear local state\n      this.user = null;\n      this.token = null;\n      this.refreshToken = null;\n      \n      // Clear storage\n      this.clearStoredAuth();\n      \n      // Notify app of auth change\n      this.notifyAuthChange('logout');\n      \n      return { success: true };\n      \n    } catch (error) {\n      console.error('Erro no logout:', error);\n      return { success: false, error: error.message };\n    }\n  }\n\n  /**\n   * Refresh authentication token\n   */\n  async refreshAuthToken() {\n    if (!this.refreshToken) {\n      throw new Error('No refresh token available');\n    }\n\n    try {\n      // Simulate API call\n      await this.delay(500);\n      \n      const response = {\n        success: true,\n        token: this.generateMockToken(),\n        refreshToken: this.generateMockRefreshToken()\n      };\n\n      if (response.success) {\n        this.token = response.token;\n        this.refreshToken = response.refreshToken;\n        this.storeAuth();\n        \n        return { success: true, token: this.token };\n      } else {\n        throw new Error('Failed to refresh token');\n      }\n      \n    } catch (error) {\n      console.error('Token refresh failed:', error);\n      this.logout(); // Force logout on refresh failure\n      throw error;\n    }\n  }\n\n  /**\n   * Update user profile\n   */\n  async updateProfile(updates) {\n    if (!this.isAuthenticated()) {\n      return { success: false, error: 'Usuário não autenticado' };\n    }\n\n    try {\n      console.log('Atualizando perfil...', updates);\n      \n      // Simulate API call\n      await this.delay(800);\n      \n      // Update local user object\n      this.user = { ...this.user, ...updates };\n      this.storeAuth();\n      \n      this.notifyAuthChange('profileUpdate');\n      \n      return { success: true, user: this.user };\n      \n    } catch (error) {\n      console.error('Erro ao atualizar perfil:', error);\n      return { success: false, error: error.message };\n    }\n  }\n\n  /**\n   * Change user password\n   */\n  async changePassword(currentPassword, newPassword) {\n    if (!this.isAuthenticated()) {\n      return { success: false, error: 'Usuário não autenticado' };\n    }\n\n    try {\n      console.log('Alterando senha...');\n      \n      // Validate new password\n      const validation = window.SantooUtils.ValidationUtils.password(newPassword);\n      if (!validation.valid) {\n        return { success: false, error: validation.message };\n      }\n      \n      // Simulate API call\n      await this.delay(1000);\n      \n      return { success: true, message: 'Senha alterada com sucesso' };\n      \n    } catch (error) {\n      console.error('Erro ao alterar senha:', error);\n      return { success: false, error: error.message };\n    }\n  }\n\n  /**\n   * Request password reset\n   */\n  async requestPasswordReset(email) {\n    try {\n      console.log('Solicitando reset de senha para:', email);\n      \n      // Validate email\n      if (!window.SantooUtils.ValidationUtils.email(email)) {\n        return { success: false, error: 'Email inválido' };\n      }\n      \n      // Simulate API call\n      await this.delay(1000);\n      \n      return { \n        success: true, \n        message: 'Instruções de recuperação enviadas para seu email' \n      };\n      \n    } catch (error) {\n      console.error('Erro ao solicitar reset:', error);\n      return { success: false, error: error.message };\n    }\n  }\n\n  /**\n   * Store authentication data in localStorage\n   */\n  storeAuth() {\n    try {\n      if (this.user) {\n        localStorage.setItem('santoo_user', JSON.stringify(this.user));\n      }\n      if (this.token) {\n        localStorage.setItem('santoo_token', this.token);\n      }\n      if (this.refreshToken) {\n        localStorage.setItem('santoo_refresh_token', this.refreshToken);\n      }\n    } catch (error) {\n      console.error('Erro ao salvar autenticação:', error);\n    }\n  }\n\n  /**\n   * Clear stored authentication data\n   */\n  clearStoredAuth() {\n    localStorage.removeItem('santoo_user');\n    localStorage.removeItem('santoo_token');\n    localStorage.removeItem('santoo_refresh_token');\n  }\n\n  /**\n   * Check if user is authenticated\n   */\n  isAuthenticated() {\n    return !!(this.user && this.token && !this.isTokenExpired(this.token));\n  }\n\n  /**\n   * Get current user\n   */\n  getCurrentUser() {\n    return this.user;\n  }\n\n  /**\n   * Get authentication token\n   */\n  getToken() {\n    return this.token;\n  }\n\n  /**\n   * Get authorization header for API requests\n   */\n  getAuthHeader() {\n    return this.token ? `Bearer ${this.token}` : null;\n  }\n\n  /**\n   * Validate registration data\n   */\n  validateRegistrationData(data) {\n    // Validate name\n    const nameValidation = window.SantooUtils.ValidationUtils.username(data.name);\n    if (!nameValidation.valid) {\n      return nameValidation;\n    }\n\n    // Validate email\n    if (!window.SantooUtils.ValidationUtils.email(data.email)) {\n      return { valid: false, message: 'Email inválido' };\n    }\n\n    // Validate password\n    const passwordValidation = window.SantooUtils.ValidationUtils.password(data.password);\n    if (!passwordValidation.valid) {\n      return passwordValidation;\n    }\n\n    return { valid: true };\n  }\n\n  /**\n   * Notify application of authentication changes\n   */\n  notifyAuthChange(event) {\n    // Dispatch custom event\n    window.dispatchEvent(new CustomEvent('santooAuthChange', {\n      detail: { event, user: this.user, isAuthenticated: this.isAuthenticated() }\n    }));\n    \n    // Update app UI if santooApp exists\n    if (window.santooApp && typeof window.santooApp.updateUserUI === 'function') {\n      window.santooApp.updateUserUI();\n    }\n  }\n\n  /**\n   * Generate mock JWT token for development\n   */\n  generateMockToken() {\n    const header = { alg: 'HS256', typ: 'JWT' };\n    const payload = {\n      sub: this.user?.id || Date.now(),\n      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours\n      iat: Math.floor(Date.now() / 1000)\n    };\n    \n    // This is just for development - in production, tokens come from server\n    return btoa(JSON.stringify(header)) + '.' + \n           btoa(JSON.stringify(payload)) + '.' + \n           btoa('mock-signature');\n  }\n\n  /**\n   * Generate mock refresh token\n   */\n  generateMockRefreshToken() {\n    return btoa(Date.now() + '-' + Math.random().toString(36));\n  }\n\n  /**\n   * Utility delay function\n   */\n  delay(ms) {\n    return new Promise(resolve => setTimeout(resolve, ms));\n  }\n}\n\n// Create global auth manager instance\nwindow.santooAuth = new AuthManager();\n\nconsole.log('🔐 Santoo Auth carregado');"
+      const result = await santooAuth.login(identifier, password);
+      
+      if (result.success) {
+        successDiv.textContent = result.message || 'Login realizado com sucesso!';
+        successDiv.style.display = 'block';
+        
+        // Close modal after delay
+        setTimeout(() => {
+          hideAuthModal();
+        }, 1500);
+      } else {
+        errorDiv.textContent = result.error;
+        errorDiv.style.display = 'block';
+      }
+    } catch (error) {
+      errorDiv.textContent = error.message;
+      errorDiv.style.display = 'block';
+    }
+    
+    // Hide loading
+    submitBtn.disabled = false;
+    submitBtn.querySelector('.btn-text').style.display = 'inline';
+    submitBtn.querySelector('.btn-loading').style.display = 'none';
+  });
+}
+
+/**
+ * Bind register form events
+ */
+function bindRegisterForm() {
+  const form = document.getElementById('registerForm');
+  const submitBtn = document.getElementById('registerSubmitBtn');
+  const errorDiv = document.getElementById('registerError');
+  const successDiv = document.getElementById('registerSuccess');
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(form);
+    const userData = {
+      username: formData.get('username').trim(),
+      displayName: formData.get('displayName').trim(),
+      email: formData.get('email').trim(),
+      password: formData.get('password'),
+      bio: formData.get('bio').trim()
+    };
+    
+    // Clear previous messages
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    // Show loading
+    submitBtn.disabled = true;
+    submitBtn.querySelector('.btn-text').style.display = 'none';
+    submitBtn.querySelector('.btn-loading').style.display = 'inline';
+    
+    try {
+      const result = await santooAuth.register(userData);
+      
+      if (result.success) {
+        successDiv.textContent = result.message || 'Conta criada com sucesso!';
+        successDiv.style.display = 'block';
+        
+        // Close modal after delay
+        setTimeout(() => {
+          hideAuthModal();
+        }, 1500);
+      } else {
+        errorDiv.textContent = result.error;
+        errorDiv.style.display = 'block';
+      }
+    } catch (error) {
+      errorDiv.textContent = error.message;
+      errorDiv.style.display = 'block';
+    }
+    
+    // Hide loading
+    submitBtn.disabled = false;
+    submitBtn.querySelector('.btn-text').style.display = 'inline';
+    submitBtn.querySelector('.btn-loading').style.display = 'none';
+  });
+}
+
+/**
+ * Bind reset form events
+ */
+function bindResetForm() {
+  const form = document.getElementById('resetForm');
+  const submitBtn = document.getElementById('resetSubmitBtn');
+  const errorDiv = document.getElementById('resetError');
+  const successDiv = document.getElementById('resetSuccess');
+  
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(form);
+    const email = formData.get('email').trim();
+    
+    // Clear previous messages
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'none';
+    
+    // Show loading
+    submitBtn.disabled = true;
+    submitBtn.querySelector('.btn-text').style.display = 'none';
+    submitBtn.querySelector('.btn-loading').style.display = 'inline';
+    
+    try {
+      const result = await santooAuth.requestPasswordReset(email);
+      
+      if (result.success) {
+        successDiv.textContent = result.message;
+        successDiv.style.display = 'block';
+        
+        // Clear form
+        form.reset();
+      } else {
+        errorDiv.textContent = result.error;
+        errorDiv.style.display = 'block';
+      }
+    } catch (error) {
+      errorDiv.textContent = error.message;
+      errorDiv.style.display = 'block';
+    }
+    
+    // Hide loading
+    submitBtn.disabled = false;
+    submitBtn.querySelector('.btn-text').style.display = 'inline';
+    submitBtn.querySelector('.btn-loading').style.display = 'none';
+  });
+}
+
+// Create global auth manager instance
+window.santooAuth = new AuthManager();
+
+// Export helper functions
+window.showLoginModal = showLoginModal;
+window.showRegisterModal = showRegisterModal;
+window.showPasswordResetModal = showPasswordResetModal;
+window.hideAuthModal = hideAuthModal;
+
+console.log('🔐 Santoo Auth carregado com API REAL');
