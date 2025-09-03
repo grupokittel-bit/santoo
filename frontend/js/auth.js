@@ -699,9 +699,13 @@ function showPasswordResetModal() {
       </div>
       
       <div class="form-actions">
-        <button type="submit" class="btn-primary" id="resetSubmitBtn">
-          <span class="btn-text">Enviar Instruções</span>
-          <span class="btn-loading" style="display: none;">Enviando...</span>
+        <button type="submit" class="nav-link active professional-btn" id="resetSubmitBtn">
+          <i class="nav-icon" data-lucide="mail"></i>
+          <span class="nav-text">Enviar Instruções</span>
+          <span class="btn-loading" style="display: none;">
+            <i class="loading-icon" data-lucide="loader-2"></i>
+            Enviando...
+          </span>
         </button>
       </div>
       
@@ -751,8 +755,11 @@ function bindLoginForm() {
     
     // Show loading
     submitBtn.disabled = true;
-    submitBtn.querySelector('.btn-text').style.display = 'none';
-    submitBtn.querySelector('.btn-loading').style.display = 'inline';
+    const textElement = submitBtn.querySelector('.nav-text');
+    const loadingElement = submitBtn.querySelector('.btn-loading');
+    
+    if (textElement) textElement.style.display = 'none';
+    if (loadingElement) loadingElement.style.display = 'inline';
     
     try {
       const result = await santooAuth.login(identifier, password);
@@ -776,8 +783,11 @@ function bindLoginForm() {
     
     // Hide loading
     submitBtn.disabled = false;
-    submitBtn.querySelector('.btn-text').style.display = 'inline';
-    submitBtn.querySelector('.btn-loading').style.display = 'none';
+    const textElement = submitBtn.querySelector('.nav-text');
+    const loadingElement = submitBtn.querySelector('.btn-loading');
+    
+    if (textElement) textElement.style.display = 'inline';
+    if (loadingElement) loadingElement.style.display = 'none';
   });
 }
 
@@ -809,8 +819,11 @@ function bindRegisterForm() {
     
     // Show loading
     submitBtn.disabled = true;
-    submitBtn.querySelector('.btn-text').style.display = 'none';
-    submitBtn.querySelector('.btn-loading').style.display = 'inline';
+    const textElement = submitBtn.querySelector('.nav-text');
+    const loadingElement = submitBtn.querySelector('.btn-loading');
+    
+    if (textElement) textElement.style.display = 'none';
+    if (loadingElement) loadingElement.style.display = 'inline';
     
     try {
       const result = await santooAuth.register(userData);
@@ -834,8 +847,11 @@ function bindRegisterForm() {
     
     // Hide loading
     submitBtn.disabled = false;
-    submitBtn.querySelector('.btn-text').style.display = 'inline';
-    submitBtn.querySelector('.btn-loading').style.display = 'none';
+    const textElement = submitBtn.querySelector('.nav-text');
+    const loadingElement = submitBtn.querySelector('.btn-loading');
+    
+    if (textElement) textElement.style.display = 'inline';
+    if (loadingElement) loadingElement.style.display = 'none';
   });
 }
 
@@ -861,8 +877,11 @@ function bindResetForm() {
     
     // Show loading
     submitBtn.disabled = true;
-    submitBtn.querySelector('.btn-text').style.display = 'none';
-    submitBtn.querySelector('.btn-loading').style.display = 'inline';
+    const textElement = submitBtn.querySelector('.nav-text');
+    const loadingElement = submitBtn.querySelector('.btn-loading');
+    
+    if (textElement) textElement.style.display = 'none';
+    if (loadingElement) loadingElement.style.display = 'inline';
     
     try {
       const result = await santooAuth.requestPasswordReset(email);
@@ -884,8 +903,11 @@ function bindResetForm() {
     
     // Hide loading
     submitBtn.disabled = false;
-    submitBtn.querySelector('.btn-text').style.display = 'inline';
-    submitBtn.querySelector('.btn-loading').style.display = 'none';
+    const textElement = submitBtn.querySelector('.nav-text');
+    const loadingElement = submitBtn.querySelector('.btn-loading');
+    
+    if (textElement) textElement.style.display = 'inline';
+    if (loadingElement) loadingElement.style.display = 'none';
   });
 }
 
