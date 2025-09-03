@@ -189,6 +189,7 @@ class SantooAPI {
    * Configura todos os endpoints da API com contexto correto
    */
   setupAPIEndpoints() {
+    console.log('🔧 DEBUG: setupAPIEndpoints iniciado');
     const self = this;
 
     // 🔐 AUTENTICAÇÃO
@@ -331,6 +332,7 @@ class SantooAPI {
         return self.post(`/api/videos/${videoId}/like`);
       }
     };
+    console.log('🔧 DEBUG: this.videos criado:', this.videos);
 
     // 📂 CATEGORIAS
     this.categories = {
@@ -404,6 +406,7 @@ class SantooAPI {
         return self.get(`/api/comments/${commentId}/replies`, params);
       }
     };
+    console.log('🔧 DEBUG: setupAPIEndpoints concluído. SantooAPI possui:', Object.keys(this));
   }
 
   // === MÉTODOS UTILITÁRIOS ===
@@ -437,7 +440,9 @@ class SantooAPI {
 }
 
 // === INSTÂNCIA GLOBAL ===
+console.log('🔧 DEBUG: Criando instância SantooAPI...');
 const santooAPI = new SantooAPI();
+console.log('🔧 DEBUG: Instância criada. Videos disponível:', !!santooAPI.videos);
 
 // === FUNÇÕES DE CONVENIÊNCIA GLOBAIS ===
 
@@ -473,6 +478,7 @@ async function logout() {
 
 // Exporta para uso global
 window.SantooAPI = santooAPI;
+console.log('🔧 DEBUG: window.SantooAPI definido. Videos:', !!window.SantooAPI.videos);
 window.testAPI = testAPI;
 window.isLoggedIn = isLoggedIn;
 window.getCurrentUser = getCurrentUser;
