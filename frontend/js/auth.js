@@ -19,6 +19,64 @@ class AuthManager {
     this.loadStoredAuth();
     console.log('🔐 Auth Manager inicializado com API real');
   }
+  
+  /**
+   * Diagnóstico completo do estado SantooAPI (para debug)
+   */
+  diagnoseSantooAPI() {
+    console.log('🔍 === DIAGNÓSTICO SANTOOAPI ===');
+    console.log('window.SantooAPI existe:', typeof window.SantooAPI);
+    console.log('window.SantooAPI.auth existe:', !!window.SantooAPI?.auth);
+    console.log('window.SantooAPI.auth.register tipo:', typeof window.SantooAPI?.auth?.register);
+    console.log('window.SantooAPI.auth.login tipo:', typeof window.SantooAPI?.auth?.login);
+    console.log('Todas as propriedades SantooAPI:', window.SantooAPI ? Object.keys(window.SantooAPI) : 'N/A');
+    console.log('Todas as propriedades auth:', window.SantooAPI?.auth ? Object.keys(window.SantooAPI.auth) : 'N/A');
+    console.log('🔍 === FIM DIAGNÓSTICO ===');
+    
+    return {
+      hasAPI: !!window.SantooAPI,
+      hasAuth: !!window.SantooAPI?.auth,
+      hasRegister: typeof window.SantooAPI?.auth?.register === 'function',
+      hasLogin: typeof window.SantooAPI?.auth?.login === 'function'
+    };
+  }
+
+  /**
+   * Aguarda SantooAPI e auth endpoints estarem disponíveis
+   */
+  async waitForSantooAPI() {
+    console.log('🔄 Aguardando SantooAPI.auth estar disponível...');
+    
+    let attempts = 0;
+    const maxAttempts = 20; // 20 tentativas * 100ms = 2 segundos max
+    
+    while (attempts < maxAttempts) {
+      // Verificar se SantooAPI existe
+      if (typeof window.SantooAPI !== 'undefined' && window.SantooAPI !== null) {
+        // Verificar se auth endpoint existe
+        if (window.SantooAPI.auth && typeof window.SantooAPI.auth.register === 'function') {
+          console.log('✅ SantooAPI.auth disponível após', attempts * 100, 'ms');
+          return true;
+        }
+      }
+      
+      attempts++;
+      console.log(`🔄 Tentativa ${attempts}/${maxAttempts} - SantooAPI ainda não disponível...`);
+      
+      // Aguardar 100ms antes da próxima tentativa
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    // Se chegou aqui, não conseguiu carregar
+    console.error('❌ SantooAPI.auth não foi carregado após', maxAttempts * 100, 'ms');
+    console.error('🔧 Estado atual:', {
+      windowSantooAPI: typeof window.SantooAPI,
+      hasAuth: window.SantooAPI?.auth ? 'sim' : 'não',
+      hasRegister: window.SantooAPI?.auth?.register ? 'sim' : 'não'
+    });
+    
+    throw new Error('SantooAPI não está disponível. Verifique se o script api.js foi carregado corretamente.');
+  }
 
   /**
    * Load authentication data from storage
@@ -67,6 +125,9 @@ class AuthManager {
     try {
       console.log('🔐 Tentando fazer login...', identifier);
       
+      // AGUARDAR SANTOOAPI.AUTH ESTAR DISPONÍVEL
+      await this.waitForSantooAPI();
+      
       const response = await SantooAPI.auth.login({
         identifier, // username ou email
         password
@@ -103,6 +164,9 @@ class AuthManager {
         return { success: false, error: validation.message };
       }
       
+      // AGUARDAR SANTOOAPI.AUTH ESTAR DISPONÍVEL
+      await this.waitForSantooAPI();
+      
       const response = await SantooAPI.auth.register({
         username: userData.username,
         email: userData.email,
@@ -136,8 +200,12 @@ class AuthManager {
     try {
       console.log('🔓 Fazendo logout...');
       
-      // Call API logout to invalidate token server-side
-      await SantooAPI.auth.logout();
+      // Call API logout to invalidate token server-side (com checagem de segurança)
+      if (window.SantooAPI?.auth?.logout) {
+        await SantooAPI.auth.logout();
+      } else {
+        console.warn('⚠️ SantooAPI.auth.logout não disponível, fazendo logout local apenas');
+      }
       
       // Clear local state
       this.user = null;
@@ -931,3 +999,8 @@ console.log('✅ Funções exportadas:', {
 console.log('🔧 auth.js carregado completamente!');
 
 console.log('🔐 Santoo Auth carregado com API REAL');
+
+// Expor função de diagnóstico para debug no console
+window.diagnoseSantooAPI = () => {
+  return window.authManager?.diagnoseSantooAPI() || console.log('❌ AuthManager não disponível');
+};

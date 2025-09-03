@@ -406,6 +406,7 @@ class SantooAPI {
         return self.get(`/api/comments/${commentId}/replies`, params);
       }
     };
+    console.log('🔧 DEBUG: this.auth criado:', !!this.auth, 'com register:', typeof this.auth.register);
     console.log('🔧 DEBUG: setupAPIEndpoints concluído. SantooAPI possui:', Object.keys(this));
   }
 
@@ -478,7 +479,8 @@ async function logout() {
 
 // Exporta para uso global
 window.SantooAPI = santooAPI;
-console.log('🔧 DEBUG: window.SantooAPI definido. Videos:', !!window.SantooAPI.videos);
+console.log('🔧 DEBUG: window.SantooAPI definido. Videos:', !!window.SantooAPI.videos, 'Auth:', !!window.SantooAPI.auth);
+console.log('🔧 DEBUG: window.SantooAPI.auth.register:', typeof window.SantooAPI?.auth?.register);
 window.testAPI = testAPI;
 window.isLoggedIn = isLoggedIn;
 window.getCurrentUser = getCurrentUser;
