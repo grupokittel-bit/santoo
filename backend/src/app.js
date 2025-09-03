@@ -81,8 +81,20 @@ app.use('/uploads', (req, res, next) => {
   // Headers CORP para permitir cross-origin requests
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  
+  // Headers específicos para SVG e cache otimizado
+  if (req.path.endsWith('.svg')) {
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // 24h cache
+  }
+  
+  // Headers para imagens em geral
+  if (req.path.match(/\.(jpg|jpeg|png|webp|gif)$/)) {
+    res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 dias cache
+  }
+  
   next();
 }, express.static('src/uploads')); // Serve arquivos de upload
 
