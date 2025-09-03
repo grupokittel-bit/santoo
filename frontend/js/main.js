@@ -634,13 +634,90 @@ class SantooApp {
     const profilePage = document.getElementById('profilePage');
     if (!profilePage) return;
     
+    const authPrompt = document.querySelector('.auth-prompt');
+    
     if (this.user) {
       // Show user profile
+      console.log('👤 Usuário logado - exibindo perfil de:', this.user.displayName);
       this.showUserProfile();
     } else {
-      // Show auth prompt (already in HTML)
-      console.log('Usuário não logado - mostrando prompt de autenticação');
+      // Show auth prompt for non-logged users
+      console.log('👥 Usuário não logado - mostrando prompt de autenticação');
+      
+      if (authPrompt) {
+        authPrompt.style.display = 'block';
+      }
+      
+      // Reset profile to default state
+      const profileName = document.querySelector('.profile-name');
+      const profileBio = document.querySelector('.profile-bio');
+      const profileAvatar = document.querySelector('.profile-avatar img');
+      
+      if (profileName) {
+        profileName.textContent = 'Usuário Convidado';
+      }
+      
+      if (profileBio) {
+        profileBio.textContent = 'Bem-vindo ao Santoo! Faça login para personalizar seu perfil.';
+      }
+      
+      if (profileAvatar) {
+        profileAvatar.src = 'assets/images/default-avatar.svg';
+        profileAvatar.alt = 'Avatar do usuário';
+      }
+      
+      // Reset stats
+      const stats = document.querySelectorAll('.profile-stats .stat strong');
+      if (stats.length >= 3) {
+        stats[0].textContent = '0'; // Seguidores
+        stats[1].textContent = '0'; // Seguindo  
+        stats[2].textContent = '0'; // Vídeos
+      }
     }
+  }
+
+  /**
+   * Show authenticated user profile
+   */
+  showUserProfile() {
+    if (!this.user) return;
+    
+    console.log('👤 Mostrando perfil do usuário:', this.user.displayName);
+    
+    // Esconder prompt de autenticação
+    const authPrompt = document.querySelector('.auth-prompt');
+    if (authPrompt) {
+      authPrompt.style.display = 'none';
+    }
+    
+    // Atualizar informações do perfil
+    const profileName = document.querySelector('.profile-name');
+    const profileBio = document.querySelector('.profile-bio'); 
+    const profileAvatar = document.querySelector('.profile-avatar img');
+    
+    if (profileName) {
+      profileName.textContent = this.user.displayName || this.user.username;
+    }
+    
+    if (profileBio) {
+      profileBio.textContent = this.user.bio || 'Membro da comunidade Santoo';
+    }
+    
+    if (profileAvatar) {
+      profileAvatar.src = this.user.avatar || 'assets/images/default-avatar.svg';
+      profileAvatar.alt = `Avatar de ${this.user.displayName || this.user.username}`;
+    }
+    
+    // Atualizar estatísticas
+    const stats = document.querySelectorAll('.profile-stats .stat strong');
+    if (stats.length >= 3) {
+      stats[0].textContent = this.user.followersCount || 0; // Seguidores
+      stats[1].textContent = this.user.followingCount || 0; // Seguindo  
+      stats[2].textContent = this.user.videosCount || 0;    // Vídeos
+    }
+    
+    // Mostrar conteúdo de perfil do usuário logado
+    // TODO: Implementar lista de vídeos do usuário
   }
 
   /**
