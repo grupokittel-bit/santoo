@@ -83,10 +83,16 @@
                         <i class="nav-icon" data-lucide="radio"></i>
                         <span class="nav-text">Ao Vivo</span>
                     </a>
-                    <a href="#profile" class="nav-link" data-page="profile">
-                        <i class="nav-icon" data-lucide="user"></i>
-                        <span class="nav-text">Perfil</span>
-                    </a>
+                    <div class="dropdown" id="profileDropdown">
+                        <a href="#profile" class="nav-link" data-page="profile" id="profileMenuBtn">
+                            <i class="nav-icon" data-lucide="user"></i>
+                            <span class="nav-text">Perfil</span>
+                            <i class="nav-icon dropdown-arrow" data-lucide="chevron-down" style="width: 14px; height: 14px; margin-left: var(--space-1);"></i>
+                        </a>
+                        <div class="dropdown-menu" id="profileSubmenu">
+                            <!-- Conteúdo será adicionado dinamicamente via JavaScript baseado no estado de auth -->
+                        </div>
+                    </div>
                 </nav>
                 
                 <div class="user-actions">

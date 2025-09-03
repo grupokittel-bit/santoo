@@ -42,6 +42,9 @@ class SantooApp {
       // Check for saved user session
       await this.checkUserSession();
       
+      // Initialize profile submenu
+      this.updateProfileSubmenu();
+      
       // Initialize current page
       this.initCurrentPage();
       
@@ -219,13 +222,14 @@ class SantooApp {
       return;
     }
     
-    // Handle dropdown toggles - REMOVIDO: user menu não está mais disponível
-    // const dropdownToggle = e.target.closest('#userMenuBtn');
-    // if (dropdownToggle) {
-    //   e.preventDefault();
-    //   this.toggleDropdown('userDropdown');
-    //   return;
-    // }
+    // Handle profile dropdown toggle
+    const profileDropdownToggle = e.target.closest('#profileMenuBtn');
+    if (profileDropdownToggle) {
+      e.preventDefault();
+      console.log('📋 Profile dropdown toggle clicado');
+      this.toggleDropdown('profileSubmenu');
+      return;
+    }
     
     // Handle auth buttons - DEBUG ENHANCED
     if (e.target.matches('#loginBtn')) {
@@ -893,17 +897,125 @@ class SantooApp {
    * Update user interface based on auth state
    */
   updateUserUI() {
-    // REMOVIDO: userAvatar não existe mais no cabeçalho
-    // const userAvatar = document.getElementById('userAvatar');
-    // 
-    // if (this.user && userAvatar) {
-    //   userAvatar.src = this.user.avatar;
-    //   userAvatar.alt = this.user.name;
-    // }
+    // Update profile dropdown submenu based on auth state
+    this.updateProfileSubmenu();
     
     // Update profile page if currently viewing
     if (this.currentPage === 'profile') {
       this.updateProfileDisplay();
+    }
+  }
+
+  /**
+   * Update profile submenu based on authentication state
+   */
+  updateProfileSubmenu() {
+    const profileSubmenu = document.getElementById('profileSubmenu');
+    if (!profileSubmenu) return;
+
+    console.log('📋 Atualizando submenu do perfil. User:', !!this.user);
+
+    if (this.user) {
+      // User is logged in - show logout option
+      profileSubmenu.innerHTML = `
+        <button class="dropdown-item" id="submenuLogout">
+          <i class="nav-icon" data-lucide="log-out" style="width: 16px; height: 16px; margin-right: var(--space-2);"></i>
+          Sair
+        </button>
+      `;
+    } else {
+      // User is not logged in - show login and register options
+      profileSubmenu.innerHTML = `
+        <button class="dropdown-item" id="submenuLogin">
+          <i class="nav-icon" data-lucide="log-in" style="width: 16px; height: 16px; margin-right: var(--space-2);"></i>
+          Entrar
+        </button>
+        <hr class="dropdown-divider">
+        <button class="dropdown-item" id="submenuRegister">
+          <i class="nav-icon" data-lucide="user-plus" style="width: 16px; height: 16px; margin-right: var(--space-2);"></i>
+          Criar Conta
+        </button>
+      `;
+    }
+
+    // Re-initialize Lucide icons for the new content
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
+    // Add event listeners to submenu items
+    this.bindSubmenuEvents();
+  }
+
+  /**
+   * Bind event listeners to submenu items
+   */
+  bindSubmenuEvents() {
+    const submenuLogin = document.getElementById('submenuLogin');
+    const submenuRegister = document.getElementById('submenuRegister');
+    const submenuLogout = document.getElementById('submenuLogout');
+
+    if (submenuLogin) {
+      submenuLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('🔑 Submenu Login clicado');
+        this.closeAllDropdowns();
+        if (typeof showLoginModal === 'function') {
+          showLoginModal();
+        }
+      });
+    }
+
+    if (submenuRegister) {
+      submenuRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('👤 Submenu Register clicado');
+        this.closeAllDropdowns();
+        if (typeof showRegisterModal === 'function') {
+          showRegisterModal();
+        }
+      });
+    }
+
+    if (submenuLogout) {
+      submenuLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('🚪 Submenu Logout clicado');
+        this.closeAllDropdowns();
+        this.handleLogout();
+      });
+    }
+  }
+
+  /**
+   * Handle logout from submenu
+   */
+  async handleLogout() {
+    try {
+      console.log('🔓 Fazendo logout...');
+      
+      // Call logout from auth manager
+      if (window.authManager && typeof window.authManager.logout === 'function') {
+        await window.authManager.logout();
+      }
+      
+      // Clear local user state
+      this.user = null;
+      
+      // Update UI
+      this.updateUserUI();
+      
+      // Redirect to home if on profile page
+      if (this.currentPage === 'profile') {
+        this.navigateTo('home');
+      }
+      
+      console.log('✅ Logout realizado com sucesso');
+      this.showSuccess('Logout realizado com sucesso!');
+      
+    } catch (error) {
+      console.error('❌ Erro no logout:', error);
+      this.showError('Erro ao fazer logout. Tente novamente.');
     }
   }
 

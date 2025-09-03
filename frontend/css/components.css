@@ -505,6 +505,33 @@
   border: none;
 }
 
+/* === PROFILE DROPDOWN ESPECÍFICO === */
+
+#profileDropdown .dropdown-menu {
+  left: 50%;
+  transform: translateX(-50%);
+  right: auto;
+  min-width: 10rem;
+}
+
+#profileDropdown .dropdown-arrow {
+  transition: transform 200ms ease-out;
+}
+
+#profileDropdown .dropdown-menu.active ~ .nav-link .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-item {
+  display: flex !important;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.dropdown-item .nav-icon {
+  flex-shrink: 0;
+}
+
 /* === BADGES === */
 
 .badge {
