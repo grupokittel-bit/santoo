@@ -6,6 +6,11 @@
     <meta name="theme-color" content="#1a1a1a">
     <meta name="description" content="Santoo - Plataforma gospel de vídeos curtos e lives. Compartilhe mensagens, testemunhos e pregações.">
     
+    <!-- CACHE CONTROL - Evitar cache do HTML principal -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <!-- SEO Meta Tags -->
     <meta property="og:title" content="Santoo - Plataforma Gospel de Vídeos">
     <meta property="og:description" content="Compartilhe vídeos gospel, testemunhos e pregações com a comunidade cristã">
@@ -245,8 +250,8 @@
     <!-- PROBLEMA: F5 normal carrega arquivos corrompidos do cache -->
     <!-- SOLUÇÃO: Timestamp impede cache de arquivos JS -->
     <script>
-        // Cache busting timestamp
-        const CACHE_VERSION = Date.now();
+        // CACHE BUSTING SUPREMO - Timestamp + Random para garantir cache refresh 
+        const CACHE_VERSION = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         
         // Função para carregar script com cache busting
         function loadScript(src) {

@@ -3,7 +3,7 @@
  * PWA caching and offline functionality
  */
 
-const CACHE_NAME = 'santoo-v1.1.0-no-js-cache';
+const CACHE_NAME = 'santoo-v2.0.0-force-refresh-' + Date.now();
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache for offline functionality

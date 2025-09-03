@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Santoo - Limpeza de Cache</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        .status {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .success { color: #27ae60; }
+        .error { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>🧹 Limpeza Completa de Cache - Santoo</h1>
+    <div id="status" class="status">Iniciando limpeza de cache...</div>
+    <div id="details"></div>
+    
+    <script>
+        async function clearAllCaches() {
+            const statusEl = document.getElementById('status');
+            const detailsEl = document.getElementById('details');
+            
+            try {
+                statusEl.innerHTML = '🔄 Limpando Service Worker...';
+                
+                // 1. Unregister all service workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                        console.log('SW unregistered:', registration);
+                    }
+                    detailsEl.innerHTML += '<p>✅ Service Workers removidos</p>';
+                }
+                
+                statusEl.innerHTML = '🧹 Limpando todos os caches...';
+                
+                // 2. Clear all cache storage
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(
+                        cacheNames.map(cacheName => {
+                            console.log('Deleting cache:', cacheName);
+                            return caches.delete(cacheName);
+                        })
+                    );
+                    detailsEl.innerHTML += '<p>✅ Cache Storage limpo</p>';
+                }
+                
+                statusEl.innerHTML = '🗂️ Limpando Local Storage...';
+                
+                // 3. Clear local storage
+                localStorage.clear();
+                sessionStorage.clear();
+                detailsEl.innerHTML += '<p>✅ Local/Session Storage limpo</p>';
+                
+                // 4. Force reload with cache bypass
+                statusEl.innerHTML = '<span class="success">✅ CACHE TOTALMENTE LIMPO!</span>';
+                detailsEl.innerHTML += '<p>🔄 Redirecionando em 3 segundos...</p>';
+                
+                setTimeout(() => {
+                    window.location.href = '/?cacheClear=' + Date.now();
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Erro ao limpar cache:', error);
+                statusEl.innerHTML = '<span class="error">❌ Erro ao limpar cache</span>';
+                detailsEl.innerHTML += '<p class="error">Erro: ' + error.message + '</p>';
+            }
+        }
+        
+        // Executar limpeza automaticamente
+        clearAllCaches();
+    </script>
+</body>
+</html>
