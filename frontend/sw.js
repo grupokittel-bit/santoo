@@ -1,1 +1,287 @@
-/**\n * SANTOO - Service Worker\n * PWA caching and offline functionality\n */\n\nconst CACHE_NAME = 'santoo-v1.0.0';\nconst OFFLINE_URL = '/offline.html';\n\n// Files to cache for offline functionality\nconst CACHE_FILES = [\n  '/',\n  '/index.html',\n  '/css/reset.css',\n  '/css/variables.css',\n  '/css/components.css',\n  '/css/main.css',\n  '/js/utils.js',\n  '/js/components.js',\n  '/js/auth.js',\n  '/js/upload.js',\n  '/js/video-player.js',\n  '/js/main.js',\n  '/assets/images/default-avatar.svg',\n  '/manifest.json'\n];\n\n/**\n * Install event - cache essential files\n */\nself.addEventListener('install', (event) => {\n  console.log('📦 SW: Installing service worker...');\n  \n  event.waitUntil(\n    caches.open(CACHE_NAME)\n      .then((cache) => {\n        console.log('📦 SW: Caching app shell files');\n        return cache.addAll(CACHE_FILES);\n      })\n      .then(() => {\n        console.log('✅ SW: App shell cached successfully');\n        return self.skipWaiting();\n      })\n      .catch((error) => {\n        console.error('❌ SW: Error caching files:', error);\n      })\n  );\n});\n\n/**\n * Activate event - clean up old caches\n */\nself.addEventListener('activate', (event) => {\n  console.log('🔄 SW: Activating service worker...');\n  \n  event.waitUntil(\n    caches.keys()\n      .then((cacheNames) => {\n        return Promise.all(\n          cacheNames.map((cacheName) => {\n            if (cacheName !== CACHE_NAME) {\n              console.log('🗑️ SW: Deleting old cache:', cacheName);\n              return caches.delete(cacheName);\n            }\n          })\n        );\n      })\n      .then(() => {\n        console.log('✅ SW: Service worker activated');\n        return self.clients.claim();\n      })\n  );\n});\n\n/**\n * Fetch event - serve cached files or fetch from network\n */\nself.addEventListener('fetch', (event) => {\n  const { request } = event;\n  const url = new URL(request.url);\n  \n  // Skip non-GET requests and chrome-extension requests\n  if (request.method !== 'GET' || url.protocol === 'chrome-extension:') {\n    return;\n  }\n  \n  // Handle navigation requests (HTML pages)\n  if (request.mode === 'navigate') {\n    event.respondWith(\n      fetch(request)\n        .then((response) => {\n          // If fetch succeeds, return the response\n          return response;\n        })\n        .catch(() => {\n          // If fetch fails, return cached index.html or offline page\n          return caches.match('/index.html')\n            .then((cachedResponse) => {\n              return cachedResponse || caches.match(OFFLINE_URL);\n            });\n        })\n    );\n    return;\n  }\n  \n  // Handle other requests with cache-first strategy\n  event.respondWith(\n    caches.match(request)\n      .then((cachedResponse) => {\n        if (cachedResponse) {\n          console.log('📥 SW: Serving from cache:', request.url);\n          return cachedResponse;\n        }\n        \n        // If not in cache, fetch from network\n        return fetch(request)\n          .then((response) => {\n            // Don't cache if not a successful response\n            if (!response || response.status !== 200 || response.type !== 'basic') {\n              return response;\n            }\n            \n            // Clone the response for caching\n            const responseToCache = response.clone();\n            \n            // Cache the response for future requests\n            caches.open(CACHE_NAME)\n              .then((cache) => {\n                // Only cache certain file types\n                if (shouldCache(request.url)) {\n                  console.log('💾 SW: Caching new resource:', request.url);\n                  cache.put(request, responseToCache);\n                }\n              });\n            \n            return response;\n          })\n          .catch((error) => {\n            console.error('❌ SW: Network request failed:', request.url, error);\n            \n            // For images, return a placeholder\n            if (request.destination === 'image') {\n              return caches.match('/assets/images/default-avatar.svg');\n            }\n            \n            // For other requests, return a generic offline response\n            return new Response(\n              JSON.stringify({ \n                error: 'Offline', \n                message: 'Recurso não disponível offline' \n              }), \n              {\n                status: 503,\n                statusText: 'Service Unavailable',\n                headers: new Headers({\n                  'Content-Type': 'application/json'\n                })\n              }\n            );\n          });\n      })\n  );\n});\n\n/**\n * Message event - handle messages from the app\n */\nself.addEventListener('message', (event) => {\n  console.log('💬 SW: Received message:', event.data);\n  \n  switch (event.data.type) {\n    case 'SKIP_WAITING':\n      self.skipWaiting();\n      break;\n      \n    case 'CACHE_URLS':\n      if (event.data.payload && event.data.payload.length > 0) {\n        caches.open(CACHE_NAME)\n          .then((cache) => {\n            return cache.addAll(event.data.payload);\n          })\n          .then(() => {\n            console.log('✅ SW: URLs cached successfully');\n          })\n          .catch((error) => {\n            console.error('❌ SW: Error caching URLs:', error);\n          });\n      }\n      break;\n      \n    default:\n      console.log('🤷 SW: Unknown message type:', event.data.type);\n  }\n});\n\n/**\n * Push event - handle push notifications\n */\nself.addEventListener('push', (event) => {\n  console.log('🔔 SW: Push notification received:', event.data?.text());\n  \n  const options = {\n    body: event.data?.text() || 'Nova notificação do Santoo',\n    icon: '/assets/icons/icon-192x192.png',\n    badge: '/assets/icons/badge-72x72.png',\n    tag: 'santoo-notification',\n    vibrate: [200, 100, 200],\n    actions: [\n      {\n        action: 'open',\n        title: 'Abrir App',\n        icon: '/assets/icons/open-action.png'\n      },\n      {\n        action: 'close',\n        title: 'Fechar',\n        icon: '/assets/icons/close-action.png'\n      }\n    ]\n  };\n  \n  event.waitUntil(\n    self.registration.showNotification('Santoo', options)\n  );\n});\n\n/**\n * Notification click event\n */\nself.addEventListener('notificationclick', (event) => {\n  console.log('🔔 SW: Notification clicked:', event.action);\n  \n  event.notification.close();\n  \n  if (event.action === 'open' || !event.action) {\n    event.waitUntil(\n      clients.openWindow('/')\n    );\n  }\n});\n\n/**\n * Background sync event\n */\nself.addEventListener('sync', (event) => {\n  console.log('🔄 SW: Background sync triggered:', event.tag);\n  \n  if (event.tag === 'background-sync') {\n    event.waitUntil(doBackgroundSync());\n  }\n});\n\n/**\n * Utility functions\n */\n\n/**\n * Check if URL should be cached\n */\nfunction shouldCache(url) {\n  const cacheableExtensions = [\n    '.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.svg', '.webp',\n    '.woff', '.woff2', '.ttf', '.eot', '.json'\n  ];\n  \n  return cacheableExtensions.some(ext => url.toLowerCase().includes(ext));\n}\n\n/**\n * Perform background sync operations\n */\nasync function doBackgroundSync() {\n  try {\n    console.log('🔄 SW: Performing background sync...');\n    \n    // Here you would typically:\n    // - Send queued uploads\n    // - Sync offline actions\n    // - Update cached content\n    \n    console.log('✅ SW: Background sync completed');\n  } catch (error) {\n    console.error('❌ SW: Background sync failed:', error);\n    throw error; // This will retry the sync\n  }\n}\n\nconsole.log('🚀 SW: Service worker script loaded');"
+/**
+ * SANTOO - Service Worker
+ * PWA caching and offline functionality
+ */
+
+const CACHE_NAME = 'santoo-v1.0.0';
+const OFFLINE_URL = '/offline.html';
+
+// Files to cache for offline functionality
+const CACHE_FILES = [
+  '/',
+  '/index.html',
+  '/css/reset.css',
+  '/css/variables.css',
+  '/css/components.css',
+  '/css/main.css',
+  '/js/utils.js',
+  '/js/components.js',
+  '/js/auth.js',
+  '/js/upload.js',
+  '/js/video-player.js',
+  '/js/main.js',
+  '/assets/images/default-avatar.svg',
+  '/manifest.json'
+];
+
+/**
+ * Install event - cache essential files
+ */
+self.addEventListener('install', (event) => {
+  console.log('📦 SW: Installing service worker...');
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('📦 SW: Caching app shell files');
+        return cache.addAll(CACHE_FILES);
+      })
+      .then(() => {
+        console.log('✅ SW: App shell cached successfully');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('❌ SW: Error caching files:', error);
+      })
+  );
+});
+
+/**
+ * Activate event - clean up old caches
+ */
+self.addEventListener('activate', (event) => {
+  console.log('🔄 SW: Activating service worker...');
+  
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('🗑️ SW: Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('✅ SW: Service worker activated');
+        return self.clients.claim();
+      })
+  );
+});
+
+/**
+ * Fetch event - serve cached files or fetch from network
+ */
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
+  // Skip non-GET requests and chrome-extension requests
+  if (request.method !== 'GET' || url.protocol === 'chrome-extension:') {
+    return;
+  }
+  
+  // Handle navigation requests (HTML pages)
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // If fetch succeeds, return the response
+          return response;
+        })
+        .catch(() => {
+          // If fetch fails, return cached index.html or offline page
+          return caches.match('/index.html')
+            .then((cachedResponse) => {
+              return cachedResponse || caches.match(OFFLINE_URL);
+            });
+        })
+    );
+    return;
+  }
+  
+  // Handle other requests with cache-first strategy
+  event.respondWith(
+    caches.match(request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          console.log('📥 SW: Serving from cache:', request.url);
+          return cachedResponse;
+        }
+        
+        // If not in cache, fetch from network
+        return fetch(request)
+          .then((response) => {
+            // Don't cache if not a successful response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            
+            // Clone the response for caching
+            const responseToCache = response.clone();
+            
+            // Cache the response for future requests
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                // Only cache certain file types
+                if (shouldCache(request.url)) {
+                  console.log('💾 SW: Caching new resource:', request.url);
+                  cache.put(request, responseToCache);
+                }
+              });
+            
+            return response;
+          })
+          .catch((error) => {
+            console.error('❌ SW: Network request failed:', request.url, error);
+            
+            // For images, return a placeholder
+            if (request.destination === 'image') {
+              return caches.match('/assets/images/default-avatar.svg');
+            }
+            
+            // For other requests, return a generic offline response
+            return new Response(
+              JSON.stringify({ 
+                error: 'Offline', 
+                message: 'Recurso não disponível offline' 
+              }), 
+              {
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: new Headers({
+                  'Content-Type': 'application/json'
+                })
+              }
+            );
+          });
+      })
+  );
+});
+
+/**
+ * Message event - handle messages from the app
+ */
+self.addEventListener('message', (event) => {
+  console.log('💬 SW: Received message:', event.data);
+  
+  switch (event.data.type) {
+    case 'SKIP_WAITING':
+      self.skipWaiting();
+      break;
+      
+    case 'CACHE_URLS':
+      if (event.data.payload && event.data.payload.length > 0) {
+        caches.open(CACHE_NAME)
+          .then((cache) => {
+            return cache.addAll(event.data.payload);
+          })
+          .then(() => {
+            console.log('✅ SW: URLs cached successfully');
+          })
+          .catch((error) => {
+            console.error('❌ SW: Error caching URLs:', error);
+          });
+      }
+      break;
+      
+    default:
+      console.log('🤷 SW: Unknown message type:', event.data.type);
+  }
+});
+
+/**
+ * Push event - handle push notifications
+ */
+self.addEventListener('push', (event) => {
+  console.log('🔔 SW: Push notification received:', event.data?.text());
+  
+  const options = {
+    body: event.data?.text() || 'Nova notificação do Santoo',
+    icon: '/assets/icons/icon-192x192.png',
+    badge: '/assets/icons/badge-72x72.png',
+    tag: 'santoo-notification',
+    vibrate: [200, 100, 200],
+    actions: [
+      {
+        action: 'open',
+        title: 'Abrir App',
+        icon: '/assets/icons/open-action.png'
+      },
+      {
+        action: 'close',
+        title: 'Fechar',
+        icon: '/assets/icons/close-action.png'
+      }
+    ]
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification('Santoo', options)
+  );
+});
+
+/**
+ * Notification click event
+ */
+self.addEventListener('notificationclick', (event) => {
+  console.log('🔔 SW: Notification clicked:', event.action);
+  
+  event.notification.close();
+  
+  if (event.action === 'open' || !event.action) {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
+});
+
+/**
+ * Background sync event
+ */
+self.addEventListener('sync', (event) => {
+  console.log('🔄 SW: Background sync triggered:', event.tag);
+  
+  if (event.tag === 'background-sync') {
+    event.waitUntil(doBackgroundSync());
+  }
+});
+
+/**
+ * Utility functions
+ */
+
+/**
+ * Check if URL should be cached
+ */
+function shouldCache(url) {
+  const cacheableExtensions = [
+    '.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.svg', '.webp',
+    '.woff', '.woff2', '.ttf', '.eot', '.json'
+  ];
+  
+  return cacheableExtensions.some(ext => url.toLowerCase().includes(ext));
+}
+
+/**
+ * Perform background sync operations
+ */
+async function doBackgroundSync() {
+  try {
+    console.log('🔄 SW: Performing background sync...');
+    
+    // Here you would typically:
+    // - Send queued uploads
+    // - Sync offline actions
+    // - Update cached content
+    
+    console.log('✅ SW: Background sync completed');
+  } catch (error) {
+    console.error('❌ SW: Background sync failed:', error);
+    throw error; // This will retry the sync
+  }
+}
+
+console.log('🚀 SW: Service worker script loaded');

@@ -22,6 +22,9 @@ class SantooAPI {
     
     // Carrega token salvo do localStorage
     this.loadAuthToken();
+    
+    // Define endpoints API com contexto correto
+    this.setupAPIEndpoints();
   }
 
   // === MÉTODOS DE CONFIGURAÇÃO ===
@@ -180,221 +183,226 @@ class SantooAPI {
     });
   }
 
-  // === API ENDPOINTS ===
+  // === CONFIGURAÇÃO DOS ENDPOINTS API ===
 
-  // 🔐 AUTENTICAÇÃO
-  auth = {
-    /**
-     * Registrar novo usuário
-     */
-    register: async (userData) => {
-      const result = await this.post('/api/auth/register', userData);
-      
-      if (result.token) {
-        this.setAuthToken(result.token);
-        SantooUtils.StorageUtils.set('santoo_user', result.user);
+  /**
+   * Configura todos os endpoints da API com contexto correto
+   */
+  setupAPIEndpoints() {
+    // 🔐 AUTENTICAÇÃO
+    this.auth = {
+      /**
+       * Registrar novo usuário
+       */
+      register: async (userData) => {
+        const result = await this.post('/api/auth/register', userData);
+        
+        if (result.token) {
+          this.setAuthToken(result.token);
+          SantooUtils.StorageUtils.set('santoo_user', result.user);
+        }
+        
+        return result;
+      },
+
+      /**
+       * Fazer login
+       */
+      login: async (credentials) => {
+        const result = await this.post('/api/auth/login', credentials);
+        
+        if (result.token) {
+          this.setAuthToken(result.token);
+          SantooUtils.StorageUtils.set('santoo_user', result.user);
+        }
+        
+        return result;
+      },
+
+      /**
+       * Verificar token
+       */
+      verify: async (token) => {
+        return this.post('/api/auth/verify', { token });
+      },
+
+      /**
+       * Logout
+       */
+      logout: async () => {
+        this.clearAuth();
+        return { message: 'Logout realizado com sucesso' };
       }
-      
-      return result;
-    },
+    };
 
-    /**
-     * Fazer login
-     */
-    login: async (credentials) => {
-      const result = await this.post('/api/auth/login', credentials);
-      
-      if (result.token) {
-        this.setAuthToken(result.token);
-        SantooUtils.StorageUtils.set('santoo_user', result.user);
+    // 👥 USUÁRIOS
+    this.users = {
+      /**
+       * Listar usuários
+       */
+      list: async (filters = {}) => {
+        return this.get('/api/users', filters);
+      },
+
+      /**
+       * Perfil público de usuário
+       */
+      getProfile: async (username) => {
+        return this.get(`/api/users/${username}`);
+      },
+
+      /**
+       * Meu perfil (autenticado)
+       */
+      getMe: async () => {
+        return this.get('/api/users/me');
+      },
+
+      /**
+       * Atualizar meu perfil
+       */
+      updateProfile: async (formData) => {
+        return this.put('/api/users/me', formData);
+      },
+
+      /**
+       * Seguir/deixar de seguir usuário
+       */
+      toggleFollow: async (userId) => {
+        return this.post(`/api/users/${userId}/follow`);
+      },
+
+      /**
+       * Feed personalizado
+       */
+      getFeed: async (params = {}) => {
+        return this.get('/api/users/me/feed', params);
       }
-      
-      return result;
-    },
+    };
 
-    /**
-     * Verificar token
-     */
-    verify: async (token) => {
-      return this.post('/api/auth/verify', { token });
-    },
+    // 🎥 VÍDEOS
+    this.videos = {
+      /**
+       * Feed de vídeos público
+       */
+      getFeed: async function(filters = {}) {
+        return this.get('/api/videos', {
+          page: 1,
+          limit: 10,
+          ...filters
+        });
+      }.bind(this),
 
-    /**
-     * Logout
-     */
-    logout: async () => {
-      this.clearAuth();
-      return { message: 'Logout realizado com sucesso' };
-    }
-  };
+      /**
+       * Detalhes de um vídeo
+       */
+      getById: async (videoId) => {
+        return this.get(`/api/videos/${videoId}`);
+      },
 
-  // 👥 USUÁRIOS
-  users = {
-    /**
-     * Listar usuários
-     */
-    list: async (filters = {}) => {
-      return this.get('/api/users', filters);
-    },
+      /**
+       * Upload de novo vídeo
+       */
+      upload: async (formData, onProgress = null) => {
+        // TODO: Implementar progress tracking se necessário
+        return this.post('/api/videos', formData);
+      },
 
-    /**
-     * Perfil público de usuário
-     */
-    getProfile: async (username) => {
-      return this.get(`/api/users/${username}`);
-    },
+      /**
+       * Atualizar vídeo
+       */
+      update: async (videoId, data) => {
+        return this.put(`/api/videos/${videoId}`, data);
+      },
 
-    /**
-     * Meu perfil (autenticado)
-     */
-    getMe: async () => {
-      return this.get('/api/users/me');
-    },
+      /**
+       * Deletar vídeo
+       */
+      delete: async (videoId) => {
+        return this.delete(`/api/videos/${videoId}`);
+      },
 
-    /**
-     * Atualizar meu perfil
-     */
-    updateProfile: async (formData) => {
-      return this.put('/api/users/me', formData);
-    },
+      /**
+       * Curtir/descurtir vídeo
+       */
+      toggleLike: async (videoId) => {
+        return this.post(`/api/videos/${videoId}/like`);
+      }
+    };
 
-    /**
-     * Seguir/deixar de seguir usuário
-     */
-    toggleFollow: async (userId) => {
-      return this.post(`/api/users/${userId}/follow`);
-    },
+    // 📂 CATEGORIAS
+    this.categories = {
+      /**
+       * Listar todas as categorias
+       */
+      list: async (withStats = false) => {
+        return this.get('/api/categories', { withStats });
+      },
 
-    /**
-     * Feed personalizado
-     */
-    getFeed: async (params = {}) => {
-      return this.get('/api/users/me/feed', params);
-    }
-  };
+      /**
+       * Vídeos de uma categoria
+       */
+      getVideos: async (categoryId, params = {}) => {
+        return this.get(`/api/categories/${categoryId}`, params);
+      },
 
-  // 🎥 VÍDEOS
-  videos = {
-    /**
-     * Feed de vídeos público
-     */
-    getFeed: async (filters = {}) => {
-      return this.get('/api/videos', {
-        page: 1,
-        limit: 10,
-        ...filters
-      });
-    },
+      /**
+       * Estatísticas das categorias
+       */
+      getStats: async () => {
+        return this.get('/api/categories/stats/overview');
+      },
 
-    /**
-     * Detalhes de um vídeo
-     */
-    getById: async (videoId) => {
-      return this.get(`/api/videos/${videoId}`);
-    },
+      /**
+       * Categorias em alta
+       */
+      getTrending: async (days = 7) => {
+        return this.get('/api/categories/trending', { days });
+      }
+    };
 
-    /**
-     * Upload de novo vídeo
-     */
-    upload: async (formData, onProgress = null) => {
-      // TODO: Implementar progress tracking se necessário
-      return this.post('/api/videos', formData);
-    },
+    // 💬 COMENTÁRIOS
+    this.comments = {
+      /**
+       * Comentários de um vídeo
+       */
+      getVideoComments: async (videoId, params = {}) => {
+        return this.get(`/api/comments/video/${videoId}`, {
+          page: 1,
+          limit: 20,
+          ...params
+        });
+      },
 
-    /**
-     * Atualizar vídeo
-     */
-    update: async (videoId, data) => {
-      return this.put(`/api/videos/${videoId}`, data);
-    },
+      /**
+       * Adicionar comentário
+       */
+      add: async (commentData) => {
+        return this.post('/api/comments', commentData);
+      },
 
-    /**
-     * Deletar vídeo
-     */
-    delete: async (videoId) => {
-      return this.delete(`/api/videos/${videoId}`);
-    },
+      /**
+       * Editar comentário
+       */
+      update: async (commentId, data) => {
+        return this.put(`/api/comments/${commentId}`, data);
+      },
 
-    /**
-     * Curtir/descurtir vídeo
-     */
-    toggleLike: async (videoId) => {
-      return this.post(`/api/videos/${videoId}/like`);
-    }
-  };
+      /**
+       * Deletar comentário
+       */
+      delete: async (commentId) => {
+        return this.delete(`/api/comments/${commentId}`);
+      },
 
-  // 📂 CATEGORIAS
-  categories = {
-    /**
-     * Listar todas as categorias
-     */
-    list: async (withStats = false) => {
-      return this.get('/api/categories', { withStats });
-    },
-
-    /**
-     * Vídeos de uma categoria
-     */
-    getVideos: async (categoryId, params = {}) => {
-      return this.get(`/api/categories/${categoryId}`, params);
-    },
-
-    /**
-     * Estatísticas das categorias
-     */
-    getStats: async () => {
-      return this.get('/api/categories/stats/overview');
-    },
-
-    /**
-     * Categorias em alta
-     */
-    getTrending: async (days = 7) => {
-      return this.get('/api/categories/trending', { days });
-    }
-  };
-
-  // 💬 COMENTÁRIOS
-  comments = {
-    /**
-     * Comentários de um vídeo
-     */
-    getVideoComments: async (videoId, params = {}) => {
-      return this.get(`/api/comments/video/${videoId}`, {
-        page: 1,
-        limit: 20,
-        ...params
-      });
-    },
-
-    /**
-     * Adicionar comentário
-     */
-    add: async (commentData) => {
-      return this.post('/api/comments', commentData);
-    },
-
-    /**
-     * Editar comentário
-     */
-    update: async (commentId, data) => {
-      return this.put(`/api/comments/${commentId}`, data);
-    },
-
-    /**
-     * Deletar comentário
-     */
-    delete: async (commentId) => {
-      return this.delete(`/api/comments/${commentId}`);
-    },
-
-    /**
-     * Respostas de um comentário
-     */
-    getReplies: async (commentId, params = {}) => {
-      return this.get(`/api/comments/${commentId}/replies`, params);
-    }
-  };
+      /**
+       * Respostas de um comentário
+       */
+      getReplies: async (commentId, params = {}) => {
+        return this.get(`/api/comments/${commentId}/replies`, params);
+      }
+    };
+  }
 
   // === MÉTODOS UTILITÁRIOS ===
 

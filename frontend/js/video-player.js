@@ -1,1 +1,623 @@
-/**\n * SANTOO - Video Player Module\n * Enhanced video player with custom controls and features\n */\n\nclass SantooVideoPlayer {\n  constructor(container, options = {}) {\n    this.container = container;\n    this.options = {\n      autoplay: false,\n      muted: false,\n      loop: false,\n      controls: true,\n      pip: true, // Picture in Picture\n      fullscreen: true,\n      playbackSpeeds: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],\n      ...options\n    };\n    \n    this.video = null;\n    this.isPlaying = false;\n    this.currentTime = 0;\n    this.duration = 0;\n    this.volume = 1;\n    this.playbackSpeed = 1;\n    \n    this.init();\n  }\n\n  /**\n   * Initialize video player\n   */\n  init() {\n    this.createPlayerStructure();\n    this.setupEventListeners();\n    console.log('🎬 Video Player inicializado');\n  }\n\n  /**\n   * Create player HTML structure\n   */\n  createPlayerStructure() {\n    this.container.className = 'santoo-video-player';\n    this.container.style.cssText = `\n      position: relative;\n      width: 100%;\n      background: var(--color-bg-primary);\n      border-radius: var(--radius-lg);\n      overflow: hidden;\n    `;\n\n    // Video element\n    this.video = document.createElement('video');\n    this.video.className = 'santoo-video';\n    this.video.style.cssText = `\n      width: 100%;\n      height: 100%;\n      object-fit: contain;\n      background: #000;\n    `;\n    \n    if (this.options.muted) this.video.muted = true;\n    if (this.options.loop) this.video.loop = true;\n    \n    this.container.appendChild(this.video);\n\n    // Create controls if enabled\n    if (this.options.controls) {\n      this.createControls();\n    }\n\n    // Create overlay elements\n    this.createOverlays();\n  }\n\n  /**\n   * Create video controls\n   */\n  createControls() {\n    this.controls = document.createElement('div');\n    this.controls.className = 'santoo-video-controls';\n    this.controls.style.cssText = `\n      position: absolute;\n      bottom: 0;\n      left: 0;\n      right: 0;\n      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));\n      padding: 1rem;\n      display: flex;\n      flex-direction: column;\n      gap: 0.5rem;\n      opacity: 0;\n      transition: opacity 300ms ease-in-out;\n      pointer-events: none;\n    `;\n\n    // Progress bar\n    this.createProgressBar();\n    \n    // Control buttons row\n    this.createControlButtons();\n    \n    this.container.appendChild(this.controls);\n  }\n\n  /**\n   * Create progress bar\n   */\n  createProgressBar() {\n    this.progressContainer = document.createElement('div');\n    this.progressContainer.style.cssText = `\n      position: relative;\n      height: 4px;\n      background: rgba(255, 255, 255, 0.3);\n      border-radius: 2px;\n      cursor: pointer;\n      pointer-events: auto;\n    `;\n\n    this.progressBar = document.createElement('div');\n    this.progressBar.style.cssText = `\n      height: 100%;\n      background: var(--color-accent);\n      border-radius: 2px;\n      width: 0%;\n      transition: width 100ms ease-out;\n    `;\n\n    this.progressContainer.appendChild(this.progressBar);\n    this.controls.appendChild(this.progressContainer);\n  }\n\n  /**\n   * Create control buttons\n   */\n  createControlButtons() {\n    this.buttonsRow = document.createElement('div');\n    this.buttonsRow.style.cssText = `\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      pointer-events: auto;\n    `;\n\n    // Left buttons group\n    const leftButtons = document.createElement('div');\n    leftButtons.style.cssText = `\n      display: flex;\n      align-items: center;\n      gap: 0.5rem;\n    `;\n\n    // Play/Pause button\n    this.playButton = this.createButton('⏸️', 'Pausar');\n    this.playButton.innerHTML = '▶️';\n    \n    // Volume button\n    this.volumeButton = this.createButton('🔊', 'Volume');\n    \n    // Time display\n    this.timeDisplay = document.createElement('span');\n    this.timeDisplay.style.cssText = `\n      color: white;\n      font-size: 0.875rem;\n      font-variant-numeric: tabular-nums;\n    `;\n    this.timeDisplay.textContent = '0:00 / 0:00';\n\n    leftButtons.appendChild(this.playButton);\n    leftButtons.appendChild(this.volumeButton);\n    leftButtons.appendChild(this.timeDisplay);\n\n    // Right buttons group\n    const rightButtons = document.createElement('div');\n    rightButtons.style.cssText = `\n      display: flex;\n      align-items: center;\n      gap: 0.5rem;\n    `;\n\n    // Speed button\n    this.speedButton = this.createButton('1x', 'Velocidade');\n    \n    // Picture in Picture button\n    if (this.options.pip && document.pictureInPictureEnabled) {\n      this.pipButton = this.createButton('📺', 'Picture in Picture');\n      rightButtons.appendChild(this.pipButton);\n    }\n    \n    // Fullscreen button\n    if (this.options.fullscreen) {\n      this.fullscreenButton = this.createButton('⛶', 'Tela cheia');\n      rightButtons.appendChild(this.fullscreenButton);\n    }\n\n    rightButtons.appendChild(this.speedButton);\n\n    this.buttonsRow.appendChild(leftButtons);\n    this.buttonsRow.appendChild(rightButtons);\n    this.controls.appendChild(this.buttonsRow);\n  }\n\n  /**\n   * Create control button\n   */\n  createButton(text, title) {\n    const button = document.createElement('button');\n    button.innerHTML = text;\n    button.title = title;\n    button.style.cssText = `\n      background: none;\n      border: none;\n      color: white;\n      cursor: pointer;\n      padding: 0.5rem;\n      border-radius: var(--radius-base);\n      transition: background-color 200ms ease-in-out;\n      font-size: 1rem;\n    `;\n    \n    button.addEventListener('mouseenter', () => {\n      button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';\n    });\n    \n    button.addEventListener('mouseleave', () => {\n      button.style.backgroundColor = 'transparent';\n    });\n    \n    return button;\n  }\n\n  /**\n   * Create overlay elements\n   */\n  createOverlays() {\n    // Loading spinner\n    this.loadingSpinner = document.createElement('div');\n    this.loadingSpinner.className = 'loading-spinner';\n    this.loadingSpinner.style.cssText = `\n      position: absolute;\n      top: 50%;\n      left: 50%;\n      transform: translate(-50%, -50%);\n      display: none;\n    `;\n    this.container.appendChild(this.loadingSpinner);\n\n    // Play overlay (big play button)\n    this.playOverlay = document.createElement('div');\n    this.playOverlay.style.cssText = `\n      position: absolute;\n      top: 50%;\n      left: 50%;\n      transform: translate(-50%, -50%);\n      width: 60px;\n      height: 60px;\n      background: rgba(0, 0, 0, 0.7);\n      border-radius: 50%;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      cursor: pointer;\n      font-size: 1.5rem;\n      color: white;\n      transition: all 200ms ease-in-out;\n    `;\n    this.playOverlay.innerHTML = '▶️';\n    this.container.appendChild(this.playOverlay);\n  }\n\n  /**\n   * Setup event listeners\n   */\n  setupEventListeners() {\n    // Video events\n    this.video.addEventListener('loadstart', () => this.onLoadStart());\n    this.video.addEventListener('loadedmetadata', () => this.onLoadedMetadata());\n    this.video.addEventListener('canplay', () => this.onCanPlay());\n    this.video.addEventListener('play', () => this.onPlay());\n    this.video.addEventListener('pause', () => this.onPause());\n    this.video.addEventListener('timeupdate', () => this.onTimeUpdate());\n    this.video.addEventListener('ended', () => this.onEnded());\n    this.video.addEventListener('error', (e) => this.onError(e));\n    \n    // Click to play/pause\n    this.video.addEventListener('click', () => this.togglePlay());\n    this.playOverlay.addEventListener('click', () => this.togglePlay());\n\n    if (this.controls) {\n      // Control button events\n      this.playButton.addEventListener('click', () => this.togglePlay());\n      this.volumeButton.addEventListener('click', () => this.toggleMute());\n      \n      if (this.speedButton) {\n        this.speedButton.addEventListener('click', () => this.cycleSpeed());\n      }\n      \n      if (this.pipButton) {\n        this.pipButton.addEventListener('click', () => this.togglePictureInPicture());\n      }\n      \n      if (this.fullscreenButton) {\n        this.fullscreenButton.addEventListener('click', () => this.toggleFullscreen());\n      }\n\n      // Progress bar click\n      this.progressContainer.addEventListener('click', (e) => {\n        const rect = this.progressContainer.getBoundingClientRect();\n        const clickX = e.clientX - rect.left;\n        const clickRatio = clickX / rect.width;\n        this.seekTo(clickRatio * this.duration);\n      });\n\n      // Show/hide controls on hover\n      this.container.addEventListener('mouseenter', () => this.showControls());\n      this.container.addEventListener('mouseleave', () => this.hideControls());\n      \n      // Auto-hide controls after inactivity\n      let hideTimer;\n      this.container.addEventListener('mousemove', () => {\n        this.showControls();\n        clearTimeout(hideTimer);\n        hideTimer = setTimeout(() => this.hideControls(), 3000);\n      });\n    }\n\n    // Keyboard shortcuts\n    this.container.addEventListener('keydown', (e) => this.handleKeyboard(e));\n    this.container.tabIndex = 0; // Make container focusable\n  }\n\n  /**\n   * Event handlers\n   */\n  onLoadStart() {\n    this.showLoading();\n  }\n\n  onLoadedMetadata() {\n    this.duration = this.video.duration;\n    this.updateTimeDisplay();\n  }\n\n  onCanPlay() {\n    this.hideLoading();\n    if (this.options.autoplay) {\n      this.play();\n    }\n  }\n\n  onPlay() {\n    this.isPlaying = true;\n    this.playButton.innerHTML = '⏸️';\n    this.playButton.title = 'Pausar';\n    this.playOverlay.style.display = 'none';\n  }\n\n  onPause() {\n    this.isPlaying = false;\n    this.playButton.innerHTML = '▶️';\n    this.playButton.title = 'Reproduzir';\n    this.playOverlay.style.display = 'flex';\n  }\n\n  onTimeUpdate() {\n    this.currentTime = this.video.currentTime;\n    this.updateProgress();\n    this.updateTimeDisplay();\n  }\n\n  onEnded() {\n    this.isPlaying = false;\n    this.playOverlay.style.display = 'flex';\n    this.playOverlay.innerHTML = '🔄';\n  }\n\n  onError(e) {\n    console.error('Erro no video player:', e);\n    this.hideLoading();\n    this.showError('Erro ao carregar o vídeo');\n  }\n\n  /**\n   * Control methods\n   */\n  play() {\n    if (this.video.paused) {\n      this.video.play().catch(e => {\n        console.error('Erro ao reproduzir:', e);\n      });\n    }\n  }\n\n  pause() {\n    if (!this.video.paused) {\n      this.video.pause();\n    }\n  }\n\n  togglePlay() {\n    if (this.video.paused) {\n      this.play();\n    } else {\n      this.pause();\n    }\n  }\n\n  seekTo(time) {\n    this.video.currentTime = Math.max(0, Math.min(time, this.duration));\n  }\n\n  setVolume(volume) {\n    this.volume = Math.max(0, Math.min(1, volume));\n    this.video.volume = this.volume;\n    this.updateVolumeButton();\n  }\n\n  toggleMute() {\n    this.video.muted = !this.video.muted;\n    this.updateVolumeButton();\n  }\n\n  cycleSpeed() {\n    const currentIndex = this.options.playbackSpeeds.indexOf(this.playbackSpeed);\n    const nextIndex = (currentIndex + 1) % this.options.playbackSpeeds.length;\n    this.playbackSpeed = this.options.playbackSpeeds[nextIndex];\n    this.video.playbackRate = this.playbackSpeed;\n    this.speedButton.textContent = `${this.playbackSpeed}x`;\n  }\n\n  async togglePictureInPicture() {\n    try {\n      if (document.pictureInPictureElement) {\n        await document.exitPictureInPicture();\n      } else {\n        await this.video.requestPictureInPicture();\n      }\n    } catch (error) {\n      console.error('Erro no Picture in Picture:', error);\n    }\n  }\n\n  toggleFullscreen() {\n    if (document.fullscreenElement) {\n      document.exitFullscreen();\n    } else {\n      this.container.requestFullscreen().catch(err => {\n        console.error('Erro ao entrar em tela cheia:', err);\n      });\n    }\n  }\n\n  /**\n   * UI update methods\n   */\n  updateProgress() {\n    if (this.progressBar && this.duration > 0) {\n      const progress = (this.currentTime / this.duration) * 100;\n      this.progressBar.style.width = `${progress}%`;\n    }\n  }\n\n  updateTimeDisplay() {\n    if (this.timeDisplay) {\n      const current = this.formatTime(this.currentTime);\n      const duration = this.formatTime(this.duration);\n      this.timeDisplay.textContent = `${current} / ${duration}`;\n    }\n  }\n\n  updateVolumeButton() {\n    if (this.volumeButton) {\n      if (this.video.muted || this.video.volume === 0) {\n        this.volumeButton.innerHTML = '🔇';\n        this.volumeButton.title = 'Ativar som';\n      } else if (this.video.volume < 0.5) {\n        this.volumeButton.innerHTML = '🔉';\n        this.volumeButton.title = 'Volume';\n      } else {\n        this.volumeButton.innerHTML = '🔊';\n        this.volumeButton.title = 'Volume';\n      }\n    }\n  }\n\n  showControls() {\n    if (this.controls) {\n      this.controls.style.opacity = '1';\n    }\n  }\n\n  hideControls() {\n    if (this.controls && this.isPlaying) {\n      this.controls.style.opacity = '0';\n    }\n  }\n\n  showLoading() {\n    if (this.loadingSpinner) {\n      this.loadingSpinner.style.display = 'block';\n    }\n  }\n\n  hideLoading() {\n    if (this.loadingSpinner) {\n      this.loadingSpinner.style.display = 'none';\n    }\n  }\n\n  showError(message) {\n    // Create error overlay\n    const errorOverlay = document.createElement('div');\n    errorOverlay.style.cssText = `\n      position: absolute;\n      top: 50%;\n      left: 50%;\n      transform: translate(-50%, -50%);\n      background: rgba(0, 0, 0, 0.8);\n      color: white;\n      padding: 1rem;\n      border-radius: var(--radius-lg);\n      text-align: center;\n    `;\n    errorOverlay.innerHTML = `\n      <div style=\"font-size: 2rem; margin-bottom: 0.5rem;\">⚠️</div>\n      <div>${message}</div>\n    `;\n    \n    this.container.appendChild(errorOverlay);\n    \n    setTimeout(() => {\n      if (errorOverlay.parentNode) {\n        errorOverlay.parentNode.removeChild(errorOverlay);\n      }\n    }, 5000);\n  }\n\n  /**\n   * Handle keyboard shortcuts\n   */\n  handleKeyboard(e) {\n    switch (e.key) {\n      case ' ':\n      case 'k':\n        e.preventDefault();\n        this.togglePlay();\n        break;\n      case 'ArrowLeft':\n        e.preventDefault();\n        this.seekTo(this.currentTime - 10);\n        break;\n      case 'ArrowRight':\n        e.preventDefault();\n        this.seekTo(this.currentTime + 10);\n        break;\n      case 'ArrowUp':\n        e.preventDefault();\n        this.setVolume(this.volume + 0.1);\n        break;\n      case 'ArrowDown':\n        e.preventDefault();\n        this.setVolume(this.volume - 0.1);\n        break;\n      case 'm':\n        e.preventDefault();\n        this.toggleMute();\n        break;\n      case 'f':\n        e.preventDefault();\n        this.toggleFullscreen();\n        break;\n    }\n  }\n\n  /**\n   * Utility methods\n   */\n  formatTime(seconds) {\n    if (isNaN(seconds)) return '0:00';\n    \n    const hrs = Math.floor(seconds / 3600);\n    const mins = Math.floor((seconds % 3600) / 60);\n    const secs = Math.floor(seconds % 60);\n    \n    if (hrs > 0) {\n      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;\n    } else {\n      return `${mins}:${secs.toString().padStart(2, '0')}`;\n    }\n  }\n\n  /**\n   * Load video source\n   */\n  loadVideo(src, poster = '') {\n    this.video.src = src;\n    if (poster) {\n      this.video.poster = poster;\n    }\n    this.video.load();\n  }\n\n  /**\n   * Destroy player and clean up\n   */\n  destroy() {\n    if (this.video) {\n      this.video.pause();\n      this.video.src = '';\n    }\n    \n    if (this.container) {\n      this.container.innerHTML = '';\n    }\n    \n    console.log('🎬 Video Player destruído');\n  }\n}\n\n// Export for global use\nwindow.SantooVideoPlayer = SantooVideoPlayer;\n\nconsole.log('🎬 Santoo Video Player carregado');"
+/**
+ * SANTOO - Video Player Module
+ * Enhanced video player with custom controls and features
+ */
+
+class SantooVideoPlayer {
+  constructor(container, options = {}) {
+    this.container = container;
+    this.options = {
+      autoplay: false,
+      muted: false,
+      loop: false,
+      controls: true,
+      pip: true, // Picture in Picture
+      fullscreen: true,
+      playbackSpeeds: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
+      ...options
+    };
+    
+    this.video = null;
+    this.isPlaying = false;
+    this.currentTime = 0;
+    this.duration = 0;
+    this.volume = 1;
+    this.playbackSpeed = 1;
+    
+    this.init();
+  }
+
+  /**
+   * Initialize video player
+   */
+  init() {
+    this.createPlayerStructure();
+    this.setupEventListeners();
+    console.log('🎬 Video Player inicializado');
+  }
+
+  /**
+   * Create player HTML structure
+   */
+  createPlayerStructure() {
+    this.container.className = 'santoo-video-player';
+    this.container.style.cssText = `
+      position: relative;
+      width: 100%;
+      background: var(--color-bg-primary);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    `;
+
+    // Video element
+    this.video = document.createElement('video');
+    this.video.className = 'santoo-video';
+    this.video.style.cssText = `
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    `;
+    
+    if (this.options.muted) this.video.muted = true;
+    if (this.options.loop) this.video.loop = true;
+    
+    this.container.appendChild(this.video);
+
+    // Create controls if enabled
+    if (this.options.controls) {
+      this.createControls();
+    }
+
+    // Create overlay elements
+    this.createOverlays();
+  }
+
+  /**
+   * Create video controls
+   */
+  createControls() {
+    this.controls = document.createElement('div');
+    this.controls.className = 'santoo-video-controls';
+    this.controls.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      opacity: 0;
+      transition: opacity 300ms ease-in-out;
+      pointer-events: none;
+    `;
+
+    // Progress bar
+    this.createProgressBar();
+    
+    // Control buttons row
+    this.createControlButtons();
+    
+    this.container.appendChild(this.controls);
+  }
+
+  /**
+   * Create progress bar
+   */
+  createProgressBar() {
+    this.progressContainer = document.createElement('div');
+    this.progressContainer.style.cssText = `
+      position: relative;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      cursor: pointer;
+      pointer-events: auto;
+    `;
+
+    this.progressBar = document.createElement('div');
+    this.progressBar.style.cssText = `
+      height: 100%;
+      background: var(--color-accent);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 100ms ease-out;
+    `;
+
+    this.progressContainer.appendChild(this.progressBar);
+    this.controls.appendChild(this.progressContainer);
+  }
+
+  /**
+   * Create control buttons
+   */
+  createControlButtons() {
+    this.buttonsRow = document.createElement('div');
+    this.buttonsRow.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: auto;
+    `;
+
+    // Left buttons group
+    const leftButtons = document.createElement('div');
+    leftButtons.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    `;
+
+    // Play/Pause button
+    this.playButton = this.createButton('⏸️', 'Pausar');
+    this.playButton.innerHTML = '▶️';
+    
+    // Volume button
+    this.volumeButton = this.createButton('🔊', 'Volume');
+    
+    // Time display
+    this.timeDisplay = document.createElement('span');
+    this.timeDisplay.style.cssText = `
+      color: white;
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+    `;
+    this.timeDisplay.textContent = '0:00 / 0:00';
+
+    leftButtons.appendChild(this.playButton);
+    leftButtons.appendChild(this.volumeButton);
+    leftButtons.appendChild(this.timeDisplay);
+
+    // Right buttons group
+    const rightButtons = document.createElement('div');
+    rightButtons.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    `;
+
+    // Speed button
+    this.speedButton = this.createButton('1x', 'Velocidade');
+    
+    // Picture in Picture button
+    if (this.options.pip && document.pictureInPictureEnabled) {
+      this.pipButton = this.createButton('📺', 'Picture in Picture');
+      rightButtons.appendChild(this.pipButton);
+    }
+    
+    // Fullscreen button
+    if (this.options.fullscreen) {
+      this.fullscreenButton = this.createButton('⛶', 'Tela cheia');
+      rightButtons.appendChild(this.fullscreenButton);
+    }
+
+    rightButtons.appendChild(this.speedButton);
+
+    this.buttonsRow.appendChild(leftButtons);
+    this.buttonsRow.appendChild(rightButtons);
+    this.controls.appendChild(this.buttonsRow);
+  }
+
+  /**
+   * Create control button
+   */
+  createButton(text, title) {
+    const button = document.createElement('button');
+    button.innerHTML = text;
+    button.title = title;
+    button.style.cssText = `
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: var(--radius-base);
+      transition: background-color 200ms ease-in-out;
+      font-size: 1rem;
+    `;
+    
+    button.addEventListener('mouseenter', () => {
+      button.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    });
+    
+    button.addEventListener('mouseleave', () => {
+      button.style.backgroundColor = 'transparent';
+    });
+    
+    return button;
+  }
+
+  /**
+   * Create overlay elements
+   */
+  createOverlays() {
+    // Loading spinner
+    this.loadingSpinner = document.createElement('div');
+    this.loadingSpinner.className = 'loading-spinner';
+    this.loadingSpinner.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+    `;
+    this.container.appendChild(this.loadingSpinner);
+
+    // Play overlay (big play button)
+    this.playOverlay = document.createElement('div');
+    this.playOverlay.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: white;
+      transition: all 200ms ease-in-out;
+    `;
+    this.playOverlay.innerHTML = '▶️';
+    this.container.appendChild(this.playOverlay);
+  }
+
+  /**
+   * Setup event listeners
+   */
+  setupEventListeners() {
+    // Video events
+    this.video.addEventListener('loadstart', () => this.onLoadStart());
+    this.video.addEventListener('loadedmetadata', () => this.onLoadedMetadata());
+    this.video.addEventListener('canplay', () => this.onCanPlay());
+    this.video.addEventListener('play', () => this.onPlay());
+    this.video.addEventListener('pause', () => this.onPause());
+    this.video.addEventListener('timeupdate', () => this.onTimeUpdate());
+    this.video.addEventListener('ended', () => this.onEnded());
+    this.video.addEventListener('error', (e) => this.onError(e));
+    
+    // Click to play/pause
+    this.video.addEventListener('click', () => this.togglePlay());
+    this.playOverlay.addEventListener('click', () => this.togglePlay());
+
+    if (this.controls) {
+      // Control button events
+      this.playButton.addEventListener('click', () => this.togglePlay());
+      this.volumeButton.addEventListener('click', () => this.toggleMute());
+      
+      if (this.speedButton) {
+        this.speedButton.addEventListener('click', () => this.cycleSpeed());
+      }
+      
+      if (this.pipButton) {
+        this.pipButton.addEventListener('click', () => this.togglePictureInPicture());
+      }
+      
+      if (this.fullscreenButton) {
+        this.fullscreenButton.addEventListener('click', () => this.toggleFullscreen());
+      }
+
+      // Progress bar click
+      this.progressContainer.addEventListener('click', (e) => {
+        const rect = this.progressContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickRatio = clickX / rect.width;
+        this.seekTo(clickRatio * this.duration);
+      });
+
+      // Show/hide controls on hover
+      this.container.addEventListener('mouseenter', () => this.showControls());
+      this.container.addEventListener('mouseleave', () => this.hideControls());
+      
+      // Auto-hide controls after inactivity
+      let hideTimer;
+      this.container.addEventListener('mousemove', () => {
+        this.showControls();
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => this.hideControls(), 3000);
+      });
+    }
+
+    // Keyboard shortcuts
+    this.container.addEventListener('keydown', (e) => this.handleKeyboard(e));
+    this.container.tabIndex = 0; // Make container focusable
+  }
+
+  /**
+   * Event handlers
+   */
+  onLoadStart() {
+    this.showLoading();
+  }
+
+  onLoadedMetadata() {
+    this.duration = this.video.duration;
+    this.updateTimeDisplay();
+  }
+
+  onCanPlay() {
+    this.hideLoading();
+    if (this.options.autoplay) {
+      this.play();
+    }
+  }
+
+  onPlay() {
+    this.isPlaying = true;
+    this.playButton.innerHTML = '⏸️';
+    this.playButton.title = 'Pausar';
+    this.playOverlay.style.display = 'none';
+  }
+
+  onPause() {
+    this.isPlaying = false;
+    this.playButton.innerHTML = '▶️';
+    this.playButton.title = 'Reproduzir';
+    this.playOverlay.style.display = 'flex';
+  }
+
+  onTimeUpdate() {
+    this.currentTime = this.video.currentTime;
+    this.updateProgress();
+    this.updateTimeDisplay();
+  }
+
+  onEnded() {
+    this.isPlaying = false;
+    this.playOverlay.style.display = 'flex';
+    this.playOverlay.innerHTML = '🔄';
+  }
+
+  onError(e) {
+    console.error('Erro no video player:', e);
+    this.hideLoading();
+    this.showError('Erro ao carregar o vídeo');
+  }
+
+  /**
+   * Control methods
+   */
+  play() {
+    if (this.video.paused) {
+      this.video.play().catch(e => {
+        console.error('Erro ao reproduzir:', e);
+      });
+    }
+  }
+
+  pause() {
+    if (!this.video.paused) {
+      this.video.pause();
+    }
+  }
+
+  togglePlay() {
+    if (this.video.paused) {
+      this.play();
+    } else {
+      this.pause();
+    }
+  }
+
+  seekTo(time) {
+    this.video.currentTime = Math.max(0, Math.min(time, this.duration));
+  }
+
+  setVolume(volume) {
+    this.volume = Math.max(0, Math.min(1, volume));
+    this.video.volume = this.volume;
+    this.updateVolumeButton();
+  }
+
+  toggleMute() {
+    this.video.muted = !this.video.muted;
+    this.updateVolumeButton();
+  }
+
+  cycleSpeed() {
+    const currentIndex = this.options.playbackSpeeds.indexOf(this.playbackSpeed);
+    const nextIndex = (currentIndex + 1) % this.options.playbackSpeeds.length;
+    this.playbackSpeed = this.options.playbackSpeeds[nextIndex];
+    this.video.playbackRate = this.playbackSpeed;
+    this.speedButton.textContent = `${this.playbackSpeed}x`;
+  }
+
+  async togglePictureInPicture() {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        await this.video.requestPictureInPicture();
+      }
+    } catch (error) {
+      console.error('Erro no Picture in Picture:', error);
+    }
+  }
+
+  toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      this.container.requestFullscreen().catch(err => {
+        console.error('Erro ao entrar em tela cheia:', err);
+      });
+    }
+  }
+
+  /**
+   * UI update methods
+   */
+  updateProgress() {
+    if (this.progressBar && this.duration > 0) {
+      const progress = (this.currentTime / this.duration) * 100;
+      this.progressBar.style.width = `${progress}%`;
+    }
+  }
+
+  updateTimeDisplay() {
+    if (this.timeDisplay) {
+      const current = this.formatTime(this.currentTime);
+      const duration = this.formatTime(this.duration);
+      this.timeDisplay.textContent = `${current} / ${duration}`;
+    }
+  }
+
+  updateVolumeButton() {
+    if (this.volumeButton) {
+      if (this.video.muted || this.video.volume === 0) {
+        this.volumeButton.innerHTML = '🔇';
+        this.volumeButton.title = 'Ativar som';
+      } else if (this.video.volume < 0.5) {
+        this.volumeButton.innerHTML = '🔉';
+        this.volumeButton.title = 'Volume';
+      } else {
+        this.volumeButton.innerHTML = '🔊';
+        this.volumeButton.title = 'Volume';
+      }
+    }
+  }
+
+  showControls() {
+    if (this.controls) {
+      this.controls.style.opacity = '1';
+    }
+  }
+
+  hideControls() {
+    if (this.controls && this.isPlaying) {
+      this.controls.style.opacity = '0';
+    }
+  }
+
+  showLoading() {
+    if (this.loadingSpinner) {
+      this.loadingSpinner.style.display = 'block';
+    }
+  }
+
+  hideLoading() {
+    if (this.loadingSpinner) {
+      this.loadingSpinner.style.display = 'none';
+    }
+  }
+
+  showError(message) {
+    // Create error overlay
+    const errorOverlay = document.createElement('div');
+    errorOverlay.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 1rem;
+      border-radius: var(--radius-lg);
+      text-align: center;
+    `;
+    errorOverlay.innerHTML = `
+      <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚠️</div>
+      <div>${message}</div>
+    `;
+    
+    this.container.appendChild(errorOverlay);
+    
+    setTimeout(() => {
+      if (errorOverlay.parentNode) {
+        errorOverlay.parentNode.removeChild(errorOverlay);
+      }
+    }, 5000);
+  }
+
+  /**
+   * Handle keyboard shortcuts
+   */
+  handleKeyboard(e) {
+    switch (e.key) {
+      case ' ':
+      case 'k':
+        e.preventDefault();
+        this.togglePlay();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        this.seekTo(this.currentTime - 10);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        this.seekTo(this.currentTime + 10);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        this.setVolume(this.volume + 0.1);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        this.setVolume(this.volume - 0.1);
+        break;
+      case 'm':
+        e.preventDefault();
+        this.toggleMute();
+        break;
+      case 'f':
+        e.preventDefault();
+        this.toggleFullscreen();
+        break;
+    }
+  }
+
+  /**
+   * Utility methods
+   */
+  formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    } else {
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+  }
+
+  /**
+   * Load video source
+   */
+  loadVideo(src, poster = '') {
+    this.video.src = src;
+    if (poster) {
+      this.video.poster = poster;
+    }
+    this.video.load();
+  }
+
+  /**
+   * Destroy player and clean up
+   */
+  destroy() {
+    if (this.video) {
+      this.video.pause();
+      this.video.src = '';
+    }
+    
+    if (this.container) {
+      this.container.innerHTML = '';
+    }
+    
+    console.log('🎬 Video Player destruído');
+  }
+}
+
+// Export for global use
+window.SantooVideoPlayer = SantooVideoPlayer;
+
+console.log('🎬 Santoo Video Player carregado');
