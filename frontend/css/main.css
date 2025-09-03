@@ -540,11 +540,17 @@ body {
 }
 
 .auth-buttons .nav-link {
-  min-width: 140px;
+  min-width: 160px;
   justify-content: center;
   background: transparent !important;
   border: none !important;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  font-size: var(--font-size-base);
+}
+
+.auth-buttons .nav-link .nav-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .auth-buttons .nav-link:hover {
@@ -673,7 +679,13 @@ body {
     width: 100%;
     min-width: auto;
     background: transparent !important;
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--font-size-base);
+  }
+  
+  .auth-buttons .nav-link .nav-icon {
+    width: 20px;
+    height: 20px;
   }
   
   .auth-features {
