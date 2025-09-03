@@ -126,6 +126,9 @@ class SantooApp {
    * Handle click events
    */
   handleClick(e) {
+    // DEBUG: Log all clicks to help diagnose issues
+    console.log('🖱️ Click detectado em:', e.target.tagName, e.target.id, e.target.className);
+    
     const target = e.target.closest('[data-page]');
     if (target) {
       e.preventDefault();
@@ -151,19 +154,27 @@ class SantooApp {
       return;
     }
     
-    // Handle auth buttons
+    // Handle auth buttons - DEBUG ENHANCED
     if (e.target.matches('#loginBtn')) {
+      console.log('🚀 LoginBtn clicado!');
       // Use the professional auth functions from auth.js
       if (typeof showLoginModal === 'function') {
+        console.log('✅ showLoginModal está disponível, chamando...');
         showLoginModal();
       } else {
+        console.log('⚠️ showLoginModal não disponível, usando fallback');
         this.openAuthModal('login');
       }
     } else if (e.target.matches('#registerBtn')) {
+      console.log('🚀 RegisterBtn clicado!');
+      console.log('🔍 Verificando showRegisterModal:', typeof showRegisterModal);
       // Use the professional auth functions from auth.js  
       if (typeof showRegisterModal === 'function') {
+        console.log('✅ showRegisterModal está disponível, chamando...');
         showRegisterModal();
       } else {
+        console.log('⚠️ showRegisterModal não disponível, usando fallback');
+        console.log('🔄 Tentando openAuthModal(register)...');
         this.openAuthModal('register');
       }
     } else if (e.target.matches('#logoutBtn')) {

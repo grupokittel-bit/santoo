@@ -893,9 +893,19 @@ function bindResetForm() {
 window.santooAuth = new AuthManager();
 
 // Export helper functions
+console.log('📤 Exportando funções de autenticação para window...');
 window.showLoginModal = showLoginModal;
 window.showRegisterModal = showRegisterModal;
 window.showPasswordResetModal = showPasswordResetModal;
 window.hideAuthModal = hideAuthModal;
+
+console.log('✅ Funções exportadas:', {
+  showLoginModal: typeof window.showLoginModal,
+  showRegisterModal: typeof window.showRegisterModal,
+  showPasswordResetModal: typeof window.showPasswordResetModal,
+  hideAuthModal: typeof window.hideAuthModal
+});
+
+console.log('🔧 auth.js carregado completamente!');
 
 console.log('🔐 Santoo Auth carregado com API REAL');

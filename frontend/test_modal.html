@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Modal</title>
+</head>
+<body>
+    <h1>Teste do Modal</h1>
+    
+    <button id="registerBtn" style="padding: 10px; font-size: 16px;">
+        Criar Conta (Teste)
+    </button>
+    
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+        Status: Aguardando clique...
+    </div>
+
+    <script>
+        // Simular a função auth.js
+        function showRegisterModal() {
+            document.getElementById('result').innerHTML = '✅ showRegisterModal() foi chamada com sucesso!';
+            document.getElementById('result').style.backgroundColor = '#d4edda';
+            document.getElementById('result').style.color = '#155724';
+        }
+        
+        // Expor no window (como no auth.js real)
+        window.showRegisterModal = showRegisterModal;
+        
+        // Simular o event listener do main.js
+        document.addEventListener('click', (e) => {
+            console.log('Click detectado em:', e.target.id);
+            
+            if (e.target.matches('#registerBtn')) {
+                console.log('RegisterBtn clicado!');
+                
+                if (typeof showRegisterModal === 'function') {
+                    console.log('showRegisterModal é função, chamando...');
+                    showRegisterModal();
+                } else {
+                    console.log('showRegisterModal NÃO é função:', typeof showRegisterModal);
+                    document.getElementById('result').innerHTML = '❌ showRegisterModal não é função';
+                    document.getElementById('result').style.backgroundColor = '#f8d7da';
+                }
+            }
+        });
+        
+        console.log('✅ Teste configurado. Clique no botão para testar.');
+    </script>
+</body>
+</html>
