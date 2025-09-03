@@ -119,6 +119,53 @@ class SantooApp {
     // Upload drag and drop
     this.setupDragAndDrop();
     
+    // DIRECT BUTTON LISTENERS - FIX for modal not opening
+    console.log('🔧 Configurando listeners diretos para botões auth...');
+    
+    // Wait for DOM and scripts to be ready
+    setTimeout(() => {
+      const registerBtn = document.getElementById('registerBtn');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      if (registerBtn) {
+        registerBtn.addEventListener('click', (e) => {
+          console.log('🎯 DIRECT RegisterBtn click listener ativado!');
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (typeof showRegisterModal === 'function') {
+            console.log('✅ Chamando showRegisterModal() diretamente...');
+            showRegisterModal();
+          } else {
+            console.log('⚠️ showRegisterModal não disponível, usando fallback...');
+            this.openAuthModal('register');
+          }
+        }, true); // Use capturing to ensure it runs first
+        console.log('✅ Direct listener adicionado ao registerBtn');
+      } else {
+        console.warn('❌ registerBtn não encontrado para listener direto');
+      }
+      
+      if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+          console.log('🎯 DIRECT LoginBtn click listener ativado!');
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (typeof showLoginModal === 'function') {
+            console.log('✅ Chamando showLoginModal() diretamente...');
+            showLoginModal();
+          } else {
+            console.log('⚠️ showLoginModal não disponível, usando fallback...');
+            this.openAuthModal('login');
+          }
+        }, true); // Use capturing to ensure it runs first
+        console.log('✅ Direct listener adicionado ao loginBtn');
+      } else {
+        console.warn('❌ loginBtn não encontrado para listener direto');
+      }
+    }.bind(this), 2000); // Wait 2 seconds for all scripts to load
+
     console.log('📱 Event listeners configurados');
   }
 
