@@ -407,15 +407,31 @@ function showLoginModal() {
   const modalTitle = document.getElementById('authModalTitle');
   const modalBody = modal.querySelector('.modal-body');
   
-  modalTitle.textContent = 'Entrar no Santoo';
+  modalTitle.textContent = 'Bem-vindo de volta!';
   modalBody.innerHTML = `
-    <form id="loginForm" class="auth-form">
+    <!-- Professional Auth Prompt Header -->
+    <div class="auth-modal-header">
+      <div class="auth-prompt-header">
+        <i class="auth-prompt-icon" data-lucide="log-in"></i>
+        <h3>Entrar</h3>
+      </div>
+      <p class="auth-prompt-description">
+        Entre na sua conta para continuar sua jornada de fé no Santoo.
+      </p>
+    </div>
+
+    <!-- Professional Form -->
+    <form id="loginForm" class="auth-form professional-form">
       <div class="form-group">
-        <label for="loginIdentifier">Email ou Nome de Usuário</label>
+        <label for="loginIdentifier" class="form-label">
+          <i class="label-icon" data-lucide="at-sign"></i>
+          Email ou Nome de Usuário
+        </label>
         <input 
           type="text" 
           id="loginIdentifier" 
           name="identifier"
+          class="form-input"
           placeholder="Digite seu email ou @usuario"
           required
           autocomplete="username"
@@ -423,36 +439,75 @@ function showLoginModal() {
       </div>
       
       <div class="form-group">
-        <label for="loginPassword">Senha</label>
+        <label for="loginPassword" class="form-label">
+          <i class="label-icon" data-lucide="lock"></i>
+          Senha
+        </label>
         <input 
           type="password" 
           id="loginPassword" 
           name="password"
+          class="form-input"
           placeholder="Digite sua senha"
           required
           autocomplete="current-password"
         >
       </div>
       
-      <div class="form-actions">
-        <button type="submit" class="btn-primary" id="loginSubmitBtn">
-          <span class="btn-text">Entrar</span>
-          <span class="btn-loading" style="display: none;">Entrando...</span>
+      <!-- Professional Action Buttons -->
+      <div class="auth-modal-actions">
+        <button type="submit" class="nav-link active professional-btn" id="loginSubmitBtn">
+          <i class="nav-icon" data-lucide="log-in"></i>
+          <span class="nav-text">Entrar</span>
+          <span class="btn-loading" style="display: none;">
+            <i class="loading-icon" data-lucide="loader-2"></i>
+            Entrando...
+          </span>
         </button>
       </div>
       
-      <div class="form-footer">
-        <p>Não tem conta? <button type="button" class="link-btn" onclick="showRegisterModal()">Criar conta</button></p>
-        <button type="button" class="link-btn" onclick="showPasswordResetModal()">Esqueci a senha</button>
+      <!-- Professional Footer -->
+      <div class="form-footer auth-footer">
+        <p>Não tem conta? 
+          <button type="button" class="nav-link link-btn" onclick="showRegisterModal()">
+            <i class="nav-icon" data-lucide="user-plus"></i>
+            <span class="nav-text">Criar conta</span>
+          </button>
+        </p>
+        <button type="button" class="nav-link link-btn" onclick="showPasswordResetModal()" style="margin-top: var(--space-2);">
+          <i class="nav-icon" data-lucide="key"></i>
+          <span class="nav-text">Esqueci a senha</span>
+        </button>
       </div>
       
       <div id="loginError" class="error-message" style="display: none;"></div>
       <div id="loginSuccess" class="success-message" style="display: none;"></div>
     </form>
+
+    <!-- Professional Features Section -->
+    <div class="auth-modal-features">
+      <div class="auth-feature">
+        <i class="feature-icon" data-lucide="shield-check"></i>
+        <span>Login seguro</span>
+      </div>
+      <div class="auth-feature">
+        <i class="feature-icon" data-lucide="smartphone"></i>
+        <span>Acesso multiplataforma</span>
+      </div>
+      <div class="auth-feature">
+        <i class="feature-icon" data-lucide="users"></i>
+        <span>Comunidade ativa</span>
+      </div>
+    </div>
   `;
   
   // Show modal
   document.getElementById('modalOverlay').style.display = 'flex';
+  
+  // Reinitialize Lucide icons for new modal content
+  if (window.SantooIcons) {
+    window.SantooIcons.reinit();
+  }
   
   // Bind form events
   bindLoginForm();
@@ -466,40 +521,66 @@ function showRegisterModal() {
   const modalTitle = document.getElementById('authModalTitle');
   const modalBody = modal.querySelector('.modal-body');
   
-  modalTitle.textContent = 'Criar Conta no Santoo';
+  modalTitle.textContent = 'Junte-se à comunidade Santoo';
   modalBody.innerHTML = `
-    <form id="registerForm" class="auth-form">
-      <div class="form-group">
-        <label for="registerUsername">Nome de Usuário</label>
-        <input 
-          type="text" 
-          id="registerUsername" 
-          name="username"
-          placeholder="seunomeunico"
-          required
-          autocomplete="username"
-        >
-        <small>Apenas letras, números e underscore</small>
+    <!-- Professional Auth Prompt Header -->
+    <div class="auth-modal-header">
+      <div class="auth-prompt-header">
+        <i class="auth-prompt-icon" data-lucide="user-plus"></i>
+        <h3>Criar Conta</h3>
+      </div>
+      <p class="auth-prompt-description">
+        Crie sua conta para começar a compartilhar sua jornada de fé com milhares de pessoas.
+      </p>
+    </div>
+
+    <!-- Professional Form -->
+    <form id="registerForm" class="auth-form professional-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="registerUsername" class="form-label">
+            <i class="label-icon" data-lucide="at-sign"></i>
+            Nome de Usuário
+          </label>
+          <input 
+            type="text" 
+            id="registerUsername" 
+            name="username"
+            class="form-input"
+            placeholder="seunomeunico"
+            required
+            autocomplete="username"
+          >
+          <small class="form-hint">Apenas letras, números e underscore</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="registerDisplayName" class="form-label">
+            <i class="label-icon" data-lucide="user"></i>
+            Nome de Exibição
+          </label>
+          <input 
+            type="text" 
+            id="registerDisplayName" 
+            name="displayName"
+            class="form-input"
+            placeholder="Seu Nome Completo"
+            required
+            autocomplete="name"
+          >
+        </div>
       </div>
       
       <div class="form-group">
-        <label for="registerDisplayName">Nome de Exibição</label>
-        <input 
-          type="text" 
-          id="registerDisplayName" 
-          name="displayName"
-          placeholder="Seu Nome Completo"
-          required
-          autocomplete="name"
-        >
-      </div>
-      
-      <div class="form-group">
-        <label for="registerEmail">Email</label>
+        <label for="registerEmail" class="form-label">
+          <i class="label-icon" data-lucide="mail"></i>
+          Email
+        </label>
         <input 
           type="email" 
           id="registerEmail" 
           name="email"
+          class="form-input"
           placeholder="seu@email.com"
           required
           autocomplete="email"
@@ -507,11 +588,15 @@ function showRegisterModal() {
       </div>
       
       <div class="form-group">
-        <label for="registerPassword">Senha</label>
+        <label for="registerPassword" class="form-label">
+          <i class="label-icon" data-lucide="lock"></i>
+          Senha
+        </label>
         <input 
           type="password" 
           id="registerPassword" 
           name="password"
+          class="form-input"
           placeholder="Mínimo 6 caracteres"
           required
           autocomplete="new-password"
@@ -519,34 +604,70 @@ function showRegisterModal() {
       </div>
       
       <div class="form-group">
-        <label for="registerBio">Bio (opcional)</label>
+        <label for="registerBio" class="form-label">
+          <i class="label-icon" data-lucide="message-circle"></i>
+          Bio (opcional)
+        </label>
         <textarea 
           id="registerBio" 
           name="bio"
-          placeholder="Conte um pouco sobre você..."
+          class="form-input form-textarea"
+          placeholder="Conte um pouco sobre você e sua jornada de fé..."
           maxlength="500"
           rows="3"
         ></textarea>
       </div>
       
-      <div class="form-actions">
-        <button type="submit" class="btn-primary" id="registerSubmitBtn">
-          <span class="btn-text">Criar Conta</span>
-          <span class="btn-loading" style="display: none;">Criando...</span>
+      <!-- Professional Action Buttons -->
+      <div class="auth-modal-actions">
+        <button type="submit" class="nav-link active professional-btn" id="registerSubmitBtn">
+          <i class="nav-icon" data-lucide="user-plus"></i>
+          <span class="nav-text">Criar Conta</span>
+          <span class="btn-loading" style="display: none;">
+            <i class="loading-icon" data-lucide="loader-2"></i>
+            Criando...
+          </span>
         </button>
       </div>
       
-      <div class="form-footer">
-        <p>Já tem conta? <button type="button" class="link-btn" onclick="showLoginModal()">Entrar</button></p>
+      <!-- Professional Footer -->
+      <div class="form-footer auth-footer">
+        <p>Já tem conta? 
+          <button type="button" class="nav-link link-btn" onclick="showLoginModal()">
+            <i class="nav-icon" data-lucide="log-in"></i>
+            <span class="nav-text">Entrar</span>
+          </button>
+        </p>
       </div>
       
       <div id="registerError" class="error-message" style="display: none;"></div>
       <div id="registerSuccess" class="success-message" style="display: none;"></div>
     </form>
+
+    <!-- Professional Features Section -->
+    <div class="auth-modal-features">
+      <div class="auth-feature">
+        <i class="feature-icon" data-lucide="video"></i>
+        <span>Publique vídeos inspiradores</span>
+      </div>
+      <div class="auth-feature">
+        <i class="feature-icon" data-lucide="heart"></i>
+        <span>Interaja com a comunidade</span>
+      </div>
+      <div class="auth-feature">
+        <i class="feature-icon" data-lucide="radio"></i>
+        <span>Transmita ao vivo</span>
+      </div>
+    </div>
   `;
   
   // Show modal
   document.getElementById('modalOverlay').style.display = 'flex';
+  
+  // Reinitialize Lucide icons for new modal content
+  if (window.SantooIcons) {
+    window.SantooIcons.reinit();
+  }
   
   // Bind form events
   bindRegisterForm();
