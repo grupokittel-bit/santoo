@@ -431,7 +431,7 @@ class UploadManager {
       this.updateLoadingMessage('Enviando para servidor...');
       
       // Use the real API
-      const response = await SantooAPI.videos.upload(formData);
+      const response = await window.SantooAPI.videos.upload(formData);
       
       this.updateLoadingMessage('Processando vídeo...');
       await SantooUtils.sleep(1000);

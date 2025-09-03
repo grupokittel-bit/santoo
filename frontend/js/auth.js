@@ -105,7 +105,7 @@ class AuthManager {
   async validateStoredAuth() {
     try {
       // Test if token is still valid by getting current user
-      const response = await SantooAPI.users.getMe();
+      const response = await window.SantooAPI.users.getMe();
       
       if (response && response.user) {
         this.user = response.user;
@@ -128,7 +128,7 @@ class AuthManager {
       // AGUARDAR SANTOOAPI.AUTH ESTAR DISPONÍVEL
       await this.waitForSantooAPI();
       
-      const response = await SantooAPI.auth.login({
+      const response = await window.SantooAPI.auth.login({
         identifier, // username ou email
         password
       });
@@ -167,7 +167,12 @@ class AuthManager {
       // AGUARDAR SANTOOAPI.AUTH ESTAR DISPONÍVEL
       await this.waitForSantooAPI();
       
-      const response = await SantooAPI.auth.register({
+      // DEBUG FINAL: verificar se window.SantooAPI existe antes de usar
+      console.log('🔧 DEBUG FINAL: window.SantooAPI:', !!window.SantooAPI);
+      console.log('🔧 DEBUG FINAL: window.SantooAPI.auth:', !!window.SantooAPI?.auth);
+      console.log('🔧 DEBUG FINAL: window.SantooAPI.auth.register:', typeof window.SantooAPI?.auth?.register);
+      
+      const response = await window.SantooAPI.auth.register({
         username: userData.username,
         email: userData.email,
         password: userData.password,
@@ -202,7 +207,7 @@ class AuthManager {
       
       // Call API logout to invalidate token server-side (com checagem de segurança)
       if (window.SantooAPI?.auth?.logout) {
-        await SantooAPI.auth.logout();
+        await window.SantooAPI.auth.logout();
       } else {
         console.warn('⚠️ SantooAPI.auth.logout não disponível, fazendo logout local apenas');
       }
@@ -250,7 +255,7 @@ class AuthManager {
         formData = updates;
       }
       
-      const response = await SantooAPI.users.updateProfile(formData);
+      const response = await window.SantooAPI.users.updateProfile(formData);
       
       if (response && response.user) {
         this.user = response.user;
@@ -280,7 +285,7 @@ class AuthManager {
     }
 
     try {
-      const response = await SantooAPI.users.toggleFollow(userId);
+      const response = await window.SantooAPI.users.toggleFollow(userId);
       
       console.log('👥 Toggle follow:', response.message);
       return { 
@@ -304,7 +309,7 @@ class AuthManager {
     }
 
     try {
-      const response = await SantooAPI.users.getFeed(params);
+      const response = await window.SantooAPI.users.getFeed(params);
       
       return { success: true, ...response };
       
