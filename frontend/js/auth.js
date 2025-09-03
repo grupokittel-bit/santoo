@@ -491,6 +491,22 @@ function showLoginModal() {
       <p class="auth-prompt-description">
         Entre na sua conta para continuar sua jornada de fé no Santoo.
       </p>
+      
+      <!-- Credenciais de Teste -->
+      <div class="test-credentials" style="background: var(--surface-secondary); border-radius: var(--radius-2); padding: var(--space-3); margin-top: var(--space-3); border: 1px solid var(--border-primary);">
+        <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
+          <i data-lucide="info" style="width: 16px; height: 16px; color: var(--primary-color);"></i>
+          <span style="font-weight: 500; font-size: 14px; color: var(--text-primary);">Credenciais de Teste</span>
+        </div>
+        <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
+          <p style="margin: 0 0 var(--space-1) 0;"><strong>Usuário:</strong> pastorjoao</p>
+          <p style="margin: 0 0 var(--space-2) 0;"><strong>Senha:</strong> 123456789</p>
+          <button type="button" onclick="document.getElementById('loginIdentifier').value='pastorjoao'; document.getElementById('loginPassword').value='123456789';" 
+                  style="font-size: 12px; padding: 4px 8px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Preencher Automaticamente
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Professional Form -->

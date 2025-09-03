@@ -116,10 +116,16 @@ class SantooAPI {
           data
         });
 
-        // Token expirado
+        // Erro 401 - pode ser token expirado OU credenciais inválidas
         if (response.status === 401) {
-          this.clearAuth();
-          throw new Error('Token expirado. Faça login novamente.');
+          // Se é um endpoint de login, não limpa auth (credenciais inválidas)
+          if (!endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
+            this.clearAuth();
+          }
+          
+          // Usar mensagem específica do servidor ou mensagem genérica
+          const errorMsg = data?.error || data?.message || 'Não autorizado';
+          throw new Error(errorMsg);
         }
 
         // Erro do servidor
