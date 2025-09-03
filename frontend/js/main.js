@@ -164,7 +164,7 @@ class SantooApp {
       } else {
         console.warn('❌ loginBtn não encontrado para listener direto');
       }
-    }.bind(this), 2000); // Wait 2 seconds for all scripts to load
+    }, 2000); // Wait 2 seconds for all scripts to load
 
     console.log('📱 Event listeners configurados');
   }
