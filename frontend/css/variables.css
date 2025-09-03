@@ -46,8 +46,9 @@
   /* === TYPOGRAPHY === */
   
   /* Font Families */
-  --font-primary: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-primary: 'Outfit', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-secondary: 'Georgia', 'Times New Roman', serif; /* For biblical quotes */
+  --font-nav: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; /* Navigation specific */
   --font-mono: 'Fira Code', 'Monaco', 'Consolas', monospace;
   
   /* Font Weights */

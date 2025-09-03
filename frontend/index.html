@@ -25,7 +25,10 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Georgia:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Georgia:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Professional Icons - Lucide Icons (SVG) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     
     <!-- Styles -->
     <link rel="stylesheet" href="css/reset.css">
@@ -60,33 +63,33 @@
                 
                 <nav class="main-nav">
                     <a href="#home" class="nav-link active" data-page="home">
-                        <span class="nav-icon">🏠</span>
-                        Início
+                        <i class="nav-icon" data-lucide="home"></i>
+                        <span class="nav-text">Início</span>
                     </a>
                     <a href="#discover" class="nav-link" data-page="discover">
-                        <span class="nav-icon">🔍</span>
-                        Descobrir
+                        <i class="nav-icon" data-lucide="compass"></i>
+                        <span class="nav-text">Descobrir</span>
                     </a>
                     <a href="#upload" class="nav-link" data-page="upload">
-                        <span class="nav-icon">➕</span>
-                        Postar
+                        <i class="nav-icon" data-lucide="plus-circle"></i>
+                        <span class="nav-text">Publicar</span>
                     </a>
                     <a href="#live" class="nav-link" data-page="live">
-                        <span class="nav-icon">🔴</span>
-                        Ao Vivo
+                        <i class="nav-icon" data-lucide="radio"></i>
+                        <span class="nav-text">Ao Vivo</span>
                     </a>
                     <a href="#profile" class="nav-link" data-page="profile">
-                        <span class="nav-icon">👤</span>
-                        Perfil
+                        <i class="nav-icon" data-lucide="user"></i>
+                        <span class="nav-text">Perfil</span>
                     </a>
                 </nav>
                 
                 <div class="user-actions">
                     <button class="btn-icon" id="searchBtn" title="Buscar">
-                        <span>🔍</span>
+                        <i data-lucide="search"></i>
                     </button>
                     <button class="btn-icon" id="notificationsBtn" title="Notificações">
-                        <span>🔔</span>
+                        <i data-lucide="bell"></i>
                         <span class="notification-badge">3</span>
                     </button>
                     <div class="user-menu">
@@ -236,6 +239,7 @@
         // Lista de scripts na ordem correta
         const scripts = [
             'js/utils.js',
+            'js/icons-init.js',
             'js/api.js', 
             'js/components.js',
             'js/auth.js',
