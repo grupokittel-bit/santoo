@@ -533,106 +533,18 @@ body {
 
 .auth-buttons {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-2);
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: var(--space-8);
 }
 
-/* Professional Auth Buttons - Nav-Link Style */
-.auth-btn {
-  display: flex;
-  align-items: center;
+.auth-buttons .nav-link {
+  min-width: 140px;
   justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-nav);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: var(--transition-colors), var(--transition-transform);
-  position: relative;
-  white-space: nowrap;
-  background: transparent;
 }
 
-.auth-btn:hover {
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-secondary);
-  transform: translateY(-1px);
-}
-
-.auth-btn:focus-visible {
-  outline: 2px solid var(--color-border-focus);
-  outline-offset: 2px;
-}
-
-.auth-btn:active {
-  transform: translateY(1px);
-}
-
-.auth-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.auth-btn-icon {
-  width: 18px;
-  height: 18px;
-  stroke: currentColor;
-  stroke-width: 2;
-  flex-shrink: 0;
-  transition: var(--transition-transform);
-}
-
-.auth-btn:hover .auth-btn-icon {
-  transform: scale(1.1);
-}
-
-.auth-btn-text {
-  font-weight: inherit;
-  transition: var(--transition-colors);
-}
-
-/* Auth Button Variants - Nav-Link Style */
-.auth-btn-primary {
-  color: var(--color-accent);
-  background-color: rgba(74, 144, 226, 0.08);
-  font-weight: var(--font-weight-semibold);
-}
-
-.auth-btn-primary::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  background: var(--color-accent);
-  border-radius: 0 2px 2px 0;
-}
-
-.auth-btn-primary:hover:not(:disabled) {
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-secondary);
-  transform: translateY(-1px);
-}
-
-.auth-btn-secondary {
-  /* Uses base auth-btn styles - no additional styles needed */
-}
-
-.auth-btn-secondary:hover:not(:disabled) {
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-secondary);
-  transform: translateY(-1px);
-}
+/* Auth buttons now use nav-link classes directly - no custom CSS needed */
 
 /* Auth Features */
 .auth-features {
@@ -738,10 +650,9 @@ body {
     align-items: stretch;
   }
   
-  .auth-btn {
+  .auth-buttons .nav-link {
     width: 100%;
     min-width: auto;
-    padding: var(--space-3) var(--space-4);
   }
   
   .auth-features {
