@@ -480,6 +480,7 @@ class AuthManager {
  * Show login modal
  */
 function showLoginModal() {
+  console.log('🔑 Abrindo modal de login...');
   const modal = document.getElementById('authModal');
   const modalTitle = document.getElementById('authModalTitle');
   const modalBody = modal.querySelector('.modal-body');
@@ -594,8 +595,14 @@ function showLoginModal() {
     </div>
   `;
   
-  // Show modal using CSS classes (consistent with main.js)
-  document.getElementById('modalOverlay').classList.add('active');
+  // Show modal using CSS classes (consistent with main.js)  
+  const overlay = document.getElementById('modalOverlay');
+  
+  // CRITICAL FIX: Ensure overlay is properly reset before showing
+  overlay.style.display = '';  // Clear any inline styles first
+  overlay.classList.add('active');
+  
+  console.log('✅ Modal aberto - overlay classes aplicadas');
   
   // Reinitialize Lucide icons for new modal content
   if (window.SantooIcons) {
@@ -610,6 +617,7 @@ function showLoginModal() {
  * Show register modal
  */
 function showRegisterModal() {
+  console.log('👤 Abrindo modal de registro...');
   const modal = document.getElementById('authModal');
   const modalTitle = document.getElementById('authModalTitle');
   const modalBody = modal.querySelector('.modal-body');
@@ -754,8 +762,14 @@ function showRegisterModal() {
     </div>
   `;
   
-  // Show modal using CSS classes (consistent with main.js)
-  document.getElementById('modalOverlay').classList.add('active');
+  // Show modal using CSS classes (consistent with main.js)  
+  const overlay = document.getElementById('modalOverlay');
+  
+  // CRITICAL FIX: Ensure overlay is properly reset before showing
+  overlay.style.display = '';  // Clear any inline styles first
+  overlay.classList.add('active');
+  
+  console.log('✅ Modal aberto - overlay classes aplicadas');
   
   // Reinitialize Lucide icons for new modal content
   if (window.SantooIcons) {
@@ -811,8 +825,14 @@ function showPasswordResetModal() {
     </form>
   `;
   
-  // Show modal using CSS classes (consistent with main.js)
-  document.getElementById('modalOverlay').classList.add('active');
+  // Show modal using CSS classes (consistent with main.js)  
+  const overlay = document.getElementById('modalOverlay');
+  
+  // CRITICAL FIX: Ensure overlay is properly reset before showing
+  overlay.style.display = '';  // Clear any inline styles first
+  overlay.classList.add('active');
+  
+  console.log('✅ Modal aberto - overlay classes aplicadas');
   
   // Bind form events
   bindResetForm();
