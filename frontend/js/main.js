@@ -1046,9 +1046,14 @@ class SantooApp {
   }
 
   toggleDropdown(dropdownId) {
+    console.log('🔽 toggleDropdown chamado para:', dropdownId);
     const dropdown = document.getElementById(dropdownId);
     if (dropdown) {
+      console.log('✅ Dropdown encontrado, classes antes:', dropdown.className);
       dropdown.classList.toggle('active');
+      console.log('✅ Dropdown classes depois:', dropdown.className);
+    } else {
+      console.error('❌ Dropdown não encontrado:', dropdownId);
     }
   }
 
