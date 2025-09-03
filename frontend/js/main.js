@@ -995,13 +995,17 @@ class SantooApp {
     try {
       console.log('🔓 Fazendo logout...');
       
-      // Call logout from auth manager
+      // Call logout from auth manager (handles API + storage cleanup)
       if (window.authManager && typeof window.authManager.logout === 'function') {
         await window.authManager.logout();
       }
       
-      // Clear local user state
+      // Clear local user state IN MEMORY
       this.user = null;
+      
+      // SAFETY: Also clear any localStorage directly (double-check)
+      localStorage.removeItem('santoo_user');
+      localStorage.removeItem('santoo_token');
       
       // Update UI
       this.updateUserUI();
@@ -1011,12 +1015,19 @@ class SantooApp {
         this.navigateTo('home');
       }
       
-      console.log('✅ Logout realizado com sucesso');
+      console.log('✅ Logout realizado com sucesso - sessão completamente limpa');
       this.showSuccess('Logout realizado com sucesso!');
       
     } catch (error) {
       console.error('❌ Erro no logout:', error);
-      this.showError('Erro ao fazer logout. Tente novamente.');
+      
+      // FALLBACK: Clear everything manually in case of error
+      this.user = null;
+      localStorage.removeItem('santoo_user');
+      localStorage.removeItem('santoo_token');
+      this.updateUserUI();
+      
+      this.showError('Erro ao fazer logout. Sessão limpa localmente.');
     }
   }
 

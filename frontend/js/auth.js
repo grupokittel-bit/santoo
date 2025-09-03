@@ -212,21 +212,25 @@ class AuthManager {
         console.warn('⚠️ SantooAPI.auth.logout não disponível, fazendo logout local apenas');
       }
       
-      // Clear local state
+      // Clear local state IN MEMORY
       this.user = null;
       this.token = null;
       
+      // CRITICAL FIX: Clear localStorage/sessionStorage
+      this.clearStoredAuth();
+      
       this.notifyAuthChange('logout');
       
-      console.log('✅ Logout realizado com sucesso');
+      console.log('✅ Logout realizado com sucesso - sessão limpa totalmente');
       return { success: true };
       
     } catch (error) {
       console.error('❌ Erro no logout:', error);
       
-      // Clear local state anyway
+      // Clear local state anyway - BOTH memory AND storage
       this.user = null;
       this.token = null;
+      this.clearStoredAuth();
       this.notifyAuthChange('logout');
       
       return { success: false, error: error.message };
