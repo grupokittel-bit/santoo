@@ -44,7 +44,9 @@ body {
 .logo-images-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 20px;
+  flex-direction: row;
 }
 
 .logo-image {
@@ -56,8 +58,8 @@ body {
 }
 
 .favicon-image {
-  width: 200px;
-  height: 200px;
+  width: 400px;
+  height: 400px;
   object-fit: contain;
 }
 

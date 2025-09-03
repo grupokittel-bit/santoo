@@ -576,6 +576,10 @@
   border-top: 2px solid var(--color-accent);
   border-radius: var(--radius-full);
   animation: var(--animation-spin);
+  position: absolute;
+  top: -15vh;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .loading-dots {
