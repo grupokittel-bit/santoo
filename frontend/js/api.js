@@ -189,16 +189,18 @@ class SantooAPI {
    * Configura todos os endpoints da API com contexto correto
    */
   setupAPIEndpoints() {
+    const self = this;
+
     // 🔐 AUTENTICAÇÃO
     this.auth = {
       /**
        * Registrar novo usuário
        */
       register: async (userData) => {
-        const result = await this.post('/api/auth/register', userData);
+        const result = await self.post('/api/auth/register', userData);
         
         if (result.token) {
-          this.setAuthToken(result.token);
+          self.setAuthToken(result.token);
           SantooUtils.StorageUtils.set('santoo_user', result.user);
         }
         
@@ -209,10 +211,10 @@ class SantooAPI {
        * Fazer login
        */
       login: async (credentials) => {
-        const result = await this.post('/api/auth/login', credentials);
+        const result = await self.post('/api/auth/login', credentials);
         
         if (result.token) {
-          this.setAuthToken(result.token);
+          self.setAuthToken(result.token);
           SantooUtils.StorageUtils.set('santoo_user', result.user);
         }
         
@@ -223,14 +225,14 @@ class SantooAPI {
        * Verificar token
        */
       verify: async (token) => {
-        return this.post('/api/auth/verify', { token });
+        return self.post('/api/auth/verify', { token });
       },
 
       /**
        * Logout
        */
       logout: async () => {
-        this.clearAuth();
+        self.clearAuth();
         return { message: 'Logout realizado com sucesso' };
       }
     };
@@ -241,42 +243,42 @@ class SantooAPI {
        * Listar usuários
        */
       list: async (filters = {}) => {
-        return this.get('/api/users', filters);
+        return self.get('/api/users', filters);
       },
 
       /**
        * Perfil público de usuário
        */
       getProfile: async (username) => {
-        return this.get(`/api/users/${username}`);
+        return self.get(`/api/users/${username}`);
       },
 
       /**
        * Meu perfil (autenticado)
        */
       getMe: async () => {
-        return this.get('/api/users/me');
+        return self.get('/api/users/me');
       },
 
       /**
        * Atualizar meu perfil
        */
       updateProfile: async (formData) => {
-        return this.put('/api/users/me', formData);
+        return self.put('/api/users/me', formData);
       },
 
       /**
        * Seguir/deixar de seguir usuário
        */
       toggleFollow: async (userId) => {
-        return this.post(`/api/users/${userId}/follow`);
+        return self.post(`/api/users/${userId}/follow`);
       },
 
       /**
        * Feed personalizado
        */
       getFeed: async (params = {}) => {
-        return this.get('/api/users/me/feed', params);
+        return self.get('/api/users/me/feed', params);
       }
     };
 
@@ -285,19 +287,19 @@ class SantooAPI {
       /**
        * Feed de vídeos público
        */
-      getFeed: async function(filters = {}) {
-        return this.get('/api/videos', {
+      getFeed: async (filters = {}) => {
+        return self.get('/api/videos', {
           page: 1,
           limit: 10,
           ...filters
         });
-      }.bind(this),
+      },
 
       /**
        * Detalhes de um vídeo
        */
       getById: async (videoId) => {
-        return this.get(`/api/videos/${videoId}`);
+        return self.get(`/api/videos/${videoId}`);
       },
 
       /**
@@ -305,28 +307,28 @@ class SantooAPI {
        */
       upload: async (formData, onProgress = null) => {
         // TODO: Implementar progress tracking se necessário
-        return this.post('/api/videos', formData);
+        return self.post('/api/videos', formData);
       },
 
       /**
        * Atualizar vídeo
        */
       update: async (videoId, data) => {
-        return this.put(`/api/videos/${videoId}`, data);
+        return self.put(`/api/videos/${videoId}`, data);
       },
 
       /**
        * Deletar vídeo
        */
       delete: async (videoId) => {
-        return this.delete(`/api/videos/${videoId}`);
+        return self.delete(`/api/videos/${videoId}`);
       },
 
       /**
        * Curtir/descurtir vídeo
        */
       toggleLike: async (videoId) => {
-        return this.post(`/api/videos/${videoId}/like`);
+        return self.post(`/api/videos/${videoId}/like`);
       }
     };
 
@@ -336,28 +338,28 @@ class SantooAPI {
        * Listar todas as categorias
        */
       list: async (withStats = false) => {
-        return this.get('/api/categories', { withStats });
+        return self.get('/api/categories', { withStats });
       },
 
       /**
        * Vídeos de uma categoria
        */
       getVideos: async (categoryId, params = {}) => {
-        return this.get(`/api/categories/${categoryId}`, params);
+        return self.get(`/api/categories/${categoryId}`, params);
       },
 
       /**
        * Estatísticas das categorias
        */
       getStats: async () => {
-        return this.get('/api/categories/stats/overview');
+        return self.get('/api/categories/stats/overview');
       },
 
       /**
        * Categorias em alta
        */
       getTrending: async (days = 7) => {
-        return this.get('/api/categories/trending', { days });
+        return self.get('/api/categories/trending', { days });
       }
     };
 
@@ -367,7 +369,7 @@ class SantooAPI {
        * Comentários de um vídeo
        */
       getVideoComments: async (videoId, params = {}) => {
-        return this.get(`/api/comments/video/${videoId}`, {
+        return self.get(`/api/comments/video/${videoId}`, {
           page: 1,
           limit: 20,
           ...params
@@ -378,28 +380,28 @@ class SantooAPI {
        * Adicionar comentário
        */
       add: async (commentData) => {
-        return this.post('/api/comments', commentData);
+        return self.post('/api/comments', commentData);
       },
 
       /**
        * Editar comentário
        */
       update: async (commentId, data) => {
-        return this.put(`/api/comments/${commentId}`, data);
+        return self.put(`/api/comments/${commentId}`, data);
       },
 
       /**
        * Deletar comentário
        */
       delete: async (commentId) => {
-        return this.delete(`/api/comments/${commentId}`);
+        return self.delete(`/api/comments/${commentId}`);
       },
 
       /**
        * Respostas de um comentário
        */
       getReplies: async (commentId, params = {}) => {
-        return this.get(`/api/comments/${commentId}/replies`, params);
+        return self.get(`/api/comments/${commentId}/replies`, params);
       }
     };
   }
