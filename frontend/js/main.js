@@ -42,6 +42,9 @@ class SantooApp {
       // Check for saved user session
       await this.checkUserSession();
       
+      // CRITICAL FIX: Sync with AuthManager at startup
+      this.syncUserFromAuthManager();
+      
       // Initialize profile submenu
       this.updateProfileSubmenu();
       
@@ -115,6 +118,12 @@ class SantooApp {
     // Window events
     window.addEventListener('popstate', (e) => this.handlePopState(e));
     window.addEventListener('resize', () => this.handleResize());
+    
+    // CRITICAL FIX: Auth change events
+    window.addEventListener('santooAuthChange', (e) => {
+      console.log('🔔 SantooApp recebeu evento de mudança de auth:', e.detail.event);
+      this.updateUserUI();
+    });
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => this.handleKeyboard(e));
@@ -898,12 +907,36 @@ class SantooApp {
    * Update user interface based on auth state
    */
   updateUserUI() {
+    // CRITICAL FIX: Sync this.user with authManager.user BEFORE updating UI
+    this.syncUserFromAuthManager();
+    
     // Update profile dropdown submenu based on auth state
     this.updateProfileSubmenu();
     
     // Update profile page if currently viewing
     if (this.currentPage === 'profile') {
       this.updateProfileDisplay();
+    }
+  }
+
+  /**
+   * Sync this.user with window.authManager.user
+   * CRITICAL for UI updates after login/register
+   */
+  syncUserFromAuthManager() {
+    if (window.authManager) {
+      const authUser = window.authManager.user;
+      const isAuthenticated = window.authManager.isAuthenticated();
+      
+      if (isAuthenticated && authUser) {
+        this.user = authUser;
+        console.log('🔄 User sincronizado do AuthManager:', this.user.displayName || this.user.username);
+      } else {
+        this.user = null;
+        console.log('🔄 User limpo (logout ou não autenticado)');
+      }
+    } else {
+      console.warn('⚠️ AuthManager não disponível para sincronização');
     }
   }
 
