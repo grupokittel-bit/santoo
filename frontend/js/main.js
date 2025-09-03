@@ -153,9 +153,19 @@ class SantooApp {
     
     // Handle auth buttons
     if (e.target.matches('#loginBtn')) {
-      this.openAuthModal('login');
+      // Use the professional auth functions from auth.js
+      if (typeof showLoginModal === 'function') {
+        showLoginModal();
+      } else {
+        this.openAuthModal('login');
+      }
     } else if (e.target.matches('#registerBtn')) {
-      this.openAuthModal('register');
+      // Use the professional auth functions from auth.js  
+      if (typeof showRegisterModal === 'function') {
+        showRegisterModal();
+      } else {
+        this.openAuthModal('register');
+      }
     } else if (e.target.matches('#logoutBtn')) {
       this.logout();
     }
@@ -593,7 +603,7 @@ class SantooApp {
             <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
           </div>
           <div class="text-center">
-            <p>Não tem conta? <a href="#" onclick="santooApp.openAuthModal('register')">Criar conta</a></p>
+            <p>Não tem conta? <a href="#" onclick="showRegisterModal()">Criar conta</a></p>
           </div>
         </form>
       `;
@@ -616,7 +626,7 @@ class SantooApp {
             <button type="submit" class="btn btn-primary" style="width: 100%;">Criar Conta</button>
           </div>
           <div class="text-center">
-            <p>Já tem conta? <a href="#" onclick="santooApp.openAuthModal('login')">Entrar</a></p>
+            <p>Já tem conta? <a href="#" onclick="showLoginModal()">Entrar</a></p>
           </div>
         </form>
       `;
