@@ -326,16 +326,35 @@ class SantooApp {
       videoFeed.innerHTML = this.getLoadingHTML();
       
       // SAFETY CHECK: Aguarda SantooAPI estar disponível
+      console.log('🔍 DEBUG: Verificando window.SantooAPI:', {
+        windowSantooAPIExists: !!window.SantooAPI,
+        videosExists: !!window.SantooAPI?.videos,
+        getFeedExists: typeof window.SantooAPI?.videos?.getFeed
+      });
+      
       if (!window.SantooAPI || !window.SantooAPI.videos) {
         console.log('⏳ Aguardando SantooAPI estar disponível...');
         await this.waitForSantooAPI();
+        console.log('✅ SantooAPI agora está disponível!');
       }
       
       // Get videos from API
-      const response = await SantooAPI.videos.getFeed({
+      console.log('🔍 DEBUG: Fazendo chamada para API:', {
+        apiBaseURL: window.SantooAPI.baseURL,
+        hasToken: !!window.SantooAPI.token,
+        filters
+      });
+      
+      const response = await window.SantooAPI.videos.getFeed({
         page: 1,
         limit: 10,
         ...filters
+      });
+      
+      console.log('🔍 DEBUG: Resposta da API recebida:', {
+        responseType: typeof response,
+        hasVideos: !!response?.videos,
+        videoCount: response?.videos?.length || 0
       });
       
       if (response && response.videos) {
@@ -941,7 +960,7 @@ class SantooApp {
         }
         
         // TODO: Implement video player modal
-        const response = await SantooAPI.videos.getById(videoId);
+        const response = await window.SantooAPI.videos.getById(videoId);
         
         if (response && response.video) {
           self.openVideoModal(response.video);
@@ -988,7 +1007,7 @@ class SantooApp {
         likeButton.dataset.liked = !isCurrentlyLiked;
         likeIcon.textContent = !isCurrentlyLiked ? '❤️' : '🤍';
         
-        const response = await SantooAPI.videos.toggleLike(videoId);
+        const response = await window.SantooAPI.videos.toggleLike(videoId);
         
         if (response && response.success) {
           likeCount.textContent = SantooUtils.NumberUtils.format(response.likes || 0);
@@ -1135,7 +1154,15 @@ class SantooApp {
    * Aguarda SantooAPI estar completamente disponível
    */
   async waitForSantooAPI(maxAttempts = 50, delay = 100) {
+    console.log('🔄 DEBUG: Iniciando waitForSantooAPI - max tentativas:', maxAttempts);
+    
     for (let i = 0; i < maxAttempts; i++) {
+      console.log(`🔍 DEBUG: Tentativa ${i + 1}/${maxAttempts}:`, {
+        windowSantooAPI: !!window.SantooAPI,
+        videos: !!window.SantooAPI?.videos,
+        getFeedType: typeof window.SantooAPI?.videos?.getFeed
+      });
+      
       if (window.SantooAPI && window.SantooAPI.videos && typeof window.SantooAPI.videos.getFeed === 'function') {
         console.log('✅ SantooAPI disponível após', i * delay, 'ms');
         return true;
@@ -1145,6 +1172,7 @@ class SantooApp {
       await new Promise(resolve => setTimeout(resolve, delay));
     }
     
+    console.error('❌ DEBUG: waitForSantooAPI FALHOU após', maxAttempts * delay, 'ms');
     throw new Error('❌ Timeout: SantooAPI não ficou disponível após ' + (maxAttempts * delay) + 'ms');
   }
 }
