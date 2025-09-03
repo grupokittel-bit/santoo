@@ -594,8 +594,8 @@ function showLoginModal() {
     </div>
   `;
   
-  // Show modal
-  document.getElementById('modalOverlay').style.display = 'flex';
+  // Show modal using CSS classes (consistent with main.js)
+  document.getElementById('modalOverlay').classList.add('active');
   
   // Reinitialize Lucide icons for new modal content
   if (window.SantooIcons) {
@@ -754,8 +754,8 @@ function showRegisterModal() {
     </div>
   `;
   
-  // Show modal
-  document.getElementById('modalOverlay').style.display = 'flex';
+  // Show modal using CSS classes (consistent with main.js)
+  document.getElementById('modalOverlay').classList.add('active');
   
   // Reinitialize Lucide icons for new modal content
   if (window.SantooIcons) {
@@ -811,8 +811,8 @@ function showPasswordResetModal() {
     </form>
   `;
   
-  // Show modal
-  document.getElementById('modalOverlay').style.display = 'flex';
+  // Show modal using CSS classes (consistent with main.js)
+  document.getElementById('modalOverlay').classList.add('active');
   
   // Bind form events
   bindResetForm();
@@ -822,7 +822,14 @@ function showPasswordResetModal() {
  * Hide auth modal
  */
 function hideAuthModal() {
-  document.getElementById('modalOverlay').style.display = 'none';
+  // Hide modal using CSS classes (consistent with main.js)
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.remove('active');
+  
+  // CRITICAL FIX: Also remove any inline styles that might override CSS
+  overlay.style.display = '';
+  
+  console.log('✅ Auth modal ocultado - overlay classes/styles limpos');
 }
 
 /**

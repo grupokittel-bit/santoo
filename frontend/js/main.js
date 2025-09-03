@@ -1079,13 +1079,21 @@ class SantooApp {
 
   closeAllModals() {
     const overlay = document.getElementById('modalOverlay');
-    const modals = overlay.querySelectorAll('.modal');
+    const modals = document.querySelectorAll('.modal');
     
     if (overlay) {
+      // Remove active class
       overlay.classList.remove('active');
+      
+      // CRITICAL FIX: Remove any inline styles that might override CSS
+      overlay.style.display = '';
+      
+      // Hide all modals
       modals.forEach(modal => {
         modal.style.display = 'none';
       });
+      
+      console.log('✅ Todos os modais fechados - overlay e estilos limpos');
     }
   }
 
