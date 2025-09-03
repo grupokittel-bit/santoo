@@ -542,6 +542,25 @@ body {
 .auth-buttons .nav-link {
   min-width: 140px;
   justify-content: center;
+  background: transparent !important;
+  border: none !important;
+  padding: var(--space-2) var(--space-3);
+}
+
+.auth-buttons .nav-link:hover {
+  background: transparent !important;
+  color: var(--color-text-primary);
+  transform: none;
+}
+
+.auth-buttons .nav-link.active {
+  background: transparent !important;
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+.auth-buttons .nav-link.active::before {
+  display: none;
 }
 
 /* Auth buttons now use nav-link classes directly - no custom CSS needed */
@@ -653,6 +672,8 @@ body {
   .auth-buttons .nav-link {
     width: 100%;
     min-width: auto;
+    background: transparent !important;
+    padding: var(--space-2) var(--space-3);
   }
   
   .auth-features {
