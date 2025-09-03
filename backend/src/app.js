@@ -76,7 +76,15 @@ app.get('/health', async (req, res) => {
 });
 
 // === ARQUIVOS ESTÁTICOS ===
-app.use('/uploads', express.static('src/uploads')); // Serve arquivos de upload
+// Middleware para arquivos de upload com headers CORP apropriados
+app.use('/uploads', (req, res, next) => {
+  // Headers CORP para permitir cross-origin requests
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+}, express.static('src/uploads')); // Serve arquivos de upload
 
 // === ROTAS DA API ===
 app.use('/api/auth', require('./routes/auth'));
