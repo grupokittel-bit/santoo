@@ -205,11 +205,12 @@ class SantooApp {
     // DEBUG: Log all clicks to help diagnose issues
     console.log('🖱️ Click detectado em:', e.target.tagName, e.target.id, e.target.className);
     
-    const target = e.target.closest('[data-page]');
-    if (target) {
+    // Handle profile dropdown toggle PRIMEIRO - antes da navegação
+    const profileDropdownToggle = e.target.closest('#profileMenuBtn');
+    if (profileDropdownToggle) {
       e.preventDefault();
-      const page = target.dataset.page;
-      this.navigateTo(page);
+      console.log('📋 Profile dropdown toggle clicado');
+      this.toggleDropdown('profileSubmenu');
       return;
     }
     
@@ -222,12 +223,12 @@ class SantooApp {
       return;
     }
     
-    // Handle profile dropdown toggle
-    const profileDropdownToggle = e.target.closest('#profileMenuBtn');
-    if (profileDropdownToggle) {
+    // Handle page navigation - DEPOIS do dropdown
+    const target = e.target.closest('[data-page]');
+    if (target) {
       e.preventDefault();
-      console.log('📋 Profile dropdown toggle clicado');
-      this.toggleDropdown('profileSubmenu');
+      const page = target.dataset.page;
+      this.navigateTo(page);
       return;
     }
     
