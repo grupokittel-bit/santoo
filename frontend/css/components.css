@@ -121,11 +121,74 @@
   color: var(--color-text-primary);
 }
 
+/* Professional Close Button - Matches Modal Design */
 .btn-close {
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-light);
+  /* Size and Layout */
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  
+  /* Appearance */
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  
+  /* Typography */
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-primary);
+  
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Styling */
+  box-shadow: var(--shadow-dark-sm);
+  cursor: pointer;
+  outline: none;
+  
+  /* Smooth Transitions */
+  transition: all var(--transition-base);
+  transition-property: background-color, border-color, color, transform, box-shadow;
+}
+
+/* Professional Hover State */
+.btn-close:hover {
+  background-color: var(--color-bg-hover);
+  border-color: var(--color-border-primary);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-dark-md);
+}
+
+/* Active/Press State */
+.btn-close:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-dark-sm);
+}
+
+/* Focus State for Accessibility */
+.btn-close:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+/* Error State Hover (when user might lose data) */
+.btn-close:hover:active {
+  background-color: rgba(231, 76, 60, 0.1);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+/* Professional Close Icon */
+.btn-close .close-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  stroke-width: 2;
+  transition: inherit;
 }
 
 /* === CARDS === */
@@ -353,12 +416,19 @@
   max-height: 90vh;
 }
 
+/* Professional Modal Header */
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--space-6);
   border-bottom: 1px solid var(--color-border-secondary);
+  background-color: var(--color-bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .modal-header h3 {

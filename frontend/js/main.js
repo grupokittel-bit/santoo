@@ -1114,7 +1114,9 @@ class SantooApp {
         <div class="modal-content video-modal-content">
           <div class="modal-header">
             <h3>${SantooUtils.StringUtils.escapeHtml(video.title)}</h3>
-            <button class="btn-close" onclick="santooApp.closeAllModals()">&times;</button>
+            <button class="btn-close" onclick="santooApp.closeAllModals()">
+              <i data-lucide="x" class="close-icon"></i>
+            </button>
           </div>
           <div class="modal-body">
             <video 
