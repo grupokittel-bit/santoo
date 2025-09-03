@@ -325,6 +325,12 @@ class SantooApp {
       // Show loading
       videoFeed.innerHTML = this.getLoadingHTML();
       
+      // SAFETY CHECK: Aguarda SantooAPI estar disponível
+      if (!window.SantooAPI || !window.SantooAPI.videos) {
+        console.log('⏳ Aguardando SantooAPI estar disponível...');
+        await this.waitForSantooAPI();
+      }
+      
       // Get videos from API
       const response = await SantooAPI.videos.getFeed({
         page: 1,
@@ -403,12 +409,12 @@ class SantooApp {
     
     // Get thumbnail URL or fallback
     const thumbnailUrl = video.thumbnailUrl 
-      ? `${SantooAPI.baseURL}${video.thumbnailUrl}` 
+      ? `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${video.thumbnailUrl}` 
       : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K';
     
     // Get avatar URL or fallback
     const avatarUrl = video.User?.avatar 
-      ? `${SantooAPI.baseURL}${video.User.avatar}` 
+      ? `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${video.User.avatar}` 
       : 'assets/images/default-avatar.svg';
     
     return `
@@ -923,20 +929,26 @@ class SantooApp {
    * Setup video interactions (play, like, etc.)
    */
   setupVideoInteractions() {
-    // Add play video functionality
+    // Add play video functionality  
+    const self = this;
     window.playVideo = async (videoId) => {
       console.log('▶️ Reproduzindo vídeo:', videoId);
       
       try {
+        // SAFETY CHECK: Aguarda SantooAPI estar disponível
+        if (!window.SantooAPI || !window.SantooAPI.videos) {
+          await self.waitForSantooAPI();
+        }
+        
         // TODO: Implement video player modal
         const response = await SantooAPI.videos.getById(videoId);
         
         if (response && response.video) {
-          this.openVideoModal(response.video);
+          self.openVideoModal(response.video);
           
           // Increment views
           setTimeout(() => {
-            this.incrementVideoViews(videoId);
+            self.incrementVideoViews(videoId);
           }, 5000); // After 5 seconds of viewing
         }
       } catch (error) {
@@ -955,11 +967,16 @@ class SantooApp {
     // Add like toggle functionality
     window.toggleLike = async (videoId) => {
       if (!santooAuth.isAuthenticated()) {
-        this.showLoginModal();
+        self.showLoginModal();
         return;
       }
 
       try {
+        // SAFETY CHECK: Aguarda SantooAPI estar disponível
+        if (!window.SantooAPI || !window.SantooAPI.videos) {
+          await self.waitForSantooAPI();
+        }
+        
         const likeButton = document.querySelector(`[onclick="toggleLike('${videoId}')"]`);
         if (!likeButton) return;
 
@@ -997,7 +1014,7 @@ class SantooApp {
    */
   openVideoModal(video) {
     // TODO: Implement full video player modal
-    const videoUrl = video.videoUrl ? `${SantooAPI.baseURL}${video.videoUrl}` : null;
+    const videoUrl = video.videoUrl ? `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${video.videoUrl}` : null;
     
     if (!videoUrl) {
       this.showError('URL do vídeo não encontrada');
@@ -1017,7 +1034,7 @@ class SantooApp {
               controls 
               autoplay 
               style="width: 100%; height: auto; max-height: 70vh;"
-              poster="${video.thumbnailUrl ? SantooAPI.baseURL + video.thumbnailUrl : ''}"
+              poster="${video.thumbnailUrl ? (window.SantooAPI?.baseURL || 'http://localhost:3001') + video.thumbnailUrl : ''}"
             >
               <source src="${videoUrl}" type="video/mp4">
               <source src="${videoUrl}" type="video/webm">
@@ -1026,7 +1043,7 @@ class SantooApp {
             
             <div class="video-details" style="padding: 15px 0;">
               <div class="video-author">
-                <img src="${video.User?.avatar ? SantooAPI.baseURL + video.User.avatar : 'assets/images/default-avatar.svg'}" 
+                <img src="${video.User?.avatar ? (window.SantooAPI?.baseURL || 'http://localhost:3001') + video.User.avatar : 'assets/images/default-avatar.svg'}" 
                      alt="${video.User?.displayName}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
                 <div>
                   <strong>${SantooUtils.StringUtils.escapeHtml(video.User?.displayName || 'Usuário')}</strong>
@@ -1112,6 +1129,23 @@ class SantooApp {
 
   initLivePage() {
     console.log('🔴 Inicializando página de lives');
+  }
+
+  /**
+   * Aguarda SantooAPI estar completamente disponível
+   */
+  async waitForSantooAPI(maxAttempts = 50, delay = 100) {
+    for (let i = 0; i < maxAttempts; i++) {
+      if (window.SantooAPI && window.SantooAPI.videos && typeof window.SantooAPI.videos.getFeed === 'function') {
+        console.log('✅ SantooAPI disponível após', i * delay, 'ms');
+        return true;
+      }
+      
+      // Aguarda delay em milissegundos
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    throw new Error('❌ Timeout: SantooAPI não ficou disponível após ' + (maxAttempts * delay) + 'ms');
   }
 }
 
