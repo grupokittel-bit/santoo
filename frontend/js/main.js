@@ -219,13 +219,13 @@ class SantooApp {
       return;
     }
     
-    // Handle dropdown toggles
-    const dropdownToggle = e.target.closest('#userMenuBtn');
-    if (dropdownToggle) {
-      e.preventDefault();
-      this.toggleDropdown('userDropdown');
-      return;
-    }
+    // Handle dropdown toggles - REMOVIDO: user menu não está mais disponível
+    // const dropdownToggle = e.target.closest('#userMenuBtn');
+    // if (dropdownToggle) {
+    //   e.preventDefault();
+    //   this.toggleDropdown('userDropdown');
+    //   return;
+    // }
     
     // Handle auth buttons - DEBUG ENHANCED
     if (e.target.matches('#loginBtn')) {
@@ -816,12 +816,13 @@ class SantooApp {
    * Update user interface based on auth state
    */
   updateUserUI() {
-    const userAvatar = document.getElementById('userAvatar');
-    
-    if (this.user && userAvatar) {
-      userAvatar.src = this.user.avatar;
-      userAvatar.alt = this.user.name;
-    }
+    // REMOVIDO: userAvatar não existe mais no cabeçalho
+    // const userAvatar = document.getElementById('userAvatar');
+    // 
+    // if (this.user && userAvatar) {
+    //   userAvatar.src = this.user.avatar;
+    //   userAvatar.alt = this.user.name;
+    // }
     
     // Update profile page if currently viewing
     if (this.currentPage === 'profile') {
