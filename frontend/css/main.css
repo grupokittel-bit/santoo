@@ -539,24 +539,31 @@ body {
   margin-bottom: var(--space-8);
 }
 
-/* Professional Auth Buttons */
+/* Professional Auth Buttons - Nav-Link Style */
 .auth-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-3) var(--space-4);
   font-family: var(--font-nav);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
   text-decoration: none;
   border: none;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: var(--transition-colors), var(--transition-transform);
   position: relative;
   white-space: nowrap;
-  min-width: 160px;
+  background: transparent;
+}
+
+.auth-btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  transform: translateY(-1px);
 }
 
 .auth-btn:focus-visible {
@@ -575,8 +582,8 @@ body {
 }
 
 .auth-btn-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   stroke: currentColor;
   stroke-width: 2;
   flex-shrink: 0;
@@ -592,32 +599,39 @@ body {
   transition: var(--transition-colors);
 }
 
-/* Auth Button Variants */
+/* Auth Button Variants - Nav-Link Style */
 .auth-btn-primary {
-  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
-  color: var(--color-text-inverse);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  color: var(--color-accent);
+  background-color: rgba(74, 144, 226, 0.08);
+  font-weight: var(--font-weight-semibold);
+}
+
+.auth-btn-primary::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--color-accent);
+  border-radius: 0 2px 2px 0;
 }
 
 .auth-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-accent-hover) 0%, #2968a3 100%);
-  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
-  transform: translateY(-2px);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  transform: translateY(-1px);
 }
 
 .auth-btn-secondary {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  border: 2px solid var(--color-border-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* Uses base auth-btn styles - no additional styles needed */
 }
 
 .auth-btn-secondary:hover:not(:disabled) {
-  background: var(--color-bg-tertiary);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.2);
-  transform: translateY(-2px);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  transform: translateY(-1px);
 }
 
 /* Auth Features */
@@ -727,7 +741,7 @@ body {
   .auth-btn {
     width: 100%;
     min-width: auto;
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-3) var(--space-4);
   }
   
   .auth-features {
