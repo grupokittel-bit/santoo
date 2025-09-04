@@ -3047,138 +3047,50 @@ class SantooApp {
 // GLOBAL FUNCTIONS - Picture in Picture
 // ============================================================================
 
-// Toggle Picture in Picture for TikTok videos - IMPLEMENTAÇÃO ROBUSTA
+// Toggle Picture in Picture for TikTok videos - IMPLEMENTAÇÃO SIMPLIFICADA
 window.toggleTikTokPiP = async (videoId) => {
-  console.log('📺 [PiP] Iniciando toggle Picture in Picture para videoId:', videoId);
-  
   try {
-    // ✅ 1. VALIDAR se browser suporta Picture in Picture
-    if (!document.pictureInPictureEnabled) {
-      console.error('❌ [PiP] Browser não suporta Picture in Picture');
-      alert('Seu navegador não suporta Picture in Picture');
-      return;
-    }
-    
-    console.log('✅ [PiP] Browser suporta Picture in Picture');
-    
-    // ✅ 2. BUSCAR elemento de vídeo com seletores específicos
+    // Buscar elemento de vídeo com seletores específicos
     let videoElement = null;
     
-    // Estratégia 1: Buscar vídeo específico por videoId usando seletor mais específico
+    // Estratégia 1: Buscar vídeo específico por videoId
     if (videoId) {
-      console.log('🔍 [PiP] Estratégia 1: Buscando por data-video-id:', videoId);
       const videoCard = document.querySelector(`[data-video-id="${videoId}"]`);
       if (videoCard) {
-        // Usar seletor mais específico
         videoElement = videoCard.querySelector('video.tiktok-video');
-        console.log('🎯 [PiP] Encontrado via data-video-id:', videoElement);
       }
     }
     
-    // Estratégia 2: Buscar vídeo ativo/não pausado com seletor específico
+    // Estratégia 2: Buscar vídeo ativo/não pausado
     if (!videoElement) {
-      console.log('🔍 [PiP] Estratégia 2: Buscando vídeo ativo (não pausado)');
       videoElement = document.querySelector('video.tiktok-video:not([paused])');
-      if (videoElement) {
-        console.log('🎯 [PiP] Encontrado vídeo ativo:', videoElement);
-      }
     }
     
-    // Estratégia 3: Buscar qualquer vídeo TikTok com seletor específico
+    // Estratégia 3: Buscar qualquer vídeo TikTok
     if (!videoElement) {
-      console.log('🔍 [PiP] Estratégia 3: Buscando qualquer vídeo TikTok');
       videoElement = document.querySelector('video.tiktok-video');
-      if (videoElement) {
-        console.log('🎯 [PiP] Encontrado vídeo genérico TikTok:', videoElement);
-      }
     }
     
     // Estratégia 4: Último recurso - qualquer elemento video
     if (!videoElement) {
-      console.log('🔍 [PiP] Estratégia 4: Último recurso - qualquer video');
       videoElement = document.querySelector('video');
-      if (videoElement) {
-        console.log('🎯 [PiP] Encontrado video genérico:', videoElement);
-      }
     }
     
-    // ✅ 3. VALIDAR se elemento foi encontrado
-    if (!videoElement) {
-      console.error('❌ [PiP] Nenhum elemento de vídeo encontrado');
-      console.log('🔍 [PiP] Elementos disponíveis:');
-      console.log('- Videos gerais:', document.querySelectorAll('video').length);
-      console.log('- Videos TikTok:', document.querySelectorAll('.tiktok-video').length);
-      console.log('- Cards de vídeo:', document.querySelectorAll('[data-video-id]').length);
-      alert('Vídeo não encontrado para Picture in Picture');
+    // Verificar se elemento foi encontrado e é HTMLVideoElement
+    if (!videoElement || !(videoElement instanceof HTMLVideoElement)) {
+      console.error('Vídeo não encontrado para Picture in Picture');
       return;
     }
     
-    // ✅ 4. VALIDAR se é realmente um HTMLVideoElement
-    if (!(videoElement instanceof HTMLVideoElement)) {
-      console.error('❌ [PiP] Elemento encontrado não é HTMLVideoElement:', {
-        element: videoElement,
-        tagName: videoElement?.tagName,
-        className: videoElement?.className,
-        constructor: videoElement?.constructor?.name
-      });
-      alert('Elemento encontrado não é um vídeo válido');
-      return;
-    }
-    
-    console.log('✅ [PiP] Elemento é HTMLVideoElement válido:', {
-      tagName: videoElement.tagName,
-      className: videoElement.className,
-      src: videoElement.src,
-      currentSrc: videoElement.currentSrc,
-      readyState: videoElement.readyState
-    });
-    
-    // ✅ 5. VALIDAR se elemento tem método requestPictureInPicture
-    if (typeof videoElement.requestPictureInPicture !== 'function') {
-      console.error('❌ [PiP] Elemento não possui método requestPictureInPicture:', {
-        methods: Object.getOwnPropertyNames(Object.getPrototypeOf(videoElement))
-      });
-      alert('Elemento de vídeo não suporta Picture in Picture');
-      return;
-    }
-    
-    console.log('✅ [PiP] Elemento possui método requestPictureInPicture');
-    
-    // ✅ 6. EXECUTAR toggle do Picture in Picture
+    // Toggle Picture in Picture (implementação simples como antiga)
     if (document.pictureInPictureElement) {
-      console.log('📺 [PiP] Saindo do Picture in Picture...');
       await document.exitPictureInPicture();
-      console.log('✅ [PiP] Picture in Picture desativado com sucesso');
     } else {
-      console.log('📺 [PiP] Entrando em Picture in Picture...', {
-        videoSrc: videoElement.src,
-        videoCurrentSrc: videoElement.currentSrc,
-        videoDuration: videoElement.duration,
-        videoReadyState: videoElement.readyState
-      });
-      
       await videoElement.requestPictureInPicture();
-      console.log('✅ [PiP] Picture in Picture ativado com sucesso para videoId:', videoId);
     }
     
   } catch (error) {
-    console.error('❌ [PiP] Erro no Picture in Picture:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack,
-      videoId: videoId
-    });
-    
-    // Tratamento de erros específicos
-    if (error.name === 'InvalidStateError') {
-      alert('Erro: Vídeo não está pronto para Picture in Picture. Tente novamente.');
-    } else if (error.name === 'NotAllowedError') {
-      alert('Erro: Picture in Picture foi bloqueado pelo navegador ou usuário.');
-    } else if (error.name === 'NotSupportedError') {
-      alert('Erro: Picture in Picture não é suportado para este vídeo.');
-    } else {
-      alert('Erro no Picture in Picture: ' + error.message);
-    }
+    console.error('Erro no Picture in Picture:', error);
   }
 };
 
