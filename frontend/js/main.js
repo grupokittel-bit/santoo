@@ -83,25 +83,45 @@ class SantooApp {
    */
   async hideLoading() {
     return new Promise((resolve) => {
-      setTimeout(() => {
+      // Minimum loading time for better UX (prevent flash)
+      const minimumLoadTime = 1200;
+      const startTime = Date.now();
+      
+      const performHideAnimation = () => {
         const loadingScreen = document.getElementById('loadingScreen');
         const app = document.getElementById('app');
         
         if (loadingScreen) {
+          loadingScreen.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
           loadingScreen.style.opacity = '0';
           setTimeout(() => {
             loadingScreen.style.display = 'none';
-          }, 300);
+            loadingScreen.setAttribute('aria-hidden', 'true');
+          }, 400);
         }
         
         if (app) {
           app.style.display = 'flex';
           app.style.opacity = '0';
-          app.style.animation = 'fadeIn 500ms ease-in-out forwards';
+          app.style.transform = 'translateY(10px)';
+          app.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+          
+          // Force reflow for smooth animation
+          app.offsetHeight;
+          
+          requestAnimationFrame(() => {
+            app.style.opacity = '1';
+            app.style.transform = 'translateY(0)';
+          });
         }
         
-        resolve();
-      }, 1500); // Show loading for at least 1.5s for smooth experience
+        setTimeout(resolve, 500);
+      };
+      
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, minimumLoadTime - elapsedTime);
+      
+      setTimeout(performHideAnimation, remainingTime);
     });
   }
 

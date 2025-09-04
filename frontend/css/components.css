@@ -19,24 +19,49 @@
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: var(--transition-colors), var(--transition-transform);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  min-height: 44px; /* Touch target accessibility */
+}
+
+/* Ripple effect for better feedback */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+  z-index: 0;
+}
+
+.btn:active::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-border-focus);
+  outline: 3px solid var(--color-accent);
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(var(--color-accent-rgb), 0.15);
 }
 
 .btn:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.98);
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  pointer-events: none;
 }
 
 /* Button Variants */

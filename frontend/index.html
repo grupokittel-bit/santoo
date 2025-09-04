@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1a1a1a">
-    <meta name="description" content="Santoo - Plataforma gospel de vídeos curtos e lives. Compartilhe mensagens, testemunhos e pregações.">
+    <meta name="description" content="Santoo - Plataforma gospel completa com vídeos, lives e Bíblia Explicada. Cresça espiritualmente com nossa comunidade cristã.">
     
     <!-- CACHE CONTROL SUPREMO - Força sempre versão mais recente -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
@@ -36,7 +36,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Georgia:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
     
     <!-- Professional Icons - Lucide Icons (SVG) -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" defer></script>
+    
+    <!-- Skip to main content for accessibility -->
+    <style>
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--color-accent);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            border-radius: 4px;
+            z-index: 10000;
+        }
+        .skip-link:focus {
+            top: 6px;
+        }
+    </style>
     
     <!-- Styles -->
     <link rel="stylesheet" href="css/reset.css">
@@ -47,14 +65,17 @@
     <title>Santoo - Plataforma Gospel de Vídeos</title>
 </head>
 <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
     <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading-screen">
+    <div id="loadingScreen" class="loading-screen" role="dialog" aria-label="Carregando aplicação">
         <div class="loading-content">
             <div class="logo-container">
                 <div class="logo-images-row">
-                    <img src="assets/images/logos/logo2.png" alt="Santoo" class="logo-image">
-                    <img src="assets/images/logos/favicon.png" alt="Favicon" class="favicon-image">
+                    <img src="assets/images/logos/logo2.png" alt="Santoo - Logo principal" class="logo-image">
+                    <img src="assets/images/logos/favicon.png" alt="Santoo - Ícone" class="favicon-image">
                 </div>
+                <div class="loading-text" aria-live="polite">Carregando...</div>
             </div>
         </div>
     </div>
@@ -63,7 +84,7 @@
     <div id="app" class="app" style="display: none;">
         
         <!-- Header / Navigation -->
-        <header class="header">
+        <header class="header" role="banner">
             <div class="header-content">
                 <div class="logo-section">
                     <h1 class="app-logo">
@@ -71,25 +92,25 @@
                     </h1>
                 </div>
                 
-                <nav class="main-nav">
-                    <a href="#home" class="nav-link active" data-page="home">
-                        <i class="nav-icon" data-lucide="home"></i>
+                <nav class="main-nav" role="navigation" aria-label="Navegação principal">
+                    <a href="#home" class="nav-link active" data-page="home" aria-label="Ir para página inicial" aria-current="page">
+                        <i class="nav-icon" data-lucide="home" aria-hidden="true"></i>
                         <span class="nav-text">Início</span>
                     </a>
-                    <a href="#discover" class="nav-link" data-page="discover">
-                        <i class="nav-icon" data-lucide="compass"></i>
+                    <a href="#discover" class="nav-link" data-page="discover" aria-label="Descobrir conteúdos">
+                        <i class="nav-icon" data-lucide="compass" aria-hidden="true"></i>
                         <span class="nav-text">Descobrir</span>
                     </a>
-                    <a href="#upload" class="nav-link" data-page="upload">
-                        <i class="nav-icon" data-lucide="plus-circle"></i>
+                    <a href="#upload" class="nav-link" data-page="upload" aria-label="Publicar conteúdo">
+                        <i class="nav-icon" data-lucide="plus-circle" aria-hidden="true"></i>
                         <span class="nav-text">Publicar</span>
                     </a>
-                    <a href="#live" class="nav-link" data-page="live">
-                        <i class="nav-icon" data-lucide="radio"></i>
+                    <a href="#live" class="nav-link" data-page="live" aria-label="Transmissões ao vivo">
+                        <i class="nav-icon" data-lucide="radio" aria-hidden="true"></i>
                         <span class="nav-text">Ao Vivo</span>
                     </a>
-                    <a href="#bible-explained" class="nav-link" data-page="bible-explained">
-                        <i class="nav-icon" data-lucide="book-open"></i>
+                    <a href="#bible-explained" class="nav-link" data-page="bible-explained" aria-label="Bíblia Explicada com contexto">
+                        <i class="nav-icon" data-lucide="book-open" aria-hidden="true"></i>
                         <span class="nav-text">Bíblia Explicada</span>
                     </a>
                     <a href="#bible-admin" class="nav-link" data-page="bible-admin" id="bibleAdminLink" style="display: none;">
@@ -788,60 +809,109 @@
     <!-- PROBLEMA: F5 normal carrega arquivos corrompidos do cache -->
     <!-- SOLUÇÃO: Timestamp impede cache de arquivos JS -->
     <script>
-        // CACHE BUSTING SUPREMO - Timestamp + Random + Contador para garantir cache refresh 
-        const CACHE_VERSION = Date.now() + '_' + Math.random().toString(36).substr(2, 9) + '_' + performance.now();
+        // PERFORMANCE-OPTIMIZED SCRIPT LOADER - Fase 5 Refinements
+        const CACHE_VERSION = '1.5.0_' + Date.now();
         
-        // Função para carregar script com cache busting
-        function loadScript(src) {
-            const script = document.createElement('script');
-            script.src = `${src}?v=${CACHE_VERSION}`;
-            script.async = false; // Mantém ordem de carregamento
-            document.head.appendChild(script);
+        // Script loader with intelligent lazy loading
+        class OptimizedScriptLoader {
+            static cache = new Map();
+            static loadedScripts = new Set();
             
-            return new Promise((resolve, reject) => {
-                script.onload = resolve;
-                script.onerror = reject;
-            });
-        }
-        
-        // Lista de scripts na ordem correta
-        const scripts = [
-            'js/utils.js',
-            'js/icons-init.js',
-            'js/api.js', 
-            'js/components.js',
-            'js/auth.js',
-            'js/upload.js',
-            'js/video-player.js',
-            'js/bible-admin.js',
-            'js/bible-explained.js',
-            'js/spiritual-habits.js',
-            'js/main.js'
-        ];
-        
-        // Carrega scripts sequencialmente com cache busting
-        console.log('🔄 Carregando scripts com cache-busting...');
-        
-        async function loadAllScripts() {
-            try {
-                for (const scriptSrc of scripts) {
-                    await loadScript(scriptSrc);
-                    console.log(`✅ Script carregado: ${scriptSrc}`);
+            // Load script with optimizations
+            static loadScript(src, options = {}) {
+                const cacheKey = src;
+                if (this.cache.has(cacheKey)) {
+                    return this.cache.get(cacheKey);
                 }
-                console.log('🚀 Todos os scripts carregados com sucesso!');
-            } catch (error) {
-                console.error('❌ Erro ao carregar scripts:', error);
-                // Fallback: recarregar página com CTRL+F5 
-                console.log('🔄 Forçando recarga completa...');
+                
+                const promise = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = `${src}?v=${CACHE_VERSION}`;
+                    script.defer = options.defer !== false; // Default to defer
+                    script.async = options.async || false;
+                    
+                    script.onload = () => {
+                        this.loadedScripts.add(src);
+                        console.log(`✅ ${src} loaded successfully`);
+                        resolve();
+                    };
+                    
+                    script.onerror = (error) => {
+                        console.error(`❌ Failed to load ${src}:`, error);
+                        reject(error);
+                    };
+                    
+                    document.head.appendChild(script);
+                });
+                
+                this.cache.set(cacheKey, promise);
+                return promise;
+            }
+            
+            // Load critical scripts immediately
+            static async loadCriticalScripts() {
+                const criticalScripts = [
+                    'js/utils.js',
+                    'js/icons-init.js', 
+                    'js/api.js',
+                    'js/components.js',
+                    'js/auth.js',
+                    'js/main.js'
+                ];
+                
+                console.log('🚀 Loading critical scripts...');
+                
+                try {
+                    await Promise.all(criticalScripts.map(src => this.loadScript(src)));
+                    console.log('✅ Critical scripts loaded successfully!');
+                } catch (error) {
+                    console.error('❌ Critical script loading failed:', error);
+                    this.fallbackReload();
+                }
+            }
+            
+            // Lazy load non-critical scripts
+            static lazyLoadScript(src) {
+                if (this.loadedScripts.has(src)) return Promise.resolve();
+                
+                // Use intersection observer or timeout for lazy loading
+                return new Promise(resolve => {
+                    if ('requestIdleCallback' in window) {
+                        requestIdleCallback(() => {
+                            this.loadScript(src).then(resolve).catch(resolve);
+                        });
+                    } else {
+                        setTimeout(() => {
+                            this.loadScript(src).then(resolve).catch(resolve);
+                        }, 100);
+                    }
+                });
+            }
+            
+            // Fallback reload with cache clearing
+            static fallbackReload() {
+                console.log('🔄 Forcing cache clear and reload...');
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => caches.delete(name));
+                    });
+                }
                 location.reload(true);
             }
         }
         
-        // Inicia carregamento quando DOM estiver pronto
+        // Global lazy loading functions for specialized scripts
+        window.loadBibleExplained = () => OptimizedScriptLoader.lazyLoadScript('js/bible-explained.js');
+        window.loadBibleAdmin = () => OptimizedScriptLoader.lazyLoadScript('js/bible-admin.js'); 
+        window.loadSpiritualHabits = () => OptimizedScriptLoader.lazyLoadScript('js/spiritual-habits.js');
+        window.loadUpload = () => OptimizedScriptLoader.lazyLoadScript('js/upload.js');
+        window.loadVideoPlayer = () => OptimizedScriptLoader.lazyLoadScript('js/video-player.js');
+        
+        // Start optimized loading
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadAllScripts);
+            document.addEventListener('DOMContentLoaded', () => OptimizedScriptLoader.loadCriticalScripts());
         } else {
-            loadAllScripts();
+            OptimizedScriptLoader.loadCriticalScripts();
         }
     </script>
     
