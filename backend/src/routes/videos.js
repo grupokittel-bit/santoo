@@ -13,6 +13,9 @@ const {
   removeFile 
 } = require('../middleware/upload');
 
+// Middleware de processamento de vídeo
+const { processUploadedVideo } = require('../middleware/video-processing');
+
 const router = express.Router();
 
 
@@ -193,7 +196,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // === ROTAS PROTEGIDAS ===
 
 // POST /videos - Upload de novo vídeo (com thumbnail opcional)
-router.post('/', authMiddleware, uploadVideoComplete, validateVideoMetadata, validateImageMetadata, async (req, res) => {
+router.post('/', authMiddleware, uploadVideoComplete, validateVideoMetadata, validateImageMetadata, processUploadedVideo, async (req, res) => {
   try {
     const {
       title,
@@ -224,9 +227,16 @@ router.post('/', authMiddleware, uploadVideoComplete, validateVideoMetadata, val
     
     // URLs públicas dos arquivos
     const videoUrl = `/uploads/videos/${videoFile.filename}`;
-    const thumbnailUrl = thumbnailFile ? `/uploads/thumbnails/${thumbnailFile.filename}` : null;
     
-    // Cria vídeo
+    // Thumbnail: usa a fornecida pelo usuário OU a gerada automaticamente
+    let thumbnailUrl = null;
+    if (thumbnailFile) {
+      thumbnailUrl = `/uploads/thumbnails/${thumbnailFile.filename}`;
+    } else if (req.thumbnailGenerated) {
+      thumbnailUrl = req.thumbnailGenerated.url;
+    }
+    
+    // Cria vídeo com metadados do processamento
     const video = await Video.create({
       title,
       description,
@@ -237,6 +247,14 @@ router.post('/', authMiddleware, uploadVideoComplete, validateVideoMetadata, val
       fileName: videoFile.filename,
       filePath: videoFile.path,
       fileSize: videoFile.size,
+      
+      // Metadados do processamento FFmpeg
+      duration: req.videoProcessingResult?.duration || null,
+      resolution: req.videoProcessingResult?.resolution || null,
+      
+      // Status inicial: aprovado se foi processado com sucesso
+      status: req.videoProcessingResult?.wasProcessed ? 'approved' : 'pending',
+      
       userId: req.user.id
     });
     
@@ -259,10 +277,25 @@ router.post('/', authMiddleware, uploadVideoComplete, validateVideoMetadata, val
       ]
     });
     
-    res.status(201).json({
+    // Resposta com informações do processamento
+    const response = {
       message: 'Vídeo enviado com sucesso!',
       video: newVideo
-    });
+    };
+    
+    // Adiciona informações do processamento se houve
+    if (req.videoProcessingResult) {
+      response.processing = {
+        wasProcessed: req.videoProcessingResult.wasProcessed,
+        compression: `${req.videoProcessingResult.compression}%`,
+        finalSize: `${(videoFile.size / 1024 / 1024).toFixed(2)} MB`,
+        resolution: req.videoProcessingResult.resolution,
+        duration: `${req.videoProcessingResult.duration}s`,
+        thumbnailsGenerated: req.videoProcessingResult.thumbnailsGenerated
+      };
+    }
+    
+    res.status(201).json(response);
     
   } catch (error) {
     console.error('Erro no upload:', error);
