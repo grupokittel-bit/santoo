@@ -42,25 +42,31 @@ body {
 }
 
 .logo-images-row {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  flex-direction: row;
+  width: 100%;
+  transform: translateX(-50px);
 }
 
 .logo-image {
-  width: 400px;
-  height: 400px;
+  width: 300px;
+  height: 300px;
   object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(74, 144, 226, 0.3));
   animation: logoGlow 2s ease-in-out infinite alternate;
 }
 
 .favicon-image {
-  width: 400px;
-  height: 400px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
+  position: absolute;
+  top: 50%;
+  left: calc(50% + 100px);
+  transform: translate(-50%, -50%);
+  z-index: 2;
 }
 
 @keyframes logoGlow {
