@@ -968,4 +968,172 @@ router.put('/admin/disagreements/:id', [authMiddleware, bibleModeratorOnly], asy
   }
 });
 
+/**
+ * Get user progress statistics
+ * GET /api/bible-posts/my-progress-stats
+ */
+router.get('/my-progress-stats', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [amenCount, opsCount] = await Promise.all([
+      UserBibleInteraction.count({
+        where: { 
+          userId: userId,
+          type: 'amen',
+          isActive: true
+        }
+      }),
+      UserBibleInteraction.count({
+        where: { 
+          userId: userId,
+          type: 'ops',
+          isActive: true
+        }
+      })
+    ]);
+
+    const habitStats = await UserHabitTracker.getUserHabitStats(userId);
+    const maxStreak = await UserHabitTracker.getUserMaxStreak(userId);
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const monthlyInteractions = await UserBibleInteraction.count({
+      where: {
+        userId: userId,
+        createdAt: {
+          [require('sequelize').Op.gte]: thirtyDaysAgo
+        },
+        isActive: true
+      }
+    });
+
+    const monthlyRate = Math.round((monthlyInteractions / 30) * 100);
+
+    res.json({
+      success: true,
+      data: {
+        amenCount,
+        opsCount,
+        streakCount: maxStreak || 0,
+        monthlyRate: monthlyRate || 0,
+        totalInteractions: amenCount + opsCount,
+        habitStats
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar estatísticas de progresso:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao carregar estatísticas de progresso',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * Get week progress for a specific bible post/habit
+ * GET /api/bible-posts/:id/week-progress
+ */
+router.get('/:id/week-progress', authMiddleware, async (req, res) => {
+  try {
+    const { id: biblePostId } = req.params;
+    const userId = req.user.id;
+
+    const biblePost = await BiblePost.findByPk(biblePostId);
+    if (!biblePost) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post bíblico não encontrado'
+      });
+    }
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const weekHabits = await UserHabitTracker.findAll({
+      where: {
+        userId: userId,
+        biblePostId: biblePostId,
+        createdAt: {
+          [require('sequelize').Op.gte]: oneWeekAgo
+        }
+      },
+      order: [['createdAt', 'DESC']]
+    });
+
+    const weekInteractions = await UserBibleInteraction.findAll({
+      where: {
+        userId: userId,
+        biblePostId: biblePostId,
+        createdAt: {
+          [require('sequelize').Op.gte]: oneWeekAgo
+        },
+        isActive: true
+      },
+      order: [['createdAt', 'DESC']]
+    });
+
+    const today = new Date();
+    const weekProgress = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      const dayStart = new Date(date.setHours(0, 0, 0, 0));
+      const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+
+      const dayHabits = weekHabits.filter(habit => 
+        habit.createdAt >= dayStart && habit.createdAt <= dayEnd
+      );
+
+      const dayInteractions = weekInteractions.filter(interaction => 
+        interaction.createdAt >= dayStart && interaction.createdAt <= dayEnd
+      );
+
+      weekProgress.push({
+        date: dayStart.toISOString().split('T')[0],
+        hasActivity: dayHabits.length > 0 || dayInteractions.length > 0,
+        habitsCount: dayHabits.length,
+        interactionsCount: dayInteractions.length,
+        types: [...new Set(dayInteractions.map(i => i.type))]
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        biblePostId,
+        weekProgress,
+        totalActiveDays: weekProgress.filter(day => day.hasActivity).length,
+        streak: calculateCurrentStreak(weekProgress)
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar progresso semanal:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao carregar progresso semanal',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+function calculateCurrentStreak(weekProgress) {
+  let currentStreak = 0;
+  
+  for (let i = weekProgress.length - 1; i >= 0; i--) {
+    if (weekProgress[i].hasActivity) {
+      currentStreak++;
+    } else {
+      break;
+    }
+  }
+  
+  return currentStreak;
+}
+
 module.exports = router;
