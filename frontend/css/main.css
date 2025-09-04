@@ -568,7 +568,7 @@ body {
   flex-direction: column;
   gap: var(--space-6); /* ✅ MAIS ESPAÇO ENTRE BOTÕES (para acomodar números) */
   align-items: center;
-  margin-bottom: var(--space-8); /* ✅ MOVE TODOS OS BOTÕES MAIS PARA CIMA */
+  margin-bottom: var(--space-2); /* ✅ BOTÕES MAIS PRÓXIMOS DA BARRA DE REPRODUÇÃO */
 }
 
 /* === TIKTOK ACTION BUTTONS === */
@@ -780,7 +780,7 @@ body {
 @media (max-width: 768px) {
   .tiktok-actions {
     gap: var(--space-5); /* ✅ MAIS ESPAÇO EM MOBILE TAMBÉM */
-    margin-bottom: var(--space-12); /* ✅ MOVE MAIS PARA CIMA NO MOBILE */
+    margin-bottom: var(--space-3); /* ✅ BOTÕES PRÓXIMOS À BARRA NO MOBILE */
   }
   
   .tiktok-action-btn {
