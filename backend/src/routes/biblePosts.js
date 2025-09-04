@@ -151,6 +151,8 @@ async function registerView(userId, postId) {
  */
 router.get('/', authMiddleware, async (req, res) => {
   try {
+    console.log('🔍 [DEBUG] Requisição para bible-posts com parâmetros:', req.query);
+    
     const {
       page = 1,
       limit = 10,
@@ -164,7 +166,15 @@ router.get('/', authMiddleware, async (req, res) => {
 
     let posts;
 
-    if (category || search || admin) {
+    // Converter admin para boolean se for string
+    const isAdmin = admin === 'true' || admin === true;
+    
+    console.log('🔍 [DEBUG] Parâmetros processados:', { 
+      admin, isAdmin, category, search, 
+      willUseFiltered: !!(category || search || isAdmin)
+    });
+    
+    if (category || search || isAdmin) {
       // Busca filtrada
       const whereConditions = { is_active: true };
       
@@ -177,6 +187,8 @@ router.get('/', authMiddleware, async (req, res) => {
         ];
       }
 
+      console.log('🔍 [DEBUG] Executando busca filtrada com whereConditions:', whereConditions);
+      
       posts = await BiblePost.findAll({
         where: whereConditions,
         limit: parseInt(limit),
@@ -190,9 +202,12 @@ router.get('/', authMiddleware, async (req, res) => {
           }
         ]
       });
+      
+      console.log('🔍 [DEBUG] Posts encontrados na busca filtrada:', posts.length);
     } else {
       // Feed personalizado com algoritmo de recomendação
-      posts = await getPersonalizedRecommendations(userId, parseInt(limit), false);
+      console.log('🔍 [DEBUG] Usando algoritmo de recomendação, excludeViewed:', !isAdmin);
+      posts = await getPersonalizedRecommendations(userId, parseInt(limit), !isAdmin);
       
       // Incluir dados do autor
       for (let post of posts) {
