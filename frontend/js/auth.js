@@ -646,7 +646,7 @@ function showRegisterModal() {
   const modalTitle = document.getElementById('authModalTitle');
   const modalBody = modal.querySelector('.modal-body');
   
-  modalTitle.textContent = 'Junte-se à comunidade Santoo';
+  modalTitle.textContent = 'Junte-se à comunidade!';
   modalBody.innerHTML = `
     <!-- Professional Auth Prompt Header -->
     <div class="auth-modal-header">
