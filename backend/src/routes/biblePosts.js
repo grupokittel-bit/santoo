@@ -85,20 +85,29 @@ async function getPersonalizedRecommendations(userId, limit = 10, excludeViewed 
       console.log('🧠 [ALGORITMO] Fallback: Sem filtro de tags para maior diversidade');
     }
 
-    // 5. Excluir posts que o usuário já viu recentemente (se habilitado)
-    if (excludeViewed) {
+    // 5. Gerenciamento inteligente de posts já visualizados
+    if (excludeViewed && hasEnoughData) {
+      // Só excluir posts recentes se usuário tem muitas interações
       const recentViews = await BiblePostView.findAll({
         where: { 
           user_id: userId,
-          createdAt: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Últimas 24h
+          createdAt: { [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // Últimas 7 dias
         },
         attributes: ['bible_post_id']
       });
 
       const viewedPostIds = recentViews.map(view => view.bible_post_id);
-      if (viewedPostIds.length > 0) {
+      console.log('🔍 [DEBUG] Posts visualizados recentemente:', viewedPostIds.length);
+      
+      // Só excluir se não for mais de 70% do conteúdo total
+      if (viewedPostIds.length > 0 && viewedPostIds.length < 20) {
         whereConditions.id = { [Op.notIn]: viewedPostIds };
+        console.log('🚫 [ALGORITMO] Excluindo posts recentemente visualizados');
+      } else {
+        console.log('🔄 [ALGORITMO] Não excluindo - usuário viu muitos posts recentemente');
       }
+    } else {
+      console.log('🆕 [ALGORITMO] Usuário novo - mostrando todos os posts disponíveis');
     }
 
     // 🧠 ORDENAÇÃO ADAPTATIVA baseada na quantidade de dados
@@ -122,11 +131,29 @@ async function getPersonalizedRecommendations(userId, limit = 10, excludeViewed 
       console.log('🧠 [ALGORITMO] Usando ordenação para usuário novo (diversidade)');
     }
 
-    return await BiblePost.findAll({
+    const posts = await BiblePost.findAll({
       where: whereConditions,
       limit: limit,
       order: orderStrategy
     });
+    
+    console.log('🔍 [ALGORITMO] Posts encontrados:', posts.length);
+    
+    // 🛟 FALLBACK INTERNO: Se não encontrou posts, remover restrições
+    if (posts.length === 0) {
+      console.log('🛟 [FALLBACK INTERNO] Nenhum post encontrado, removendo todas as restrições...');
+      
+      const fallbackPosts = await BiblePost.findAll({
+        where: { is_active: true }, // Apenas posts ativos
+        limit: limit,
+        order: [['createdAt', 'DESC'], ['amen_count', 'DESC']]
+      });
+      
+      console.log('🛟 [FALLBACK INTERNO] Posts encontrados sem restrições:', fallbackPosts.length);
+      return fallbackPosts;
+    }
+    
+    return posts;
 
   } catch (error) {
     console.error('🚨 Erro no algoritmo de recomendação:', error);
