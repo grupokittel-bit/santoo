@@ -21,9 +21,8 @@ class BibleAdminManager {
     
     this.setupEventListeners();
     this.setupFormValidation();
-    this.loadPosts();
+    this.loadPosts(); // 🔧 loadPosts() agora chama updateStats() automaticamente
     this.loadDisagreements();
-    this.updateStats();
   }
 
   /**
@@ -40,9 +39,9 @@ class BibleAdminManager {
     }
     
     if (adminManageBtn) {
-      adminManageBtn.addEventListener('click', () => {
+      adminManageBtn.addEventListener('click', async () => {
         this.showSection('manage');
-        this.loadPosts();
+        await this.loadPosts(); // 🔧 Aguarda carregar posts quando trocar para manage
       });
     }
     
@@ -300,8 +299,7 @@ class BibleAdminManager {
       if (response.success) {
         this.showAlert('Post criado com sucesso! 🎉', 'success');
         this.clearForm();
-        this.loadPosts();
-        this.updateStats();
+        await this.loadPosts(); // 🔧 loadPosts() agora chama updateStats() automaticamente
         
         // If published, show success with engagement info
         if (postData.is_active) {
@@ -376,8 +374,7 @@ class BibleAdminManager {
       
       if (response.success) {
         this.showAlert('Rascunho salvo com sucesso! 📝', 'success');
-        this.loadPosts();
-        this.updateStats();
+        await this.loadPosts(); // 🔧 loadPosts() agora chama updateStats() automaticamente
       } else {
         throw new Error(response.message || 'Erro ao salvar rascunho');
       }
@@ -411,11 +408,17 @@ class BibleAdminManager {
     }
     
     try {
+      console.log('📡 [DEBUG] Carregando posts do admin...');
       const response = await window.SantooAPI.get('/api/bible-posts?admin=true');
       
       if (response.success) {
         this.posts = response.posts || [];
+        console.log('✅ [DEBUG] Posts carregados:', { 
+          total: this.posts.length,
+          active: this.posts.filter(p => p.is_active).length
+        });
         this.renderPostsList();
+        this.updateStats(); // 🔧 SEMPRE atualiza stats após carregar posts
       } else {
         throw new Error('Erro ao carregar posts');
       }
@@ -697,23 +700,48 @@ class BibleAdminManager {
    */
   async updateStats() {
     try {
-      // Get posts stats
+      console.log('🔄 [DEBUG] Atualizando estatísticas...', { 
+        postsCount: this.posts?.length || 0,
+        postsData: this.posts ? 'loaded' : 'null'
+      });
+      
+      // Get posts stats elements
       const totalEl = document.getElementById('adminStatsTotal');
       const activeEl = document.getElementById('adminStatsActive');
       const draftsEl = document.getElementById('adminStatsDrafts');
       
-      if (totalEl && this.posts) {
-        const total = this.posts.length;
-        const active = this.posts.filter(p => p.is_active).length;
-        const drafts = total - active;
-        
-        totalEl.textContent = total;
-        if (activeEl) activeEl.textContent = active;
-        if (draftsEl) draftsEl.textContent = drafts;
+      // Verificações de segurança
+      if (!totalEl || !activeEl || !draftsEl) {
+        console.error('❌ [DEBUG] Elementos de estatísticas não encontrados no DOM');
+        return;
       }
       
+      if (!this.posts || !Array.isArray(this.posts)) {
+        console.warn('⚠️ [DEBUG] this.posts não é um array válido:', this.posts);
+        // Define valores padrão
+        totalEl.textContent = '0';
+        activeEl.textContent = '0';
+        draftsEl.textContent = '0';
+        return;
+      }
+      
+      // Calcular estatísticas
+      const total = this.posts.length;
+      const active = this.posts.filter(p => p.is_active === true).length;
+      const drafts = total - active;
+      
+      // Atualizar DOM
+      totalEl.textContent = total.toString();
+      activeEl.textContent = active.toString();
+      draftsEl.textContent = drafts.toString();
+      
+      console.log('✅ [DEBUG] Estatísticas atualizadas:', { 
+        total, active, drafts,
+        activePosts: this.posts.filter(p => p.is_active === true).map(p => ({ id: p.id, title: p.title }))
+      });
+      
     } catch (error) {
-      console.error('Erro ao atualizar estatísticas:', error);
+      console.error('❌ Erro ao atualizar estatísticas:', error);
     }
   }
 
