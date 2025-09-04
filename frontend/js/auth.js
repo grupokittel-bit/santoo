@@ -607,9 +607,11 @@ function showLoginModal() {
   
   // Show modal using CSS classes (consistent with main.js)  
   const overlay = document.getElementById('modalOverlay');
+  const modal = document.getElementById('authModal');
   
-  // CRITICAL FIX: Ensure overlay is properly reset before showing
+  // CRITICAL FIX: Ensure modal and overlay are properly reset before showing
   overlay.style.display = '';  // Clear any inline styles first
+  modal.style.display = 'block';  // BUGFIX: Ensure modal is visible (overrides closeAllModals)
   overlay.classList.add('active');
   
   console.log('✅ Modal aberto - overlay classes aplicadas');
@@ -774,9 +776,11 @@ function showRegisterModal() {
   
   // Show modal using CSS classes (consistent with main.js)  
   const overlay = document.getElementById('modalOverlay');
+  const modal = document.getElementById('authModal');
   
-  // CRITICAL FIX: Ensure overlay is properly reset before showing
+  // CRITICAL FIX: Ensure modal and overlay are properly reset before showing
   overlay.style.display = '';  // Clear any inline styles first
+  modal.style.display = 'block';  // BUGFIX: Ensure modal is visible (overrides closeAllModals)
   overlay.classList.add('active');
   
   console.log('✅ Modal aberto - overlay classes aplicadas');
@@ -837,9 +841,11 @@ function showPasswordResetModal() {
   
   // Show modal using CSS classes (consistent with main.js)  
   const overlay = document.getElementById('modalOverlay');
+  const modal = document.getElementById('authModal');
   
-  // CRITICAL FIX: Ensure overlay is properly reset before showing
+  // CRITICAL FIX: Ensure modal and overlay are properly reset before showing
   overlay.style.display = '';  // Clear any inline styles first
+  modal.style.display = 'block';  // BUGFIX: Ensure modal is visible (overrides closeAllModals)
   overlay.classList.add('active');
   
   console.log('✅ Modal aberto - overlay classes aplicadas');
