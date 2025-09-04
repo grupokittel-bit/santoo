@@ -507,8 +507,8 @@ class BibleExplainedManager {
         this.userInteractions.set(postId, action);
       }
       
-      // Atualiza contadores
-      await this.updatePostCounts(postId);
+      // Atualiza contadores localmente (otimização - sem chamada à API)
+      this.updatePostCountsLocal(postId, action, isCurrentlyActive);
       
     } catch (error) {
       console.error('❌ Erro na interação regular:', error);
@@ -540,33 +540,49 @@ class BibleExplainedManager {
   }
 
   /**
-   * Atualiza contadores do post
+   * Atualiza contadores localmente sem chamada à API (OTIMIZADO)
    */
-  async updatePostCounts(postId) {
+  updatePostCountsLocal(postId, action, wasActive) {
     try {
-      const response = await window.SantooAPI.get(`/api/bible-posts/${postId}`);
+      const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+      if (!postCard) return;
       
-      if (response?.post) {
-        const post = response.post;
-        const postCard = document.querySelector(`[data-post-id="${postId}"]`);
-        
-        if (postCard) {
-          // Atualiza contadores nos botões
-          const likeBtn = postCard.querySelector('.btn-like span');
-          const amenBtn = postCard.querySelector('.btn-amen span');
-          const opsBtn = postCard.querySelector('.btn-ops span');
-          const viewsSpan = postCard.querySelector('.meta-item:first-child span');
-          
-          if (likeBtn) likeBtn.textContent = post.likes_count || 0;
-          if (amenBtn) amenBtn.textContent = `Amém ${post.amen_count || 0}`;
-          if (opsBtn) opsBtn.textContent = `Ops ${post.ops_count || 0}`;
-          if (viewsSpan) viewsSpan.textContent = `${post.views_count || 0} visualizações`;
-        }
+      // Encontra o botão correspondente à ação
+      const actionBtn = postCard.querySelector(`.btn-${action}`);
+      if (!actionBtn) return;
+      
+      const counterSpan = actionBtn.querySelector('span');
+      if (!counterSpan) return;
+      
+      // Extrai o número atual do texto
+      let currentText = counterSpan.textContent;
+      let currentCount = 0;
+      
+      if (action === 'like') {
+        // Para like: span contém apenas o número
+        currentCount = parseInt(currentText) || 0;
+      } else {
+        // Para amen/ops: span contém "Amém 5" ou "Ops 3"
+        const match = currentText.match(/\d+/);
+        currentCount = match ? parseInt(match[0]) : 0;
       }
       
+      // Calcula novo valor
+      const newCount = wasActive ? currentCount - 1 : currentCount + 1;
+      
+      // Atualiza o texto
+      if (action === 'like') {
+        counterSpan.textContent = Math.max(0, newCount);
+      } else {
+        const prefix = action === 'amen' ? 'Amém' : 'Ops';
+        counterSpan.textContent = `${prefix} ${Math.max(0, newCount)}`;
+      }
+      
+      console.log(`✅ Contador ${action} atualizado localmente: ${currentCount} → ${Math.max(0, newCount)}`);
+      
     } catch (error) {
-      console.error('❌ Erro ao atualizar contadores:', error);
-      // Não bloqueia a interação por este erro
+      console.error('❌ Erro ao atualizar contador local:', error);
+      // Não bloqueia a interação
     }
   }
 
