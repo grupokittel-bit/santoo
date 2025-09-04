@@ -137,9 +137,14 @@ class AuthManager {
         this.user = response.user;
         this.token = response.token;
         
+        // CRITICAL FIX: Salvar dados no localStorage para persistir após recarregamento
+        SantooUtils.StorageUtils.set('santoo_user', this.user);
+        SantooUtils.StorageUtils.set('santoo_token', this.token);
+        
         this.notifyAuthChange('login');
         
         console.log('✅ Login realizado com sucesso:', this.user.displayName);
+        console.log('🔒 Dados persistidos no localStorage - Role:', this.user.role);
         return { success: true, user: this.user, message: response.message };
       } else {
         throw new Error(response.error || 'Erro no login');
@@ -184,9 +189,14 @@ class AuthManager {
         this.user = response.user;
         this.token = response.token;
         
+        // CRITICAL FIX: Salvar dados no localStorage para persistir após recarregamento
+        SantooUtils.StorageUtils.set('santoo_user', this.user);
+        SantooUtils.StorageUtils.set('santoo_token', this.token);
+        
         this.notifyAuthChange('register');
         
         console.log('✅ Registro realizado com sucesso:', this.user.displayName);
+        console.log('🔒 Dados persistidos no localStorage - Role:', this.user.role);
         return { success: true, user: this.user, message: response.message };
       } else {
         throw new Error(response.error || 'Erro no registro');

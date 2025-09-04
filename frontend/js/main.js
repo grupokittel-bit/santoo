@@ -395,11 +395,26 @@ class SantooApp {
       p.classList.remove('active');
     });
     
+    // CRITICAL FIX: Handle bible-admin page name inconsistency 
+    let pageId;
+    if (page === 'bible-admin') {
+      pageId = 'bibleAdminPage'; // HTML usa camelCase
+    } else if (page === 'bibleDisagreements') {
+      pageId = 'bibleDisagreementsPage'; // HTML usa camelCase
+    } else {
+      pageId = `${page}Page`; // Outras páginas usam padrão normal
+    }
+    
+    console.log(`🔍 DEBUG - Buscando página: ${page} → elemento: ${pageId}`);
+    
     // Show target page
-    const targetPage = document.getElementById(`${page}Page`);
+    const targetPage = document.getElementById(pageId);
     if (targetPage) {
+      console.log(`✅ DEBUG - Página encontrada: ${pageId}`);
       targetPage.classList.add('active');
       this.initCurrentPage();
+    } else {
+      console.error(`❌ DEBUG - Página NÃO encontrada: ${pageId} para ${page}`);
     }
   }
 
@@ -1493,12 +1508,19 @@ class SantooApp {
   initBibleAdminPage() {
     console.log('📖 Inicializando página de administração da Bíblia');
     
+    // CRITICAL FIX: Sync user from AuthManager before checking permissions
+    this.syncUserFromAuthManager();
+    console.log('🔍 DEBUG - this.user após sync:', this.user?.displayName, 'role:', this.user?.role);
+    
     // Check permissions
     if (!this.canAccessBibleAdmin()) {
+      console.log('❌ DEBUG - canAccessBibleAdmin() returned false. User:', this.user, 'Role:', this.user?.role);
       this.showNotification('Acesso negado. Apenas administradores e pastores podem acessar esta área.', 'error');
       this.navigateTo('home');
       return;
     }
+    
+    console.log('✅ DEBUG - Acesso permitido para usuário:', this.user.displayName, 'role:', this.user.role);
     
     // Initialize Bible Admin Manager if available
     if (window.bibleAdmin) {
@@ -1510,12 +1532,19 @@ class SantooApp {
   initBibleDisagreementsPage() {
     console.log('💬 Inicializando página de moderação de discordâncias');
     
+    // CRITICAL FIX: Sync user from AuthManager before checking permissions
+    this.syncUserFromAuthManager();
+    console.log('🔍 DEBUG - this.user após sync (disagreements):', this.user?.displayName, 'role:', this.user?.role);
+    
     // Check permissions
     if (!this.canAccessBibleAdmin()) {
+      console.log('❌ DEBUG - canAccessBibleAdmin() returned false (disagreements). User:', this.user, 'Role:', this.user?.role);
       this.showNotification('Acesso negado. Apenas administradores e pastores podem moderar discordâncias.', 'error');
       this.navigateTo('home');
       return;
     }
+    
+    console.log('✅ DEBUG - Acesso permitido para discordâncias:', this.user.displayName, 'role:', this.user.role);
     
     // Initialize Bible Admin Manager if available
     if (window.bibleAdmin) {
