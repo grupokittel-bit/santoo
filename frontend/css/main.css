@@ -695,9 +695,17 @@ body {
   opacity: 1;
 }
 
-/* === TIKTOK PROGRESS BAR ANTIGA - DESABILITADA === */
+/* === TIKTOK PROGRESS BAR NA PARTE INFERIOR === */
 .tiktok-progress {
-  display: none !important; /* ✅ ESCONDE PROGRESS BAR ANTIGA */
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  right: 12px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  z-index: 100;
+  width: calc(100% - 24px);
 }
 
 .tiktok-progress-bar {
