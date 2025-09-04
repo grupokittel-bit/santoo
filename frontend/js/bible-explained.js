@@ -219,17 +219,27 @@ class BibleExplainedManager {
    */
   async loadUserInteractions() {
     try {
-      const response = await window.SantooAPI.get('/api/bible-posts/my-interactions/all');
+      // Carregar interações de todos os tipos disponíveis
+      const types = ['like', 'amen', 'ops'];
+      this.userInteractions.clear();
       
-      if (response?.interactions) {
-        // Organiza interações por post_id
-        this.userInteractions.clear();
-        response.interactions.forEach(interaction => {
-          this.userInteractions.set(interaction.bible_post_id, interaction.interaction_type);
-        });
-        
-        console.log('📖 Interações do usuário carregadas:', this.userInteractions.size);
+      for (const type of types) {
+        try {
+          const response = await window.SantooAPI.get(`/api/bible-posts/my-interactions/${type}`);
+          
+          if (response?.data && Array.isArray(response.data)) {
+            // Organiza interações por post_id
+            response.data.forEach(interaction => {
+              this.userInteractions.set(interaction.bible_post_id, interaction.interaction_type);
+            });
+          }
+        } catch (typeError) {
+          console.warn(`⚠️ Erro ao carregar interações do tipo ${type}:`, typeError.message);
+          // Continua para próximo tipo
+        }
       }
+      
+      console.log('📖 Interações do usuário carregadas:', this.userInteractions.size);
       
     } catch (error) {
       console.error('❌ Erro ao carregar interações do usuário:', error);
@@ -485,7 +495,7 @@ class BibleExplainedManager {
       } else {
         // Adiciona interação
         await window.SantooAPI.post(`/api/bible-posts/${postId}/interact`, {
-          interaction_type: action
+          type: action
         });
         
         // Remove active de outros botões do mesmo post
