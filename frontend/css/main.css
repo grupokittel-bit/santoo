@@ -701,7 +701,7 @@ body {
   bottom: 8px;
   left: 12px;
   right: 12px;
-  height: 4px;
+  height: 3px; /* ✅ 35% MENOS ALTURA (4px → 3px) */
   background: rgba(0, 0, 0, 0.4);
   border-radius: 2px;
   z-index: 100;
@@ -737,7 +737,7 @@ body {
     bottom: 2px !important; /* ✅ BEM PRÓXIMA DO FUNDO - COLADA NO MENU */
     left: 12px !important;
     right: 12px !important;
-    height: 5px !important; /* ✅ MAIS ALTA NO MOBILE */
+    height: 3px !important; /* ✅ 35% MENOS ALTURA (5px → 3px) */
     background: rgba(0, 0, 0, 0.8) !important;
     width: calc(100% - 24px) !important;
     z-index: 200 !important; /* ✅ Z-INDEX SUPREMO */
