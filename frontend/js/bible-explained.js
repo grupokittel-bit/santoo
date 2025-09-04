@@ -280,7 +280,7 @@ class BibleExplainedManager {
       sabedoria: 'lightbulb',
       amor: 'heart',
       fe: 'zap',
-      oracao: 'hands',
+      oracao: 'hand',
       relacionamentos: 'users',
       trabalho: 'briefcase',
       familia: 'home',

@@ -1212,7 +1212,7 @@ class SantooApp {
   }
 
   isValidPage(page) {
-    const validPages = ['home', 'discover', 'upload', 'live', 'profile', 'bible-admin', 'bibleDisagreements'];
+    const validPages = ['home', 'discover', 'upload', 'live', 'profile', 'bible-explained', 'bible-admin', 'bibleDisagreements'];
     return validPages.includes(page);
   }
 
