@@ -298,17 +298,9 @@ class UploadManager {
       cancelBtn.addEventListener('click', () => this.cancelUpload());
     }
     
-    // Form submission - o evento será capturado pelo main.js e delegado de volta
-    // mas vamos garantir compatibilidade direta também
-    const uploadForm = document.querySelector('form[data-type="upload"]');
-    if (uploadForm) {
-      uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        console.log('📤 Submit capturado diretamente no upload.js');
-        const formData = new FormData(uploadForm);
-        await this.handleUpload(formData);
-      });
-    }
+    // Form submission será tratado apenas pelo main.js para evitar duplicação
+    // O main.js captura o submit e delega para uploadManager.handleUpload()
+    console.log('⚡ Event listeners configurados - submit será tratado pelo main.js');
     
     console.log('🎛️ Listeners do formulário configurados');
   }
@@ -413,21 +405,31 @@ class UploadManager {
     // Add video file
     apiFormData.append('video', this.currentUpload.file);
     
-    // Add form fields
-    apiFormData.append('title', formData.get('title'));
+    // Add form fields - com validação
+    const title = formData.get('title');
+    const categoryId = formData.get('categoryId');
+    
+    if (!title || title.trim() === '') {
+      throw new Error('Título é obrigatório');
+    }
+    
+    if (!categoryId || categoryId === '') {
+      throw new Error('Categoria é obrigatória');
+    }
+    
+    apiFormData.append('title', title.trim());
     apiFormData.append('description', formData.get('description') || '');
-    apiFormData.append('categoryId', formData.get('categoryId'));
+    apiFormData.append('categoryId', categoryId);
     apiFormData.append('tags', formData.get('tags') || '');
     
-    // Add boolean fields
-    apiFormData.append('isPublic', formData.get('isPublic') ? 'true' : 'false');
-    apiFormData.append('allowComments', formData.get('allowComments') ? 'true' : 'false');
-    apiFormData.append('allowDownload', formData.get('allowDownload') ? 'true' : 'false');
+    // Add boolean fields - removendo campos não reconhecidos pelo backend
+    // O backend só espera: title, description, categoryId, tags
     
-    // Add metadata as JSON
-    apiFormData.append('metadata', JSON.stringify(this.currentUpload.metadata));
+    console.log('📦 FormData preparado para API:');
+    console.log('- Título:', title);
+    console.log('- Categoria:', categoryId);
+    console.log('- Arquivo:', this.currentUpload.file.name, 'Tamanho:', this.currentUpload.file.size);
     
-    console.log('📦 FormData preparado para API');
     return apiFormData;
   }
 

@@ -710,6 +710,14 @@ class SantooApp {
     console.log('👤 Inicializando página de perfil');
     this.updateProfileDisplay();
     
+    // Load user videos if authenticated
+    if (santooAuth.isAuthenticated()) {
+      this.loadUserVideos();
+    }
+    
+    // Setup tab switching for profile
+    this.setupProfileTabs();
+    
     // Dispatch event to spiritual habits system for page change
     const pageEvent = new CustomEvent('pageChanged', {
       detail: { page: 'profile' }
@@ -1434,6 +1442,10 @@ class SantooApp {
       
       if (result && result.success) {
         console.log('✅ Upload concluído com sucesso');
+        // Refresh user videos in profile if it's the current page
+        if (this.currentPage === 'profile') {
+          this.loadUserVideos();
+        }
       } else {
         console.error('❌ Falha no upload:', result?.error);
       }
@@ -1441,6 +1453,139 @@ class SantooApp {
       console.error('❌ UploadManager.handleUpload não encontrado');
       this.showError('Sistema de upload não disponível');
     }
+  }
+
+  /**
+   * Load user videos for profile page
+   */
+  async loadUserVideos() {
+    const videosGrid = document.getElementById('userVideosGrid');
+    const videosTabCount = document.getElementById('videosTabCount');
+    
+    if (!videosGrid) return;
+    
+    try {
+      console.log('📹 Carregando vídeos do usuário...');
+      
+      // Show loading
+      videosGrid.innerHTML = `
+        <div class="videos-loading">
+          <i data-lucide="loader"></i>
+          <span>Carregando seus vídeos...</span>
+        </div>
+      `;
+      
+      // Get current user ID
+      const user = santooAuth.getUser();
+      if (!user) {
+        videosGrid.innerHTML = '<p>Usuário não encontrado</p>';
+        return;
+      }
+      
+      // Fetch user videos
+      const response = await window.SantooAPI.videos.getFeed({
+        userId: user.id,
+        limit: 20,
+        sortBy: 'recent'
+      });
+      
+      const videos = response?.videos || [];
+      
+      // Update tab count
+      if (videosTabCount) {
+        videosTabCount.textContent = videos.length;
+      }
+      
+      if (videos.length === 0) {
+        videosGrid.innerHTML = `
+          <div class="empty-videos">
+            <div class="empty-content">
+              <i data-lucide="video" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+              <h4>Nenhum vídeo ainda</h4>
+              <p>Você ainda não publicou nenhum vídeo. Que tal criar seu primeiro?</p>
+              <button class="btn btn-primary" onclick="santooApp.navigateTo('upload')">
+                <i data-lucide="plus-circle"></i>
+                Publicar Vídeo
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      
+      // Generate videos grid
+      const videosHTML = videos.map(video => `
+        <div class="user-video-card" data-video-id="${video.id}">
+          <div class="video-thumbnail">
+            <video style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+              <source src="${video.videoUrl}" type="video/mp4">
+            </video>
+            <div class="video-overlay">
+              <div class="video-stats">
+                <span><i data-lucide="eye"></i> ${this.formatNumber(video.viewsCount || 0)}</span>
+                <span><i data-lucide="heart"></i> ${this.formatNumber(video.likesCount || 0)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="video-info">
+            <h5 class="video-title">${video.title}</h5>
+            <p class="video-date">${new Date(video.createdAt).toLocaleDateString('pt-BR')}</p>
+            <div class="video-actions">
+              <button class="btn-small" onclick="santooApp.editVideo(${video.id})">
+                <i data-lucide="edit"></i> Editar
+              </button>
+              <button class="btn-small btn-danger" onclick="santooApp.deleteVideo(${video.id})">
+                <i data-lucide="trash"></i> Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      videosGrid.innerHTML = videosHTML;
+      
+      console.log(`✅ Carregados ${videos.length} vídeos do usuário`);
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar vídeos do usuário:', error);
+      videosGrid.innerHTML = `
+        <div class="error-videos">
+          <p>Erro ao carregar vídeos. Tente novamente.</p>
+          <button class="btn btn-secondary" onclick="santooApp.loadUserVideos()">
+            <i data-lucide="refresh-cw"></i> Tentar novamente
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Setup profile tabs functionality
+   */
+  setupProfileTabs() {
+    const tabs = document.querySelectorAll('.spiritual-tab');
+    const contents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.getAttribute('data-tab');
+        
+        // Remove active class from all tabs and contents
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding content
+        tab.classList.add('active');
+        const targetContent = document.getElementById(`${targetTab}Section`);
+        if (targetContent) {
+          targetContent.classList.add('active');
+        }
+        
+        console.log(`📑 Aba ativada: ${targetTab}`);
+      });
+    });
+    
+    console.log('📑 Tabs de perfil configuradas');
   }
 
   // === VIDEO FEED HELPER FUNCTIONS ===

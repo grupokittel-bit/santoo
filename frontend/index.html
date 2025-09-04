@@ -374,7 +374,12 @@
 
                         <!-- Navigation Tabs -->
                         <div class="spiritual-tabs">
-                            <button class="spiritual-tab active" data-tab="amen">
+                            <button class="spiritual-tab active" data-tab="videos">
+                                <i data-lucide="video"></i>
+                                <span>Meus Vídeos</span>
+                                <span class="tab-count" id="videosTabCount">0</span>
+                            </button>
+                            <button class="spiritual-tab" data-tab="amen">
                                 <i data-lucide="check"></i>
                                 <span>Amém</span>
                                 <span class="tab-count" id="amenTabCount">0</span>
@@ -393,8 +398,28 @@
                         <!-- Tab Content -->
                         <div class="spiritual-content">
                             
+                            <!-- User Videos Section -->
+                            <div class="tab-content active" id="videosSection">
+                                <div class="section-header">
+                                    <div class="section-title">
+                                        <h4>
+                                            <i data-lucide="video"></i>
+                                            Meus Vídeos
+                                        </h4>
+                                        <p>Todos os vídeos que você publicou na plataforma</p>
+                                    </div>
+                                </div>
+                                <div class="user-videos-grid" id="userVideosGrid">
+                                    <!-- User videos will be loaded here -->
+                                    <div class="videos-loading">
+                                        <i data-lucide="loader"></i>
+                                        <span>Carregando seus vídeos...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Amém Section - Already Practicing -->
-                            <div class="tab-content active" id="amenSection">
+                            <div class="tab-content" id="amenSection">
                                 <div class="section-header">
                                     <div class="section-title">
                                         <h4>
