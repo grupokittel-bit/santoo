@@ -491,11 +491,17 @@ class SantooApp {
    * Initialize home page
    */
   async initHomePage() {
-    console.log('🏠 Inicializando página inicial');
+    console.log('🏠 Inicializando página inicial com estilo TikTok');
     
     try {
       // Load video feed
       await this.loadVideoFeed();
+      
+      // Initialize TikTok-style interactions after videos are loaded
+      setTimeout(() => {
+        this.setupTikTokInteractions();
+        console.log('🎬 Homepage TikTok inicializada!');
+      }, 500); // Small delay to ensure DOM is ready
       
     } catch (error) {
       console.error('Erro ao carregar feed:', error);
@@ -553,7 +559,7 @@ class SantooApp {
           videoFeed.innerHTML = this.getEmptyStateHTML();
         } else {
           videoFeed.innerHTML = response.videos.map(video => this.createVideoCard(video)).join('');
-          this.setupVideoInteractions();
+          // TikTok interactions will be setup in initHomePage with delay
         }
         
         console.log(`✅ ${response.videos.length} vídeos carregados`);
@@ -613,71 +619,110 @@ class SantooApp {
   /**
    * Create video card HTML with API data
    */
+  /**
+   * Create TikTok-style video card HTML with auto-play video
+   */
   createVideoCard(video) {
-    // Format duration from seconds to MM:SS
-    const duration = video.duration ? SantooUtils.StringUtils.formatDuration(video.duration) : '0:00';
-    
-    // Get thumbnail URL or fallback
-    const thumbnailUrl = video.thumbnailUrl 
-      ? `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${video.thumbnailUrl}` 
-      : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K';
-    
-    // Get avatar URL or fallback
+    // Get video URL with fallback
+    const videoUrl = video.videoUrl 
+      ? this.fixVideoUrl(video.videoUrl)
+      : null;
+      
+    // Get avatar URL or fallback  
     const avatarUrl = video.User?.avatar 
       ? `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${video.User.avatar}` 
       : 'assets/images/default-avatar.svg';
     
     return `
-      <div class="video-card" data-video-id="${video.id}" onclick="playVideo('${video.id}')">
+      <div class="video-card" data-video-id="${video.id}">
+        <!-- TikTok-style video container -->
         <div class="video-thumbnail">
-          <img src="${thumbnailUrl}" alt="${SantooUtils.StringUtils.escapeHtml(video.title)}" 
-               onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMyMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMjAwIiBmaWxsPSIjM0EzQTNBIi8+CjxwYXRoIGQ9Ik0xMzAgODBMMTkwIDEyMEwxMzAgMTYwVjgwWiIgZmlsbD0iIzRBOTBFMiIvPgo8L3N2Zz4K'">
-          <div class="video-duration">${duration}</div>
-          <div class="video-play-btn">▶️</div>
+          ${videoUrl ? `
+            <video 
+              class="tiktok-video" 
+              data-video-id="${video.id}"
+              playsinline
+              preload="metadata"
+              poster="${video.thumbnailUrl ? `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${video.thumbnailUrl}` : ''}"
+            >
+              <source src="${videoUrl}" type="video/mp4">
+              Seu navegador não suporta reprodução de vídeo.
+            </video>
+          ` : `
+            <div class="video-placeholder" style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center; color: white;">
+              <span>Vídeo não disponível</span>
+            </div>
+          `}
+          
+          <!-- Play/Pause overlay -->
+          <div class="tiktok-play-overlay" data-video-id="${video.id}">
+            <i data-lucide="play"></i>
+          </div>
+          
+          <!-- Progress bar -->
+          <div class="tiktok-progress">
+            <div class="tiktok-progress-bar" data-video-id="${video.id}"></div>
+          </div>
         </div>
         
+        <!-- TikTok-style info overlay -->
         <div class="video-info">
-          <h3 class="video-title" title="${SantooUtils.StringUtils.escapeHtml(video.title)}">
-            ${SantooUtils.StringUtils.truncate(video.title, 50)}
-          </h3>
-          
-          <div class="video-author" onclick="event.stopPropagation(); this.viewProfile('${video.User?.username}')">
-            <div class="avatar avatar-sm">
-              <img src="${avatarUrl}" alt="${SantooUtils.StringUtils.escapeHtml(video.User?.displayName)}" 
-                   onerror="this.src='assets/images/default-avatar.svg'">
-              ${video.User?.isVerified ? '<div class="verified-badge">✓</div>' : ''}
+          <div class="tiktok-info-container">
+            <!-- Left side - Video details -->
+            <div class="tiktok-video-details">
+              <!-- Author info -->
+              <div class="tiktok-author" onclick="event.stopPropagation(); window.viewProfile('${video.User?.username || ''}')">
+                <img 
+                  src="${avatarUrl}" 
+                  alt="${SantooUtils.StringUtils.escapeHtml(video.User?.displayName || 'Usuário')}"
+                  class="tiktok-avatar"
+                  onerror="this.src='assets/images/default-avatar.svg'"
+                >
+                <span class="tiktok-username">@${SantooUtils.StringUtils.escapeHtml(video.User?.username || video.User?.displayName || 'usuario')}</span>
+                ${video.User?.isVerified ? '<span style="color: #1da1f2; margin-left: 4px;">✓</span>' : ''}
+              </div>
+              
+              <!-- Title and description -->
+              <h3 class="tiktok-title">${SantooUtils.StringUtils.escapeHtml(video.title)}</h3>
+              ${video.description ? `
+                <p class="tiktok-description">${SantooUtils.StringUtils.escapeHtml(video.description).slice(0, 100)}${video.description.length > 100 ? '...' : ''}</p>
+              ` : ''}
+              
+              <!-- Category tag -->
+              ${video.Category ? `
+                <div class="category-tag" style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; margin-top: 8px;">
+                  ${video.Category.icon || '📹'} ${video.Category.name}
+                </div>
+              ` : ''}
             </div>
-            <span>${SantooUtils.StringUtils.escapeHtml(video.User?.displayName || 'Usuário')}</span>
-          </div>
-          
-          <div class="video-stats">
-            <div class="video-stat" title="Visualizações">
-              <span>👁️</span>
-              <span>${SantooUtils.NumberUtils.format(video.viewsCount || 0)}</span>
+            
+            <!-- Right side - TikTok actions -->
+            <div class="tiktok-actions">
+              <!-- Like button -->
+              <div class="tiktok-action-btn ${video.userLiked ? 'liked' : ''}" 
+                   onclick="event.stopPropagation(); window.toggleTikTokLike('${video.id}')"
+                   data-video-id="${video.id}">
+                <i data-lucide="${video.userLiked ? 'heart' : 'heart'}" class="like-icon"></i>
+                <div class="action-counter">${SantooUtils.NumberUtils.format(video.likesCount || 0)}</div>
+              </div>
+              
+              <!-- Comment button -->
+              <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.showComments('${video.id}')">
+                <i data-lucide="message-circle"></i>
+                <div class="action-counter">${SantooUtils.NumberUtils.format(video.commentsCount || 0)}</div>
+              </div>
+              
+              <!-- Share button -->
+              <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.shareVideo('${video.id}')">
+                <i data-lucide="share"></i>
+                <div class="action-counter">Share</div>
+              </div>
+              
+              <!-- More options -->
+              <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.showVideoOptions('${video.id}')">
+                <i data-lucide="more-horizontal"></i>
+              </div>
             </div>
-            <div class="video-stat like-stat" title="Curtidas" 
-                 onclick="event.stopPropagation(); this.toggleLike('${video.id}')"
-                 data-liked="${video.userLiked || false}">
-              <span class="like-icon">${video.userLiked ? '❤️' : '🤍'}</span>
-              <span class="like-count">${SantooUtils.NumberUtils.format(video.likesCount || 0)}</span>
-            </div>
-            <div class="video-stat">
-              <span class="badge category-badge" style="background-color: ${video.Category?.color || '#6B7280'}" 
-                    title="${video.Category?.name}">
-                ${video.Category?.icon || '📹'} ${video.Category?.name || 'Vídeo'}
-              </span>
-            </div>
-          </div>
-          
-          <div class="video-meta">
-            <span class="video-date" title="${SantooUtils.DateUtils.format(video.createdAt)}">
-              ${SantooUtils.DateUtils.getRelativeTime(video.createdAt)}
-            </span>
-            ${video.commentsCount > 0 ? `
-              <span class="video-comments" title="Comentários">
-                💬 ${SantooUtils.NumberUtils.format(video.commentsCount)}
-              </span>
-            ` : ''}
           </div>
         </div>
       </div>
@@ -2123,6 +2168,469 @@ class SantooApp {
     } catch (error) {
       console.error('❌ Erro ao inicializar página Bible Explained:', error);
     }
+  }
+
+  // === TIKTOK FUNCTIONALITY ===
+
+  /**
+   * Setup TikTok-style video interactions
+   */
+  setupTikTokInteractions() {
+    console.log('🎬 Configurando interações TikTok...');
+    
+    // Setup Intersection Observer for auto-play
+    this.setupVideoAutoPlay();
+    
+    // Setup video controls
+    this.setupVideoControls();
+    
+    // Setup scroll snap navigation
+    this.setupScrollNavigation();
+    
+    console.log('✅ Interações TikTok configuradas');
+  }
+
+  /**
+   * Setup auto-play when video enters viewport
+   */
+  setupVideoAutoPlay() {
+    const observerOptions = {
+      root: null,
+      threshold: 0.6, // 60% of video must be visible
+      rootMargin: '0px 0px -10% 0px'
+    };
+
+    this.videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target.querySelector('.tiktok-video');
+        const videoCard = entry.target;
+        const playOverlay = videoCard.querySelector('.tiktok-play-overlay');
+        
+        if (video) {
+          if (entry.isIntersecting) {
+            // Auto-play video when in view
+            this.playTikTokVideo(video, videoCard);
+          } else {
+            // Pause video when out of view
+            this.pauseTikTokVideo(video, videoCard);
+          }
+        }
+      });
+    }, observerOptions);
+
+    // Observe all video cards
+    document.querySelectorAll('.video-card').forEach(card => {
+      this.videoObserver.observe(card);
+    });
+  }
+
+  /**
+   * Play TikTok video with smooth handling
+   */
+  async playTikTokVideo(video, videoCard) {
+    if (!video || video.paused === false) return;
+    
+    try {
+      // Pause all other videos first
+      this.pauseAllVideos(video);
+      
+      // Ensure video volume is on
+      video.volume = 1.0;
+      video.muted = false;
+      
+      await video.play();
+      videoCard.classList.remove('paused');
+      
+      // Start progress tracking
+      this.startProgressTracking(video);
+      
+      // Setup auto-advance to next video when current ends
+      this.setupVideoAutoAdvance(video);
+      
+      console.log('▶️ TikTok video playing com som:', video.dataset.videoId);
+    } catch (error) {
+      console.warn('Autoplay pode estar bloqueado, tentando com mudo:', error);
+      
+      // Fallback: Try with muted if autoplay fails
+      try {
+        video.muted = true;
+        await video.play();
+        videoCard.classList.remove('paused');
+        this.startProgressTracking(video);
+        this.setupVideoAutoAdvance(video);
+        
+        console.log('▶️ TikTok video playing (mudo):', video.dataset.videoId);
+        
+        // Show notification about muted playback
+        this.showNotification('Toque no vídeo para ativar o som 🔊', 'info');
+        
+      } catch (mutedError) {
+        console.error('Erro ao reproduzir vídeo:', mutedError);
+        videoCard.classList.add('paused');
+      }
+    }
+  }
+
+  /**
+   * Pause TikTok video
+   */
+  pauseTikTokVideo(video, videoCard) {
+    if (!video || video.paused === true) return;
+    
+    video.pause();
+    videoCard.classList.add('paused');
+    
+    // Stop progress tracking
+    this.stopProgressTracking(video);
+    
+    console.log('⏸️ TikTok video paused:', video.dataset.videoId);
+  }
+
+  /**
+   * Pause all videos except the current one
+   */
+  pauseAllVideos(currentVideo) {
+    document.querySelectorAll('.tiktok-video').forEach(video => {
+      if (video !== currentVideo && !video.paused) {
+        const videoCard = video.closest('.video-card');
+        this.pauseTikTokVideo(video, videoCard);
+      }
+    });
+  }
+
+  /**
+   * Setup video controls (play/pause, progress)
+   */
+  setupVideoControls() {
+    // Play/pause on video click or overlay click
+    document.addEventListener('click', (e) => {
+      const videoCard = e.target.closest('.video-card');
+      const playOverlay = e.target.closest('.tiktok-play-overlay');
+      
+      if (videoCard && (e.target.classList.contains('tiktok-video') || playOverlay)) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const video = videoCard.querySelector('.tiktok-video');
+        if (video) {
+          this.toggleTikTokVideo(video, videoCard);
+        }
+      }
+    });
+  }
+
+  /**
+   * Toggle video play/pause
+   */
+  toggleTikTokVideo(video, videoCard) {
+    if (video.paused) {
+      this.playTikTokVideo(video, videoCard);
+    } else {
+      this.pauseTikTokVideo(video, videoCard);
+    }
+    
+    // If video is muted, unmute it on user interaction
+    if (video.muted) {
+      video.muted = false;
+      video.volume = 1.0;
+      console.log('🔊 Som ativado por interação do usuário');
+    }
+  }
+
+  /**
+   * Start progress bar tracking
+   */
+  startProgressTracking(video) {
+    const progressBar = document.querySelector(`.tiktok-progress-bar[data-video-id="${video.dataset.videoId}"]`);
+    if (!progressBar) return;
+
+    const updateProgress = () => {
+      if (!video.paused && video.duration) {
+        const progress = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = `${progress}%`;
+        
+        // Continue tracking
+        this.progressInterval = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    updateProgress();
+  }
+
+  /**
+   * Stop progress bar tracking
+   */
+  stopProgressTracking(video) {
+    if (this.progressInterval) {
+      cancelAnimationFrame(this.progressInterval);
+      this.progressInterval = null;
+    }
+  }
+
+  /**
+   * Setup keyboard navigation for TikTok-style scrolling
+   */
+  setupScrollNavigation() {
+    document.addEventListener('keydown', (e) => {
+      if (this.currentPage !== 'home') return;
+      
+      switch (e.key) {
+        case 'ArrowDown':
+        case ' ': // Spacebar
+          e.preventDefault();
+          this.scrollToNextVideo();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          this.scrollToPrevVideo();
+          break;
+        case 'k':
+        case 'K':
+          e.preventDefault();
+          this.toggleCurrentVideo();
+          break;
+      }
+    });
+  }
+
+  /**
+   * Scroll to next video (legacy - now handled by enhanced version below)
+   */
+
+  /**
+   * Scroll to previous video
+   */
+  scrollToPrevVideo() {
+    const currentVideo = this.getCurrentVisibleVideo();
+    if (currentVideo) {
+      const prevVideo = currentVideo.previousElementSibling;
+      if (prevVideo && prevVideo.classList.contains('video-card')) {
+        prevVideo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }
+
+  /**
+   * Get currently visible video card
+   */
+  getCurrentVisibleVideo() {
+    const videoCards = document.querySelectorAll('.video-card');
+    const viewportHeight = window.innerHeight;
+    
+    for (let card of videoCards) {
+      const rect = card.getBoundingClientRect();
+      if (rect.top >= 0 && rect.top < viewportHeight * 0.5) {
+        return card;
+      }
+    }
+    
+    return videoCards[0]; // Fallback to first video
+  }
+
+  /**
+   * Toggle current visible video
+   */
+  toggleCurrentVideo() {
+    const currentCard = this.getCurrentVisibleVideo();
+    if (currentCard) {
+      const video = currentCard.querySelector('.tiktok-video');
+      if (video) {
+        this.toggleTikTokVideo(video, currentCard);
+      }
+    }
+  }
+
+  /**
+   * Override setupVideoInteractions to use TikTok style
+   */
+  setupVideoInteractions() {
+    console.log('🎬 Configurando interações TikTok...');
+    
+    // Setup TikTok interactions instead of old modal system
+    this.setupTikTokInteractions();
+    
+    // Global TikTok functions
+    this.setupTikTokGlobalFunctions();
+  }
+
+  /**
+   * Setup global TikTok functions
+   */
+  setupTikTokGlobalFunctions() {
+    const self = this;
+
+    // TikTok-style like toggle
+    window.toggleTikTokLike = async (videoId) => {
+      if (!santooAuth.isAuthenticated()) {
+        if (typeof showLoginModal === 'function') {
+          showLoginModal();
+        }
+        return;
+      }
+
+      try {
+        const likeButton = document.querySelector(`.tiktok-action-btn[data-video-id="${videoId}"]`);
+        if (!likeButton) return;
+
+        const likeIcon = likeButton.querySelector('.like-icon');
+        const likeCounter = likeButton.querySelector('.action-counter');
+        const isCurrentlyLiked = likeButton.classList.contains('liked');
+
+        // Optimistic update
+        likeButton.classList.toggle('liked');
+        
+        // Update icon style (filled vs outline)
+        if (isCurrentlyLiked) {
+          likeButton.classList.remove('liked');
+        } else {
+          likeButton.classList.add('liked');
+        }
+
+        // Call API
+        const response = await window.SantooAPI.videos.toggleLike(videoId);
+        
+        if (response && response.success) {
+          likeCounter.textContent = SantooUtils.NumberUtils.format(response.likes || 0);
+          console.log('💖 TikTok like updated:', response.message);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao curtir vídeo TikTok:', error);
+        
+        // Revert optimistic update on error
+        const likeButton = document.querySelector(`.tiktok-action-btn[data-video-id="${videoId}"]`);
+        if (likeButton) {
+          likeButton.classList.toggle('liked');
+        }
+      }
+    };
+
+    // Show comments (placeholder)
+    window.showComments = (videoId) => {
+      console.log('💬 Mostrar comentários TikTok:', videoId);
+      // TODO: Implement TikTok-style comments drawer
+      this.showNotification('Comentários em breve!', 'info');
+    };
+
+    // Share video (placeholder)
+    window.shareVideo = async (videoId) => {
+      console.log('📤 Compartilhar vídeo TikTok:', videoId);
+      
+      try {
+        if (navigator.share) {
+          // Use native sharing if available
+          await navigator.share({
+            title: 'Vídeo do Santoo',
+            text: 'Confira este vídeo incrível no Santoo!',
+            url: `${window.location.origin}#home?video=${videoId}`
+          });
+        } else {
+          // Fallback to clipboard
+          await navigator.clipboard.writeText(`${window.location.origin}#home?video=${videoId}`);
+          this.showNotification('Link copiado para a área de transferência!', 'success');
+        }
+      } catch (error) {
+        console.error('Erro ao compartilhar:', error);
+        this.showNotification('Erro ao compartilhar vídeo', 'error');
+      }
+    };
+
+    // Video options (placeholder)  
+    window.showVideoOptions = (videoId) => {
+      console.log('⚙️ Opções do vídeo TikTok:', videoId);
+      // TODO: Implement options menu (report, not interested, etc.)
+      this.showNotification('Opções em breve!', 'info');
+    };
+  }
+
+  /**
+   * Setup auto-advance to next video when current video ends
+   */
+  setupVideoAutoAdvance(video) {
+    // Remove previous event listener if exists
+    if (video._autoAdvanceHandler) {
+      video.removeEventListener('ended', video._autoAdvanceHandler);
+    }
+    
+    // Create new event handler
+    video._autoAdvanceHandler = () => {
+      console.log('🔄 Vídeo terminou, avançando para o próximo...');
+      
+      // Small delay before advancing (like TikTok)
+      setTimeout(() => {
+        this.scrollToNextVideo();
+      }, 500);
+    };
+    
+    // Add event listener for when video ends
+    video.addEventListener('ended', video._autoAdvanceHandler);
+  }
+
+  /**
+   * Enhanced scroll to next video with auto-play
+   */
+  scrollToNextVideo() {
+    const videoFeed = document.getElementById('videoFeed');
+    if (!videoFeed) return;
+
+    const currentVideo = this.getCurrentVisibleVideo();
+    if (currentVideo) {
+      const nextVideo = currentVideo.nextElementSibling;
+      if (nextVideo && nextVideo.classList.contains('video-card')) {
+        // Scroll to next video
+        nextVideo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Auto-play next video after scroll completes
+        setTimeout(() => {
+          const nextVideoElement = nextVideo.querySelector('.tiktok-video');
+          if (nextVideoElement) {
+            this.playTikTokVideo(nextVideoElement, nextVideo);
+          }
+        }, 800); // Wait for scroll animation to complete
+        
+        console.log('📱 Avançando para próximo vídeo');
+      } else {
+        console.log('🔚 Último vídeo do feed alcançado');
+        // Could implement infinite scroll here
+        this.showNotification('Fim dos vídeos! 🎬', 'info');
+      }
+    }
+  }
+
+  /**
+   * Show notification (simple implementation)
+   */
+  showNotification(message, type = 'info') {
+    console.log(`🔔 ${type.toUpperCase()}: ${message}`);
+    
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      z-index: 10000;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      animation: slideIn 0.3s ease;
+    `;
+    
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      toast.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
+    }, 3000);
   }
 }
 
