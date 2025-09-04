@@ -2577,7 +2577,7 @@ class SantooApp {
     `;
     indicator.style.cssText = `
       position: absolute !important;
-      top: 20px !important;
+      top: 40px !important;
       right: 20px !important;
       background: rgba(0,0,0,0.9) !important;
       color: white !important;
