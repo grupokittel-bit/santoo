@@ -47,6 +47,23 @@ class SantooVideoPlayer {
       background: var(--color-bg-primary);
       border-radius: var(--radius-lg);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    `;
+
+    // Create progress bar OUTSIDE and ABOVE video
+    if (this.options.controls) {
+      this.createExternalProgressBar();
+    }
+
+    // Video container
+    const videoContainer = document.createElement('div');
+    videoContainer.className = 'santoo-video-container';
+    videoContainer.style.cssText = `
+      position: relative;
+      width: 100%;
+      flex: 1;
+      background: #000;
     `;
 
     // Video element
@@ -64,9 +81,10 @@ class SantooVideoPlayer {
     this.video.volume = 1.0;
     if (this.options.loop) this.video.loop = true;
     
-    this.container.appendChild(this.video);
+    videoContainer.appendChild(this.video);
+    this.container.appendChild(videoContainer);
 
-    // Create controls if enabled
+    // Create controls if enabled (without progress bar now)
     if (this.options.controls) {
       this.createControls();
     }
@@ -76,7 +94,70 @@ class SantooVideoPlayer {
   }
 
   /**
-   * Create video controls
+   * Create external progress bar (outside video)
+   */
+  createExternalProgressBar() {
+    // Progress bar container outside video
+    this.externalProgressContainer = document.createElement('div');
+    this.externalProgressContainer.className = 'santoo-external-progress';
+    this.externalProgressContainer.style.cssText = `
+      padding: 8px 16px;
+      background: var(--color-bg-secondary);
+      border-bottom: 1px solid var(--color-border);
+    `;
+
+    // Progress bar
+    this.progressContainer = document.createElement('div');
+    this.progressContainer.style.cssText = `
+      position: relative;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      cursor: pointer;
+      overflow: hidden;
+    `;
+
+    this.progressBar = document.createElement('div');
+    this.progressBar.style.cssText = `
+      height: 100%;
+      background: var(--color-accent);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 100ms ease-out;
+    `;
+
+    // Time display
+    this.timeDisplay = document.createElement('div');
+    this.timeDisplay.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--color-text-secondary);
+      font-variant-numeric: tabular-nums;
+    `;
+
+    const currentTimeSpan = document.createElement('span');
+    currentTimeSpan.className = 'current-time';
+    currentTimeSpan.textContent = '0:00';
+
+    const durationSpan = document.createElement('span');
+    durationSpan.className = 'duration';
+    durationSpan.textContent = '0:00';
+
+    this.timeDisplay.appendChild(currentTimeSpan);
+    this.timeDisplay.appendChild(durationSpan);
+
+    this.progressContainer.appendChild(this.progressBar);
+    this.externalProgressContainer.appendChild(this.progressContainer);
+    this.externalProgressContainer.appendChild(this.timeDisplay);
+    
+    this.container.appendChild(this.externalProgressContainer);
+  }
+
+  /**
+   * Create video controls (without progress bar now)
    */
   createControls() {
     this.controls = document.createElement('div');
@@ -96,41 +177,15 @@ class SantooVideoPlayer {
       pointer-events: none;
     `;
 
-    // Progress bar
-    this.createProgressBar();
-    
-    // Control buttons row
+    // Only control buttons row (progress bar is now external)
     this.createControlButtons();
     
-    this.container.appendChild(this.controls);
+    // Find the video container and append controls to it
+    const videoContainer = this.container.querySelector('.santoo-video-container');
+    videoContainer.appendChild(this.controls);
   }
 
-  /**
-   * Create progress bar
-   */
-  createProgressBar() {
-    this.progressContainer = document.createElement('div');
-    this.progressContainer.style.cssText = `
-      position: relative;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 2px;
-      cursor: pointer;
-      pointer-events: auto;
-    `;
-
-    this.progressBar = document.createElement('div');
-    this.progressBar.style.cssText = `
-      height: 100%;
-      background: var(--color-accent);
-      border-radius: 2px;
-      width: 0%;
-      transition: width 100ms ease-out;
-    `;
-
-    this.progressContainer.appendChild(this.progressBar);
-    this.controls.appendChild(this.progressContainer);
-  }
+  // createProgressBar function removed - now using external progress bar
 
   /**
    * Create control buttons
@@ -158,19 +213,10 @@ class SantooVideoPlayer {
     
     // Volume button disabled - always full volume
     // this.volumeButton = this.createButton('🔊', 'Volume');
-    
-    // Time display
-    this.timeDisplay = document.createElement('span');
-    this.timeDisplay.style.cssText = `
-      color: white;
-      font-size: 0.875rem;
-      font-variant-numeric: tabular-nums;
-    `;
-    this.timeDisplay.textContent = '0:00 / 0:00';
 
     leftButtons.appendChild(this.playButton);
     // leftButtons.appendChild(this.volumeButton); // Volume control removed
-    leftButtons.appendChild(this.timeDisplay);
+    // Time display moved to external progress bar
 
     // Right buttons group
     const rightButtons = document.createElement('div');
@@ -464,9 +510,16 @@ class SantooVideoPlayer {
 
   updateTimeDisplay() {
     if (this.timeDisplay) {
-      const current = this.formatTime(this.currentTime);
-      const duration = this.formatTime(this.duration);
-      this.timeDisplay.textContent = `${current} / ${duration}`;
+      const currentTimeElement = this.timeDisplay.querySelector('.current-time');
+      const durationElement = this.timeDisplay.querySelector('.duration');
+      
+      if (currentTimeElement) {
+        currentTimeElement.textContent = this.formatTime(this.currentTime);
+      }
+      
+      if (durationElement) {
+        durationElement.textContent = this.formatTime(this.duration);
+      }
     }
   }
 
