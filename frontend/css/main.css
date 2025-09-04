@@ -1090,6 +1090,10 @@ body {
   gap: var(--space-6);
   margin-top: var(--space-6);
   min-height: 300px; /* Ensure grid has minimum height */
+  /* FIX: Evitar sobreposição */
+  grid-auto-rows: min-content;
+  overflow: visible;
+  position: relative;
 }
 
 .user-video-card {
@@ -1099,6 +1103,11 @@ body {
   transition: var(--transition-transform);
   cursor: pointer;
   min-height: 300px; /* Force minimum height */
+  /* FIX: Garantir posicionamento correto */
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .user-video-card:hover {
@@ -2166,6 +2175,12 @@ body {
   border-radius: var(--radius-lg);
   margin-top: 1rem;
   transition: var(--transition-all);
+  /* FIX: Garantir que botão fica acima dos vídeos */
+  position: relative;
+  z-index: 10;
+  clear: both;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .load-more-videos:hover {
@@ -2179,6 +2194,13 @@ body {
   padding: 0.75rem 2rem;
   font-size: 1rem;
   transition: var(--transition-all);
+  /* FIX: Garantir que botão não seja sobreposto */
+  position: relative;
+  z-index: 15;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow-md);
 }
 
 .load-more-btn:disabled {

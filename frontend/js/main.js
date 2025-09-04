@@ -1831,15 +1831,15 @@ class SantooApp {
       // Fetch user videos
       console.log('🔍 Buscando vídeos para user ID:', user.id);
       
-      // 🚀 OTIMIZAÇÃO: Carregar inicialmente apenas 6 vídeos para UX rápida
+      // 🚀 OTIMIZAÇÃO: Carregar inicialmente 10 vídeos para melhor UX
       const response = await window.SantooAPI.videos.getFeed({
         userId: user.id,
         page: 1,
-        limit: 6,
+        limit: 10,
         sortBy: 'recent'
       });
       
-      console.log('📊 [PROFILE-VIDEOS] Carregando inicialmente 6 vídeos para performance otimizada');
+      console.log('📊 [PROFILE-VIDEOS] Carregando inicialmente 10 vídeos para melhor UX');
       
       console.log('📡 Resposta da API:', response);
       const videos = response?.videos || [];
@@ -1850,7 +1850,7 @@ class SantooApp {
       // Reset profile videos state for fresh load
       this.profileVideos.currentPage = 1;
       this.profileVideos.allVideos = videos;
-      this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : videos.length >= 6;
+      this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : videos.length >= 10;
       
       console.log('📊 [PROFILE-STATE] State updated:', {
         currentPage: this.profileVideos.currentPage,
@@ -3321,7 +3321,7 @@ class SantooApp {
       const response = await window.SantooAPI.videos.getFeed({
         userId: user.id,
         page: nextPage,
-        limit: 6,
+        limit: 10,
         sortBy: 'recent'
       });
 
@@ -3335,7 +3335,7 @@ class SantooApp {
         // Add new videos to our state
         this.profileVideos.allVideos = [...this.profileVideos.allVideos, ...newVideos];
         this.profileVideos.currentPage = nextPage;
-        this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : newVideos.length >= 6;
+        this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : newVideos.length >= 10;
 
         // Re-render all videos
         await this.renderAllProfileVideos();
