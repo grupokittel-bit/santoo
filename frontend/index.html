@@ -88,9 +88,13 @@
                         <i class="nav-icon" data-lucide="radio"></i>
                         <span class="nav-text">Ao Vivo</span>
                     </a>
-                    <a href="#bible-admin" class="nav-link" data-page="bible-admin" id="bibleAdminLink" style="display: none;">
+                    <a href="#bible-explained" class="nav-link" data-page="bible-explained">
                         <i class="nav-icon" data-lucide="book-open"></i>
                         <span class="nav-text">Bíblia Explicada</span>
+                    </a>
+                    <a href="#bible-admin" class="nav-link" data-page="bible-admin" id="bibleAdminLink" style="display: none;">
+                        <i class="nav-icon" data-lucide="settings"></i>
+                        <span class="nav-text">Admin Bíblia</span>
                     </a>
                     <div class="dropdown" id="profileDropdown">
                         <a href="#profile" class="nav-link" data-page="profile" id="profileMenuBtn">
@@ -161,6 +165,78 @@
                     
                     <div class="upload-form" id="uploadForm" style="display: none;">
                         <!-- Upload form will appear here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bible Explained Page - Feed Público -->
+            <section id="bibleExplainedPage" class="page">
+                <div class="page-header">
+                    <div class="bible-header">
+                        <div class="bible-header-content">
+                            <div class="bible-header-icon">
+                                <i data-lucide="book-open" class="header-icon"></i>
+                            </div>
+                            <div class="bible-header-text">
+                                <h2>Bíblia Explicada</h2>
+                                <p>Versículos bíblicos com explicações em linguagem moderna</p>
+                            </div>
+                        </div>
+                        <div class="bible-filters">
+                            <button class="filter-btn active" data-category="all">
+                                <i data-lucide="grid-3x3"></i>
+                                <span>Todos</span>
+                            </button>
+                            <button class="filter-btn" data-category="sabedoria">
+                                <i data-lucide="lightbulb"></i>
+                                <span>Sabedoria</span>
+                            </button>
+                            <button class="filter-btn" data-category="amor">
+                                <i data-lucide="heart"></i>
+                                <span>Amor</span>
+                            </button>
+                            <button class="filter-btn" data-category="fe">
+                                <i data-lucide="zap"></i>
+                                <span>Fé</span>
+                            </button>
+                            <button class="filter-btn" data-category="paz">
+                                <i data-lucide="leaf"></i>
+                                <span>Paz</span>
+                            </button>
+                            <button class="filter-btn" data-category="oracao">
+                                <i data-lucide="hands"></i>
+                                <span>Oração</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bible-content">
+                    <!-- Bible Posts Feed -->
+                    <div id="bibleFeed" class="bible-feed">
+                        <!-- Posts will be loaded here dynamically -->
+                        <div class="loading-bible-posts" style="display: flex; flex-direction: column; align-items: center; padding: var(--space-12); text-align: center;">
+                            <div class="loading-spinner" style="width: 40px; height: 40px; border: 3px solid var(--color-bg-tertiary); border-radius: 50%; border-top-color: var(--color-gospel-gold); animation: var(--animation-spin); margin-bottom: var(--space-4);"></div>
+                            <h3 style="color: var(--color-text-secondary); margin-bottom: var(--space-2);">Carregando posts da Bíblia...</h3>
+                            <p style="color: var(--color-text-tertiary); max-width: 400px;">Preparando versículos com explicações personalizadas para você</p>
+                        </div>
+                    </div>
+
+                    <!-- Load More Button -->
+                    <div class="load-more-container" style="display: none; text-align: center; padding: var(--space-8);">
+                        <button id="loadMoreBiblePosts" class="btn btn-secondary" style="min-width: 200px;">
+                            <i data-lucide="plus-circle"></i>
+                            <span>Carregar mais posts</span>
+                        </button>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyBibleFeed" class="empty-state" style="display: none;">
+                        <div class="empty-content" style="text-align: center; padding: var(--space-16);">
+                            <div class="empty-icon" style="font-size: 64px; margin-bottom: var(--space-6);">📖</div>
+                            <h3 style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">Nenhum post encontrado</h3>
+                            <p style="color: var(--color-text-tertiary); max-width: 400px; margin: 0 auto;">Não há posts bíblicos disponíveis no momento. Tente novamente mais tarde.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -560,6 +636,7 @@
             'js/upload.js',
             'js/video-player.js',
             'js/bible-admin.js',
+            'js/bible-explained.js',
             'js/main.js'
         ];
         

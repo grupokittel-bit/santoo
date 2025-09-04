@@ -401,6 +401,8 @@ class SantooApp {
       pageId = 'bibleAdminPage'; // HTML usa camelCase
     } else if (page === 'bibleDisagreements') {
       pageId = 'bibleDisagreementsPage'; // HTML usa camelCase
+    } else if (page === 'bible-explained') {
+      pageId = 'bibleExplainedPage'; // HTML usa camelCase
     } else {
       pageId = `${page}Page`; // Outras páginas usam padrão normal
     }
@@ -443,6 +445,9 @@ class SantooApp {
         break;
       case 'bibleDisagreements':
         this.initBibleDisagreementsPage();
+        break;
+      case 'bible-explained':
+        this.initBibleExplainedPage();
         break;
       default:
         this.initHomePage();
@@ -1624,6 +1629,24 @@ class SantooApp {
     }
 
     this.navigateTo('bibleDisagreements');
+  }
+
+  /**
+   * Initialize Bible Explained public page
+   */
+  initBibleExplainedPage() {
+    console.log('📖 Inicializando página Bible Explained pública...');
+    
+    try {
+      // Dispatch event to initialize BibleExplainedManager
+      const event = new CustomEvent('pageChanged', {
+        detail: { page: 'bible-explained' }
+      });
+      document.dispatchEvent(event);
+      
+    } catch (error) {
+      console.error('❌ Erro ao inicializar página Bible Explained:', error);
+    }
   }
 }
 
