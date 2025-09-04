@@ -1589,8 +1589,22 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* 🎯 MOBILE NAV - ALWAYS HIDDEN ON DESKTOP */
+.mobile-nav-bottom {
+  display: none;
+}
+
 /* Mobile Styles */
 @media (max-width: 768px) {
+  /* ✅ ESPAÇAMENTO PARA O MENU MOBILE BOTTOM */
+  body {
+    padding-bottom: 80px; /* Espaço para o menu mobile bottom */
+  }
+  
+  .main-content {
+    padding-bottom: var(--space-6); /* Padding extra no conteúdo */
+  }
+  
   .header {
     height: var(--header-height-mobile);
   }
@@ -1605,34 +1619,40 @@ body {
   
   /* 🎯 MOBILE NAV - TIKTOK STYLE BOTTOM NAVIGATION */
   .mobile-nav-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(26, 26, 26, 0.95);
-    backdrop-filter: blur(15px);
+    display: flex !important; /* ✅ FORÇA EXIBIÇÃO NO MOBILE */
+    position: fixed !important; /* ✅ FORÇA POSIÇÃO FIXA */
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    background: rgba(26, 26, 26, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
     border-top: 1px solid var(--color-border-secondary);
-    padding: var(--space-2) var(--space-3) calc(var(--space-2) + env(safe-area-inset-bottom));
-    z-index: var(--z-sticky);
-    display: flex;
-    justify-content: space-around;
+    padding: var(--space-2) var(--space-1) calc(var(--space-2) + env(safe-area-inset-bottom));
+    z-index: 9999 !important; /* ✅ Z-INDEX SUPREMO PARA GARANTIR */
+    justify-content: space-between;
     align-items: center;
-    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.4);
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .mobile-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: var(--space-1) var(--space-2);
+    gap: 2px;
+    padding: var(--space-1);
     border-radius: var(--radius-md);
     transition: all 0.2s ease;
     text-decoration: none;
     color: var(--color-text-secondary);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
-    min-width: 50px;
+    min-width: 42px;
+    flex: 1;
+    max-width: 60px;
     position: relative;
   }
   
@@ -1669,11 +1689,13 @@ body {
   }
   
   .mobile-nav-text {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 500;
     text-align: center;
-    line-height: 1.2;
+    line-height: 1.1;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .app-logo {
@@ -1682,6 +1704,17 @@ body {
   
   .logo-icon {
     font-size: var(--font-size-xl);
+  }
+  
+  /* ✅ AJUSTES MOBILE PARA USER ACTIONS */
+  .user-actions {
+    gap: var(--space-2);
+  }
+  
+  .user-actions .btn-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
   }
   
   .main-content {

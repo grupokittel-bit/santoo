@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Teste da Correção de Roteamento F5</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        h1 { color: #4a90e2; margin-bottom: 30px; }
+        .test-case {
+            background: #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #4a90e2;
+        }
+        .result { 
+            font-weight: bold; 
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .success { background: rgba(39, 174, 96, 0.2); color: #27ae60; }
+        .error { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        .info { background: rgba(74, 144, 226, 0.2); color: #4a90e2; }
+        .test-btn {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .test-btn:hover { background: #3a7bc8; }
+        .current-hash {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Teste da Correção de Roteamento F5</h1>
+        
+        <div class="test-case">
+            <h3>📍 Hash Atual da URL:</h3>
+            <div class="current-hash" id="currentHash">Carregando...</div>
+        </div>
+
+        <div class="test-case">
+            <h3>🎯 Testes de Simulação</h3>
+            <p>Clique nos botões para simular diferentes URLs com hash:</p>
+            
+            <button class="test-btn" onclick="testPage('home')">🏠 Home</button>
+            <button class="test-btn" onclick="testPage('bible-explained')">📖 Bible Explained</button>
+            <button class="test-btn" onclick="testPage('discover')">🔍 Discover</button>
+            <button class="test-btn" onclick="testPage('upload')">📤 Upload</button>
+            <button class="test-btn" onclick="testPage('profile')">👤 Profile</button>
+            <button class="test-btn" onclick="testPage('live')">🔴 Live</button>
+            
+            <div id="testResults"></div>
+        </div>
+
+        <div class="test-case">
+            <h3>✅ Como Testar o F5 Manualmente:</h3>
+            <ol style="line-height: 1.8;">
+                <li>Abra: <strong>http://localhost:8080/#bible-explained</strong></li>
+                <li>Pressione <strong>F5</strong> para recarregar</li>
+                <li>✅ <strong>SUCESSO</strong>: Se continuar mostrando a página Bible Explained</li>
+                <li>❌ <strong>FALHA</strong>: Se mostrar a página Home com URL #bible-explained</li>
+            </ol>
+        </div>
+
+        <div class="test-case">
+            <h3>🔧 Verificação da Correção:</h3>
+            <div id="codeVerification"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar hash atual
+        function updateCurrentHash() {
+            const hash = window.location.hash || '(sem hash - página home)';
+            document.getElementById('currentHash').textContent = hash;
+        }
+        
+        // Atualizar hash inicial
+        updateCurrentHash();
+        
+        // Escutar mudanças no hash
+        window.addEventListener('hashchange', updateCurrentHash);
+
+        function testPage(page) {
+            console.log(`🧪 Testando navegação para: ${page}`);
+            
+            const resultsDiv = document.getElementById('testResults');
+            
+            // Simular mudança de hash
+            window.location.hash = page;
+            
+            setTimeout(() => {
+                const actualHash = window.location.hash.replace('#', '');
+                const expectedHash = page;
+                
+                const isSuccess = actualHash === expectedHash;
+                
+                const resultHTML = `
+                    <div class="result ${isSuccess ? 'success' : 'error'}">
+                        <strong>📋 Teste: ${page}</strong><br>
+                        Esperado: #${expectedHash}<br>
+                        Atual: #${actualHash}<br>
+                        Status: ${isSuccess ? '✅ PASSOU' : '❌ FALHOU'}
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = resultHTML + resultsDiv.innerHTML;
+                
+                // Log detalhado
+                console.log(`${isSuccess ? '✅' : '❌'} Teste ${page}:`, {
+                    esperado: expectedHash,
+                    atual: actualHash,
+                    passou: isSuccess
+                });
+                
+            }, 100);
+        }
+
+        // Verificar se a correção foi aplicada
+        function verifyFix() {
+            const verificationDiv = document.getElementById('codeVerification');
+            
+            fetch('/js/main.js')
+                .then(response => response.text())
+                .then(code => {
+                    const hasFix = code.includes('🎯 FIX F5 BUG: Verificar hash da URL ANTES de inicializar página');
+                    const hasHashCheck = code.includes('const hash = window.location.hash.replace');
+                    
+                    const isFixed = hasFix && hasHashCheck;
+                    
+                    verificationDiv.innerHTML = `
+                        <div class="result ${isFixed ? 'success' : 'error'}">
+                            <strong>${isFixed ? '✅ CORREÇÃO APLICADA' : '❌ CORREÇÃO NÃO ENCONTRADA'}</strong><br>
+                            Fix F5 Bug: ${hasFix ? '✅' : '❌'}<br>
+                            Hash Check: ${hasHashCheck ? '✅' : '❌'}<br>
+                            ${isFixed ? 'O problema do F5 deve estar resolvido!' : 'A correção ainda não foi aplicada.'}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    verificationDiv.innerHTML = `
+                        <div class="result error">
+                            <strong>❌ ERRO</strong><br>
+                            Não foi possível verificar o arquivo main.js<br>
+                            ${error.message}
+                        </div>
+                    `;
+                });
+        }
+
+        // Verificar correção ao carregar
+        verifyFix();
+
+        console.log('🧪 Teste de roteamento carregado! Use os botões para testar.');
+    </script>
+</body>
+</html>

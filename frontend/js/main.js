@@ -2111,15 +2111,25 @@ class SantooApp {
    */
   updateBibleAdminVisibility() {
     const bibleAdminLink = document.getElementById('bibleAdminLink');
-    if (!bibleAdminLink) return;
+    const mobileAdminLink = document.getElementById('mobileAdminLink');
 
     // Show Bible Admin link only for admin and pastor users
     if (this.user && (this.user.role === 'admin' || this.user.role === 'pastor')) {
-      bibleAdminLink.style.display = 'flex';
-      console.log('📖 Bible Admin link mostrado para usuário:', this.user.role);
+      if (bibleAdminLink) {
+        bibleAdminLink.style.display = 'flex';
+      }
+      if (mobileAdminLink) {
+        mobileAdminLink.style.display = 'flex';
+      }
+      console.log('📖 Bible Admin links (desktop + mobile) mostrados para usuário:', this.user.role);
     } else {
-      bibleAdminLink.style.display = 'none';
-      console.log('📖 Bible Admin link ocultado (usuário não é admin/pastor)');
+      if (bibleAdminLink) {
+        bibleAdminLink.style.display = 'none';
+      }
+      if (mobileAdminLink) {
+        mobileAdminLink.style.display = 'none';
+      }
+      console.log('📖 Bible Admin links (desktop + mobile) ocultados (usuário não é admin/pastor)');
     }
   }
 
