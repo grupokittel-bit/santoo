@@ -407,7 +407,7 @@ router.post('/:id/interact', authMiddleware, async (req, res) => {
       await existingInteraction.destroy();
       
       // Decrementa contador no post
-      const counterField = `${type}_count`;
+      const counterField = type === 'like' ? 'likes_count' : `${type}_count`;
       await BiblePost.decrement(counterField, { where: { id: postId } });
 
       // Para interações "amen" removidas, registrar no habit tracker
@@ -437,7 +437,7 @@ router.post('/:id/interact', authMiddleware, async (req, res) => {
       });
 
       // Incrementa contador no post
-      const counterField = `${type}_count`;
+      const counterField = type === 'like' ? 'likes_count' : `${type}_count`;
       await BiblePost.increment(counterField, { where: { id: postId } });
 
       // Para interações "amen" e "ops", registrar no habit tracker
