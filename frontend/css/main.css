@@ -383,9 +383,9 @@ body {
     height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important; /* ✅ HEADER + MENU MOBILE + ESPAÇO */
     min-height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important;
     max-height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important;
-    width: 100% !important;
-    max-width: 100vw !important;
+    width: 100vw !important;
     margin: 0 !important; /* ✅ SEM MARGEM ALGUMA */
+    padding: 0 !important;
     border-radius: 0 !important;
     display: flex !important;
     flex-direction: column !important; /* ✅ PROGRESS BAR NO TOPO */
