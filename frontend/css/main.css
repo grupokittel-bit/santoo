@@ -67,9 +67,29 @@ body {
   left: calc(50% + 100px);
   transform: translate(-50%, -50%);
   z-index: 2;
+  filter: drop-shadow(0 4px 8px rgba(74, 144, 226, 0.3));
+  animation: faviconSpin 1.5s linear infinite, faviconGlow 2s ease-in-out infinite alternate;
 }
 
 @keyframes logoGlow {
+  from {
+    filter: drop-shadow(0 4px 8px rgba(74, 144, 226, 0.3));
+  }
+  to {
+    filter: drop-shadow(0 4px 12px rgba(74, 144, 226, 0.6));
+  }
+}
+
+@keyframes faviconSpin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes faviconGlow {
   from {
     filter: drop-shadow(0 4px 8px rgba(74, 144, 226, 0.3));
   }
