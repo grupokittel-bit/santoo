@@ -1547,6 +1547,11 @@ class SantooApp {
       
       videosGrid.innerHTML = videosHTML;
       
+      // Re-initialize Lucide icons in the new content
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+      
       console.log(`✅ Carregados ${videos.length} vídeos do usuário`);
       
     } catch (error) {
