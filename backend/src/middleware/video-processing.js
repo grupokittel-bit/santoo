@@ -112,15 +112,12 @@ function processVideo(inputPath, outputPath) {
     
     let command = ffmpeg(inputPath);
     
-    // === FILTROS DE VÍDEO ===
-    const videoFilters = [];
-    
-    // 1. Redimensionar e cortar para 720x1280 (9:16)
-    videoFilters.push(`scale='min(${VIDEO_CONFIG.resolution.width},iw*${VIDEO_CONFIG.resolution.height}/ih)':'min(${VIDEO_CONFIG.resolution.height},ih*${VIDEO_CONFIG.resolution.width}/iw)'`);
-    videoFilters.push(`crop=${VIDEO_CONFIG.resolution.width}:${VIDEO_CONFIG.resolution.height}`);
-    
-    // 2. Aplicar filtros
-    command = command.videoFilters(videoFilters);
+    // === CONFIGURAÇÃO DIRETA DE RESOLUÇÃO ===
+    // Abordagem mais simples e robusta para evitar erros de crop
+    command = command
+      .size(`${VIDEO_CONFIG.resolution.width}x${VIDEO_CONFIG.resolution.height}`)
+      .aspect('9:16')
+      .autopad(true, 'black');
     
     // === CONFIGURAÇÕES DE CODEC ===
     command
