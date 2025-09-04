@@ -11,7 +11,7 @@ const {
   BiblePostView,
   User 
 } = require('../models');
-const { authMiddleware, biblePostCreatorOnly, bibleModeratorOnly } = require('../middleware/auth');
+const { authMiddleware, optionalAuth, biblePostCreatorOnly, bibleModeratorOnly } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -208,7 +208,7 @@ async function registerView(userId, postId) {
  * GET /api/bible-posts - Feed personalizado com algoritmo
  * Retorna posts recomendados baseados no perfil e histórico do usuário
  */
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', optionalAuth, async (req, res) => {
   try {
     console.log('🔍 [DEBUG] Requisição para bible-posts com parâmetros:', req.query);
     
@@ -221,7 +221,7 @@ router.get('/', authMiddleware, async (req, res) => {
     } = req.query;
 
     const offset = (page - 1) * limit;
-    const userId = req.user.id;
+    const userId = req.user ? req.user.id : null;
 
     let posts;
 
@@ -264,42 +264,75 @@ router.get('/', authMiddleware, async (req, res) => {
       
       console.log('🔍 [DEBUG] Posts encontrados na busca filtrada:', posts.length);
     } else {
-      // Feed personalizado com algoritmo de recomendação
-      console.log('🧠 [ALGORITMO] Iniciando recomendação personalizada para usuário:', userId);
-      console.log('🔍 [DEBUG] Parâmetros: excludeViewed:', !isAdmin, 'limit:', limit);
-      
-      posts = await getPersonalizedRecommendations(userId, parseInt(limit), !isAdmin);
-      
-      console.log('🧠 [ALGORITMO] Posts retornados pelo algoritmo:', posts.length);
-      if (posts.length === 0) {
-        console.log('🚨 [ALERTA] Algoritmo retornou 0 posts - pode indicar problema!');
-      }
-      
-      // Incluir dados do autor
-      for (let post of posts) {
-        post.author = await User.findByPk(post.author_admin_id, {
-          attributes: ['id', 'displayName', 'username', 'avatar']
+      // Verificar se usuário está logado para algoritmo personalizado
+      if (userId) {
+        // Feed personalizado com algoritmo de recomendação (USUÁRIO LOGADO)
+        console.log('🧠 [ALGORITMO] Iniciando recomendação personalizada para usuário:', userId);
+        console.log('🔍 [DEBUG] Parâmetros: excludeViewed:', !isAdmin, 'limit:', limit);
+        
+        posts = await getPersonalizedRecommendations(userId, parseInt(limit), !isAdmin);
+        
+        console.log('🧠 [ALGORITMO] Posts retornados pelo algoritmo:', posts.length);
+        if (posts.length === 0) {
+          console.log('🚨 [ALERTA] Algoritmo retornou 0 posts - pode indicar problema!');
+        }
+        
+        // Incluir dados do autor
+        for (let post of posts) {
+          post.author = await User.findByPk(post.author_admin_id, {
+            attributes: ['id', 'displayName', 'username', 'avatar']
+          });
+        }
+      } else {
+        // Feed público para usuários não logados (SIMPLES E EFICIENTE)
+        console.log('👤 [PÚBLICO] Feed para usuário não logado - posts populares');
+        
+        posts = await BiblePost.findAll({
+          where: { is_active: true },
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          order: [
+            ['amen_count', 'DESC'],    // Posts com mais "amém" primeiro
+            ['likes_count', 'DESC'],   // Posts mais curtidos
+            ['createdAt', 'DESC']      // Posts mais recentes
+          ],
+          include: [
+            {
+              model: User,
+              as: 'author',
+              attributes: ['id', 'displayName', 'username', 'avatar']
+            }
+          ]
         });
+        
+        console.log('👤 [PÚBLICO] Posts públicos encontrados:', posts.length);
       }
     }
 
-    // Buscar interações do usuário com estes posts
+    // Buscar interações do usuário com estes posts (APENAS SE LOGADO)
     const postIds = posts.map(post => post.id);
-    const userInteractions = await UserBibleInteraction.findAll({
-      where: {
-        user_id: userId,
-        bible_post_id: { [Op.in]: postIds }
-      }
-    });
+    let userInteractions = [];
+    let interactionsByPost = {};
+    
+    if (userId) {
+      userInteractions = await UserBibleInteraction.findAll({
+        where: {
+          user_id: userId,
+          bible_post_id: { [Op.in]: postIds }
+        }
+      });
 
-    // Mapear interações por post
-    const interactionsByPost = {};
-    userInteractions.forEach(interaction => {
-      if (!interactionsByPost[interaction.bible_post_id]) {
-        interactionsByPost[interaction.bible_post_id] = [];
-      }
-      interactionsByPost[interaction.bible_post_id].push(interaction.interaction_type);
-    });
+      // Mapear interações por post
+      userInteractions.forEach(interaction => {
+        if (!interactionsByPost[interaction.bible_post_id]) {
+          interactionsByPost[interaction.bible_post_id] = [];
+        }
+        interactionsByPost[interaction.bible_post_id].push(interaction.interaction_type);
+      });
+      
+      // Registrar views dos posts para o usuário logado
+      postIds.forEach(postId => registerView(userId, postId));
+    }
 
     // Adicionar interações do usuário a cada post
     const postsWithInteractions = posts.map(post => ({
@@ -309,9 +342,6 @@ router.get('/', authMiddleware, async (req, res) => {
       user_has_amen: (interactionsByPost[post.id] || []).includes('amen'),
       user_has_ops: (interactionsByPost[post.id] || []).includes('ops')
     }));
-
-    // Registrar views dos posts para o usuário
-    postIds.forEach(postId => registerView(userId, postId));
 
     res.json({
       success: true,
