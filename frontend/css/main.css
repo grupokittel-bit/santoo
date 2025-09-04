@@ -566,8 +566,9 @@ body {
 .tiktok-actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6); /* ✅ MAIS ESPAÇO ENTRE BOTÕES (para acomodar números) */
   align-items: center;
+  margin-bottom: var(--space-8); /* ✅ MOVE TODOS OS BOTÕES MAIS PARA CIMA */
 }
 
 /* === TIKTOK ACTION BUTTONS === */
@@ -588,6 +589,17 @@ body {
   position: relative;
 }
 
+/* ✅ ÍCONES CENTRALIZADOS E BRANCOS */
+.tiktok-action-btn i {
+  color: white !important;
+  font-size: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .tiktok-action-btn:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: scale(1.1);
@@ -602,12 +614,15 @@ body {
 /* Action button counters */
 .action-counter {
   position: absolute;
-  bottom: -20px;
+  bottom: -25px; /* ✅ MAIS AFASTADO DOS BOTÕES */
+  left: 50%;
+  transform: translateX(-50%); /* ✅ CENTRALIZADO PERFEITAMENTE */
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9); /* ✅ MAIS VISÍVEL */
   font-weight: 600;
   text-align: center;
-  width: 60px;
+  white-space: nowrap; /* ✅ EVITA QUEBRA DE LINHA */
+  z-index: 10; /* ✅ SEMPRE NA FRENTE */
 }
 
 /* === TIKTOK VIDEO TITLE & DESCRIPTION === */
@@ -764,7 +779,8 @@ body {
 /* === RESPONSIVE ADJUSTMENTS === */
 @media (max-width: 768px) {
   .tiktok-actions {
-    gap: var(--space-3);
+    gap: var(--space-5); /* ✅ MAIS ESPAÇO EM MOBILE TAMBÉM */
+    margin-bottom: var(--space-12); /* ✅ MOVE MAIS PARA CIMA NO MOBILE */
   }
   
   .tiktok-action-btn {
@@ -772,6 +788,18 @@ body {
     height: 44px;
     font-size: 1.1rem;
   }
+  
+  /* ✅ ÍCONES MOBILE AJUSTADOS */
+  .tiktok-action-btn i {
+    font-size: 18px !important;
+  }
+  
+  /* ✅ NÚMEROS MOBILE AJUSTADOS */
+  .action-counter {
+    bottom: -22px; /* ✅ POSIÇÃO AJUSTADA PARA MOBILE */
+    font-size: 11px;
+  }
+}
   
   .tiktok-title {
     font-size: var(--font-size-base);
