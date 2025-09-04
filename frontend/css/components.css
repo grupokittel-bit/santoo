@@ -1928,4 +1928,143 @@
   }
 }
 
+/* Notification System for Spiritual Habits */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 400px;
+  padding: var(--space-4);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-dark-lg);
+  z-index: 10000;
+  transform: translateX(100%);
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.notification.success {
+  border-color: var(--color-gospel-primary);
+  background: linear-gradient(135deg, var(--color-bg-primary) 0%, rgba(212, 175, 55, 0.1) 100%);
+}
+
+.notification.error {
+  border-color: var(--color-error);
+  background: linear-gradient(135deg, var(--color-bg-primary) 0%, rgba(239, 68, 68, 0.1) 100%);
+}
+
+.notification.info {
+  border-color: var(--color-info);
+  background: linear-gradient(135deg, var(--color-bg-primary) 0%, rgba(59, 130, 246, 0.1) 100%);
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.notification-content i {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.notification.success .notification-content i {
+  color: var(--color-gospel-primary);
+}
+
+.notification.error .notification-content i {
+  color: var(--color-error);
+}
+
+.notification.info .notification-content i {
+  color: var(--color-info);
+}
+
+.notification-content span {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.notification.fade-out {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+  from { 
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to { 
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Highlighted Bible Post */
+.bible-post-card.highlighted {
+  border-color: var(--color-gospel-primary) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3), var(--shadow-dark-lg);
+  animation: highlight 2s ease-in-out;
+}
+
+@keyframes highlight {
+  0%, 100% {
+    border-color: var(--color-gospel-primary);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3), var(--shadow-dark-lg);
+  }
+  50% {
+    border-color: var(--color-gospel-secondary);
+    box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.5), var(--shadow-dark-xl);
+  }
+}
+
+/* Mobile Notification Responsiveness */
+@media (max-width: 768px) {
+  .notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    transform: translateY(-100%);
+  }
+  
+  @keyframes slideIn {
+    from { 
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to { 
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideOut {
+    from { 
+      transform: translateY(0);
+      opacity: 1;
+    }
+    to { 
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+  }
+}
+
 /* Fim Spiritual Dashboard Components */

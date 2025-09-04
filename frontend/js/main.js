@@ -665,6 +665,12 @@ class SantooApp {
   initProfilePage() {
     console.log('👤 Inicializando página de perfil');
     this.updateProfileDisplay();
+    
+    // Dispatch event to spiritual habits system for page change
+    const pageEvent = new CustomEvent('pageChanged', {
+      detail: { page: 'profile' }
+    });
+    document.dispatchEvent(pageEvent);
   }
 
   /**
@@ -680,6 +686,21 @@ class SantooApp {
       // Show user profile
       console.log('👤 Usuário logado - exibindo perfil de:', this.user.displayName);
       this.showUserProfile();
+      
+      // Hide auth prompt and show spiritual dashboard
+      if (authPrompt) {
+        authPrompt.style.display = 'none';
+      }
+      
+      // Dispatch event to spiritual habits system
+      const authEvent = new CustomEvent('authStateChanged', {
+        detail: { 
+          isAuthenticated: true, 
+          user: this.user 
+        }
+      });
+      document.dispatchEvent(authEvent);
+      
     } else {
       // Show auth prompt for non-logged users
       console.log('👥 Usuário não logado - mostrando prompt de autenticação');
@@ -687,6 +708,21 @@ class SantooApp {
       if (authPrompt) {
         authPrompt.style.display = 'block';
       }
+      
+      // Hide spiritual dashboard
+      const spiritualDashboard = document.getElementById('spiritualDashboard');
+      if (spiritualDashboard) {
+        spiritualDashboard.style.display = 'none';
+      }
+      
+      // Dispatch event to spiritual habits system
+      const authEvent = new CustomEvent('authStateChanged', {
+        detail: { 
+          isAuthenticated: false, 
+          user: null 
+        }
+      });
+      document.dispatchEvent(authEvent);
       
       // Reset profile to default state
       const profileName = document.querySelector('.profile-name');

@@ -725,6 +725,43 @@ body {
   justify-content: center;
 }
 
+/* Action Buttons - Clean design without background */
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-family: var(--font-nav);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: var(--transition-colors);
+  min-width: 140px;
+  justify-content: center;
+}
+
+.btn-action:hover {
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-action.primary {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.btn-action.primary:hover {
+  color: var(--color-accent-hover, var(--color-accent));
+}
+
+.btn-action i {
+  width: 18px;
+  height: 18px;
+}
+
 /* Posts Management */
 .posts-list {
   display: grid;
