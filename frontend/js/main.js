@@ -2444,7 +2444,14 @@ class SantooApp {
    */
   startProgressTracking(video) {
     const progressBar = document.querySelector(`.tiktok-progress-bar[data-video-id="${video.dataset.videoId}"]`);
-    if (!progressBar) return;
+    const progressContainer = progressBar ? progressBar.parentElement : null;
+    if (!progressBar || !progressContainer) return;
+
+    // Setup interactive progress bar (only once per video)
+    if (!progressContainer.dataset.interactive) {
+      this.setupInteractiveProgressBar(progressContainer, progressBar, video);
+      progressContainer.dataset.interactive = 'true';
+    }
 
     const updateProgress = () => {
       if (!video.paused && video.duration) {
@@ -2467,6 +2474,165 @@ class SantooApp {
       cancelAnimationFrame(this.progressInterval);
       this.progressInterval = null;
     }
+  }
+
+  /**
+   * Setup interactive progress bar (TikTok-style)
+   */
+  setupInteractiveProgressBar(progressContainer, progressBar, video) {
+    let isDragging = false;
+    let wasPlaying = false;
+
+    // Helper function to calculate time from position
+    const getTimeFromPosition = (event, container) => {
+      const rect = container.getBoundingClientRect();
+      const x = (event.clientX || event.touches[0].clientX) - rect.left;
+      const percentage = Math.max(0, Math.min(1, x / rect.width));
+      return percentage * video.duration;
+    };
+
+    // Mouse events (desktop)
+    progressContainer.addEventListener('mousedown', (e) => {
+      if (!video.duration) return;
+      
+      isDragging = true;
+      wasPlaying = !video.paused;
+      
+      // Pause video while dragging
+      if (wasPlaying) {
+        video.pause();
+        this.stopProgressTracking(video);
+      }
+      
+      // Jump to clicked position
+      const newTime = getTimeFromPosition(e, progressContainer);
+      video.currentTime = newTime;
+      
+      // Update progress bar immediately
+      const progress = (newTime / video.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging || !video.duration) return;
+      
+      // Update time while dragging
+      const newTime = getTimeFromPosition(e, progressContainer);
+      video.currentTime = newTime;
+      
+      // Update progress bar
+      const progress = (newTime / video.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      e.preventDefault();
+    });
+
+    document.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      
+      isDragging = false;
+      
+      // Resume playback if it was playing before
+      if (wasPlaying) {
+        video.play().then(() => {
+          this.startProgressTracking(video);
+        }).catch(console.error);
+      }
+      
+      e.preventDefault();
+    });
+
+    // Touch events (mobile)
+    progressContainer.addEventListener('touchstart', (e) => {
+      if (!video.duration) return;
+      
+      isDragging = true;
+      wasPlaying = !video.paused;
+      
+      // Pause video while dragging
+      if (wasPlaying) {
+        video.pause();
+        this.stopProgressTracking(video);
+      }
+      
+      // Jump to touched position
+      const newTime = getTimeFromPosition(e, progressContainer);
+      video.currentTime = newTime;
+      
+      // Update progress bar immediately
+      const progress = (newTime / video.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      e.preventDefault();
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isDragging || !video.duration) return;
+      
+      // Update time while dragging
+      const newTime = getTimeFromPosition(e, progressContainer);
+      video.currentTime = newTime;
+      
+      // Update progress bar
+      const progress = (newTime / video.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      e.preventDefault();
+    });
+
+    document.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      
+      isDragging = false;
+      
+      // Resume playback if it was playing before
+      if (wasPlaying) {
+        video.play().then(() => {
+          this.startProgressTracking(video);
+        }).catch(console.error);
+      }
+      
+      e.preventDefault();
+    });
+
+    // Simple click (without drag) for quick seeking
+    progressContainer.addEventListener('click', (e) => {
+      if (isDragging || !video.duration) return;
+      
+      const newTime = getTimeFromPosition(e, progressContainer);
+      video.currentTime = newTime;
+      
+      // Update progress bar immediately
+      const progress = (newTime / video.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      console.log(`⏱️ Pulou para: ${newTime.toFixed(1)}s de ${video.duration.toFixed(1)}s`);
+    });
+
+    // Make progress container more clickable
+    progressContainer.style.cursor = 'pointer';
+    progressContainer.style.zIndex = '300';
+    
+    // ✅ FORÇA APLICAÇÃO DAS CORES PRETO → AZUL
+    progressBar.style.background = 'linear-gradient(90deg, #1a1a1a, #4a90e2)';
+    progressBar.style.borderRadius = '1px';
+    progressBar.style.boxShadow = '0 0 8px rgba(74, 144, 226, 0.6)';
+    
+    // ✅ FORÇA LARGURA MÍNIMA PARA VISUALIZAR CORES (5% temporário)
+    if (progressBar.style.width === '0%' || !progressBar.style.width) {
+      progressBar.style.width = '5%';
+      setTimeout(() => {
+        if (video.duration > 0) {
+          const realProgress = (video.currentTime / video.duration) * 100;
+          progressBar.style.width = `${realProgress}%`;
+        }
+      }, 100);
+    }
+    
+    console.log('🎯 Barra de progresso interativa configurada para:', video.dataset.videoId);
+    console.log('🎨 Cores forçadas: preto → azul aplicadas');
   }
 
   /**

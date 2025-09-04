@@ -706,6 +706,10 @@ body {
   border-radius: 2px;
   z-index: 100;
   width: calc(100% - 24px);
+  cursor: pointer;
+  /* Área clicável maior para UX */
+  padding: 8px 0;
+  margin: -8px 0;
 }
 
 .tiktok-progress-bar {
@@ -715,6 +719,16 @@ body {
   transition: width 0.1s linear;
   border-radius: 1px; /* ✅ 30% MENOS ARREDONDADO (2px → 1px) */
   box-shadow: 0 0 8px rgba(74, 144, 226, 0.6); /* ✅ GLOW AZUL SUAVE */
+}
+
+/* ✅ HOVER EFFECT PARA FEEDBACK VISUAL */
+.tiktok-progress:hover {
+  transform: scaleY(1.5);
+  transition: transform 0.2s ease;
+}
+
+.tiktok-progress:hover .tiktok-progress-bar {
+  box-shadow: 0 0 12px rgba(74, 144, 226, 0.8);
 }
 
 /* ✅ MOBILE: PROGRESS BAR COLADA NO MENU INFERIOR */
