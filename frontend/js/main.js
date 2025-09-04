@@ -2563,6 +2563,9 @@ class SantooApp {
    * Show muted indicator for autoplay policy compliance
    */
   showMutedIndicator(videoCard) {
+    console.log('🚨🚨🚨 CRIANDO BOTÃO DE SOM - DEBUG MODE ATIVO 🚨🚨🚨');
+    console.log('VideoCard recebido:', videoCard);
+    
     // Remove existing indicator
     const existingIndicator = videoCard.querySelector('.muted-indicator');
     if (existingIndicator) existingIndicator.remove();
@@ -2575,24 +2578,28 @@ class SantooApp {
       <span>Toque para ativar som</span>
     `;
     indicator.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.9);
-      color: white;
-      padding: 10px 14px;
-      border-radius: 25px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 1000;
-      animation: fadeIn 0.3s ease;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      font-weight: 500;
+      position: fixed !important;
+      top: 20px !important;
+      right: 20px !important;
+      background: #ff0000 !important;
+      color: #ffffff !important;
+      padding: 15px 20px !important;
+      border-radius: 30px !important;
+      font-size: 16px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      z-index: 999999 !important;
+      cursor: pointer !important;
+      border: 3px solid #00ff00 !important;
+      box-shadow: 0 0 20px #ff00ff !important;
+      font-weight: bold !important;
+      width: auto !important;
+      height: auto !important;
+      transform: none !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
     `;
     
     // Add click handler to unmute
@@ -2609,7 +2616,14 @@ class SantooApp {
     
     // ✅ GARANTE POSICIONAMENTO CORRETO E ADICIONA AO CARD
     videoCard.style.position = 'relative';
-    videoCard.appendChild(indicator);
+    
+    console.log('🚨 ADICIONANDO BOTÃO AO DOM:', indicator);
+    console.log('🚨 BOTÃO HTML CRIADO:', indicator.outerHTML.substring(0, 200));
+    
+    // ADICIONA TAMBÉM AO BODY PARA GARANTIR QUE APAREÇA
+    document.body.appendChild(indicator);
+    
+    console.log('🚨 BOTÃO ADICIONADO AO BODY - DEVE SER VISÍVEL AGORA!');
     
     // Auto-hide after 3 seconds
     setTimeout(() => {
