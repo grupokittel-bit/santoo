@@ -264,6 +264,7 @@ User.prototype.toPublicJSON = function() {
     followersCount: this.followersCount,
     followingCount: this.followingCount,
     videosCount: this.videosCount,
+    role: this.role, // CRITICAL FIX: Incluir role para sistema de permissões
     createdAt: this.createdAt
   };
 };
