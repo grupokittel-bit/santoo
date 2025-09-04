@@ -1476,20 +1476,23 @@ class SantooApp {
       `;
       
       // Get current user ID
-      const user = santooAuth.getUser();
+      const user = santooAuth.getCurrentUser();
       if (!user) {
         videosGrid.innerHTML = '<p>Usuário não encontrado</p>';
         return;
       }
       
       // Fetch user videos
+      console.log('🔍 Buscando vídeos para user ID:', user.id);
       const response = await window.SantooAPI.videos.getFeed({
         userId: user.id,
         limit: 20,
         sortBy: 'recent'
       });
       
+      console.log('📡 Resposta da API:', response);
       const videos = response?.videos || [];
+      console.log('🎬 Vídeos encontrados:', videos.length, videos);
       
       // Update tab count
       if (videosTabCount) {
