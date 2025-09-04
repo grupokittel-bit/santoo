@@ -11,6 +11,13 @@ const Comment = require('./Comment');
 const Like = require('./Like');
 const Follow = require('./Follow');
 
+// === NOVOS MODELOS BÍBLIA EXPLICADA ===
+const BiblePost = require('./BiblePost');
+const UserBibleInteraction = require('./UserBibleInteraction');
+const BibleDisagreement = require('./BibleDisagreement');
+const UserHabitTracker = require('./UserHabitTracker');
+const BiblePostView = require('./BiblePostView');
+
 // Importa e configura associações
 require('./associations');
 
@@ -56,12 +63,20 @@ async function testModels() {
     
     // Testa cada modelo
     const tests = [
+      // Modelos originais
       { model: User, name: 'User' },
       { model: Category, name: 'Category' },
       { model: Video, name: 'Video' },
       { model: Comment, name: 'Comment' },
       { model: Like, name: 'Like' },
-      { model: Follow, name: 'Follow' }
+      { model: Follow, name: 'Follow' },
+      
+      // Novos modelos Bíblia Explicada
+      { model: BiblePost, name: 'BiblePost' },
+      { model: UserBibleInteraction, name: 'UserBibleInteraction' },
+      { model: BibleDisagreement, name: 'BibleDisagreement' },
+      { model: UserHabitTracker, name: 'UserHabitTracker' },
+      { model: BiblePostView, name: 'BiblePostView' }
     ];
     
     for (const test of tests) {
@@ -84,13 +99,20 @@ async function testModels() {
 module.exports = {
   sequelize,
   
-  // Modelos
+  // Modelos originais
   User,
   Video,
   Category,
   Comment,
   Like,
   Follow,
+  
+  // Novos modelos Bíblia Explicada
+  BiblePost,
+  UserBibleInteraction,
+  BibleDisagreement,
+  UserHabitTracker,
+  BiblePostView,
   
   // Funções utilitárias
   syncDatabase,

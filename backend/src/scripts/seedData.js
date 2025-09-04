@@ -3,6 +3,9 @@
 
 const { User, Category, Video, Comment, Like, Follow } = require('../models');
 
+// Importa seeds da Bíblia Explicada
+const { seedBiblePosts } = require('./seedBiblePosts');
+
 // === DADOS DE EXEMPLO ===
 
 const sampleUsers = [
@@ -389,10 +392,15 @@ async function seedDatabase() {
     // 4. Cria curtidas e seguidores
     await createFollowsAndLikes(users, videos);
     
-    console.log('🎊 SEED CONCLUÍDO COM SUCESSO!\n');
-    console.log('📋 RESUMO:');
+    // 5. Cria posts da Bíblia Explicada
+    console.log('📖 Executando seed da Bíblia Explicada...\n');
+    await seedBiblePosts();
+    
+    console.log('🎊 SEED COMPLETO CONCLUÍDO COM SUCESSO!\n');
+    console.log('📋 RESUMO COMPLETO:');
     console.log(`   👥 ${users.length} usuários`);
     console.log(`   🎥 ${videos.length} vídeos`);
+    console.log(`   📖 15 posts da Bíblia Explicada`);
     console.log(`   📂 8 categorias (já existentes)`);
     console.log(`   💬 ${sampleComments.length} comentários`);
     console.log(`   ❤️ Curtidas e seguidores distribuídos`);
