@@ -135,7 +135,7 @@ class BibleExplainedManager {
         this.hasMore = response.pagination?.has_more || false; // 🔧 CORRIGIDO: has_more
         
         // Carrega interações do usuário se logado
-        if (window.AuthManager?.isAuthenticated()) {
+        if (window.santooAuth?.isAuthenticated()) {
           await this.loadUserInteractions();
         }
         
@@ -442,7 +442,7 @@ class BibleExplainedManager {
     console.log('📖 Interação:', { action, postId });
     
     // Verifica se usuário está logado
-    if (!window.AuthManager?.isAuthenticated()) {
+    if (!window.santooAuth?.isAuthenticated()) {
       this.showLoginPrompt();
       return;
     }
@@ -620,9 +620,10 @@ class BibleExplainedManager {
    * Mostra prompt de login
    */
   showLoginPrompt() {
-    if (window.AuthManager?.showLoginModal) {
-      window.AuthManager.showLoginModal();
+    if (typeof window.showLoginModal === 'function') {
+      window.showLoginModal();
     } else {
+      console.warn('⚠️ showLoginModal não disponível, usando fallback');
       alert('Faça login para interagir com os posts da Bíblia.');
     }
   }

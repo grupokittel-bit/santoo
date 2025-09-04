@@ -682,9 +682,25 @@ class SantooApp {
   /**
    * Initialize upload page
    */
-  initUploadPage() {
+  async initUploadPage() {
     console.log('📤 Inicializando página de upload');
-    // Upload functionality will be handled by upload.js
+    
+    // Load upload.js dynamically if not loaded
+    if (!window.santooUpload) {
+      try {
+        await window.loadUpload();
+        console.log('📦 Upload.js carregado com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao carregar upload.js:', error);
+      }
+    }
+    
+    // Verify upload manager is available
+    if (window.santooUpload) {
+      console.log('✅ UploadManager disponível e pronto');
+    } else {
+      console.error('❌ UploadManager não encontrado');
+    }
   }
 
   /**
@@ -1308,9 +1324,29 @@ class SantooApp {
     });
   }
 
-  handleFileSelect(file) {
+  async handleFileSelect(file) {
     console.log('📁 Arquivo selecionado:', file.name);
-    // File handling will be implemented in upload.js
+    
+    // Ensure upload.js is loaded
+    if (!window.santooUpload) {
+      console.log('🔄 Carregando upload.js...');
+      try {
+        await window.loadUpload();
+      } catch (error) {
+        console.error('❌ Erro ao carregar upload.js:', error);
+        this.showError('Erro ao carregar sistema de upload');
+        return;
+      }
+    }
+    
+    // Pass file to upload manager
+    if (window.santooUpload && typeof window.santooUpload.handleFileSelect === 'function') {
+      console.log('🔗 Delegando para UploadManager');
+      window.santooUpload.handleFileSelect(file);
+    } else {
+      console.error('❌ UploadManager.handleFileSelect não encontrado');
+      this.showError('Sistema de upload não disponível');
+    }
   }
 
   // Utility methods
@@ -1369,6 +1405,41 @@ class SantooApp {
           this.navigateTo('upload');
           break;
       }
+    }
+  }
+
+  /**
+   * Handle upload form submission
+   */
+  async handleUpload(form) {
+    console.log('📤 Processando submissão do formulário de upload');
+    
+    // Ensure upload.js is loaded
+    if (!window.santooUpload) {
+      console.log('🔄 Carregando upload.js...');
+      try {
+        await window.loadUpload();
+      } catch (error) {
+        console.error('❌ Erro ao carregar upload.js:', error);
+        this.showError('Erro ao carregar sistema de upload');
+        return;
+      }
+    }
+    
+    // Pass form to upload manager
+    if (window.santooUpload && typeof window.santooUpload.handleUpload === 'function') {
+      console.log('🔗 Delegando submissão para UploadManager');
+      const formData = new FormData(form);
+      const result = await window.santooUpload.handleUpload(formData);
+      
+      if (result && result.success) {
+        console.log('✅ Upload concluído com sucesso');
+      } else {
+        console.error('❌ Falha no upload:', result?.error);
+      }
+    } else {
+      console.error('❌ UploadManager.handleUpload não encontrado');
+      this.showError('Sistema de upload não disponível');
     }
   }
 

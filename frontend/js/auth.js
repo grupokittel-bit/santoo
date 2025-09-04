@@ -1074,5 +1074,5 @@ console.log('🔐 Santoo Auth carregado com API REAL');
 
 // Expor função de diagnóstico para debug no console
 window.diagnoseSantooAPI = () => {
-  return window.authManager?.diagnoseSantooAPI() || console.log('❌ AuthManager não disponível');
+  return window.santooAuth?.diagnoseSantooAPI() || console.log('❌ SantooAuth não disponível');
 };

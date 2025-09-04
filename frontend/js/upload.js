@@ -298,6 +298,18 @@ class UploadManager {
       cancelBtn.addEventListener('click', () => this.cancelUpload());
     }
     
+    // Form submission - o evento será capturado pelo main.js e delegado de volta
+    // mas vamos garantir compatibilidade direta também
+    const uploadForm = document.querySelector('form[data-type="upload"]');
+    if (uploadForm) {
+      uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('📤 Submit capturado diretamente no upload.js');
+        const formData = new FormData(uploadForm);
+        await this.handleUpload(formData);
+      });
+    }
+    
     console.log('🎛️ Listeners do formulário configurados');
   }
 
