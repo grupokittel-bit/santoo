@@ -48,9 +48,19 @@ const Comment = sequelize.define('Comment', {
   
   videoId: {
     type: DataTypes.UUID,           // ID do vídeo comentado
-    allowNull: false,               // Obrigatório
+    allowNull: true,                // Opcional (pode ser post da Bíblia)
     references: {
       model: 'videos', 
+      key: 'id'
+    }
+  },
+  
+  // === NOVO: SUPORTE A POSTS DA BÍBLIA ===
+  bible_post_id: {
+    type: DataTypes.UUID,           // ID do post da Bíblia comentado
+    allowNull: true,                // Opcional (pode ser vídeo)
+    references: {
+      model: 'bible_posts',
       key: 'id'
     }
   },
@@ -84,10 +94,26 @@ const Comment = sequelize.define('Comment', {
   timestamps: true,                 // Adiciona createdAt e updatedAt
   paranoid: true,                   // Soft delete
   
+  // === VALIDAÇÕES ===
+  validate: {
+    // Comentário deve ter OU videoId OU bible_post_id (não ambos)
+    mustHaveContentTarget() {
+      if (!this.videoId && !this.bible_post_id) {
+        throw new Error('Comentário deve ter videoId ou bible_post_id');
+      }
+      if (this.videoId && this.bible_post_id) {
+        throw new Error('Comentário não pode ter videoId e bible_post_id ao mesmo tempo');
+      }
+    }
+  },
+  
   // === ÍNDICES ===
   indexes: [
     {
       fields: ['videoId']           // Busca por vídeo
+    },
+    {
+      fields: ['bible_post_id']     // Busca por post da Bíblia
     },
     {
       fields: ['userId']            // Busca por usuário
