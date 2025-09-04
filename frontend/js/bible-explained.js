@@ -216,6 +216,7 @@ class BibleExplainedManager {
 
   /**
    * Carrega interações do usuário atual
+   * 🔧 CORRIGIDO: Map agora suporta múltiplas interações por post
    */
   async loadUserInteractions() {
     try {
@@ -228,9 +229,17 @@ class BibleExplainedManager {
           const response = await window.SantooAPI.get(`/api/bible-posts/my-interactions/${type}`);
           
           if (response?.data && Array.isArray(response.data)) {
-            // Organiza interações por post_id
+            // 🔧 CORREÇÃO: Organiza interações permitindo múltiplas por post
             response.data.forEach(interaction => {
-              this.userInteractions.set(interaction.bible_post_id, interaction.interaction_type);
+              const postId = interaction.bible_post_id;
+              
+              // Se não existe Set para este post, cria um novo
+              if (!this.userInteractions.has(postId)) {
+                this.userInteractions.set(postId, new Set());
+              }
+              
+              // Adiciona a interação ao Set do post
+              this.userInteractions.get(postId).add(interaction.interaction_type);
             });
           }
         } catch (typeError) {
@@ -277,9 +286,10 @@ class BibleExplainedManager {
 
   /**
    * Cria elemento HTML para um post
+   * 🔧 CORRIGIDO: Trabalha com Set de interações
    */
   createPostElement(post) {
-    const userInteraction = this.userInteractions.get(post.id);
+    const userInteractions = this.userInteractions.get(post.id) || new Set();
     
     const article = document.createElement('article');
     article.className = 'bible-post-card';
@@ -385,27 +395,27 @@ class BibleExplainedManager {
 
       <div class="bible-post-actions">
         <div class="bible-actions-left">
-          <button class="bible-action-btn btn-like ${userInteraction === 'like' ? 'active' : ''}" 
+          <button class="bible-action-btn btn-like ${userInteractions.has('like') ? 'active' : ''}" 
                   data-action="like" data-post-id="${post.id}">
             <i data-lucide="heart"></i>
             <span>${post.likes_count || 0}</span>
           </button>
           
-          <button class="bible-action-btn btn-amen ${userInteraction === 'amen' ? 'active' : ''}" 
+          <button class="bible-action-btn btn-amen ${userInteractions.has('amen') ? 'active' : ''}" 
                   data-action="amen" data-post-id="${post.id}" 
                   title="Já faço isso">
             <i data-lucide="check-circle"></i>
             <span>Amém ${post.amen_count || 0}</span>
           </button>
           
-          <button class="bible-action-btn btn-ops ${userInteraction === 'ops' ? 'active' : ''}" 
+          <button class="bible-action-btn btn-ops ${userInteractions.has('ops') ? 'active' : ''}" 
                   data-action="ops" data-post-id="${post.id}" 
                   title="Ainda não faço isso">
             <i data-lucide="circle"></i>
             <span>Ops ${post.ops_count || 0}</span>
           </button>
           
-          <button class="bible-action-btn btn-disagree ${userInteraction === 'disagree' ? 'active' : ''}" 
+          <button class="bible-action-btn btn-disagree ${userInteractions.has('disagree') ? 'active' : ''}" 
                   data-action="disagree" data-post-id="${post.id}"
                   title="Discordar da explicação">
             <i data-lucide="message-circle"></i>
@@ -481,6 +491,7 @@ class BibleExplainedManager {
 
   /**
    * Processa interações regulares (like, amém, ops)
+   * 🔧 CORRIGIDO: Suporta múltiplas interações e exclusividade Amém/Ops
    */
   async handleRegularInteraction(postId, action, actionBtn) {
     const isCurrentlyActive = actionBtn.classList.contains('active');
@@ -488,25 +499,43 @@ class BibleExplainedManager {
     
     try {
       // ✅ CORREÇÃO: A API usa sempre POST com lógica de toggle
-      // Se o usuário já tem a interação, o POST remove ela
-      // Se não tem, o POST adiciona ela
       await window.SantooAPI.post(`/api/bible-posts/${postId}/interact`, {
         type: action
       });
       
+      // 🔧 CORREÇÃO: Inicializar Set se não existe
+      if (!this.userInteractions.has(postId)) {
+        this.userInteractions.set(postId, new Set());
+      }
+      
+      const userInteractionsForPost = this.userInteractions.get(postId);
+      
       if (isCurrentlyActive) {
         // Estava ativo, foi removido
         actionBtn.classList.remove('active');
-        this.userInteractions.delete(postId);
+        userInteractionsForPost.delete(action);
       } else {
         // Não estava ativo, foi adicionado
-        // Remove active de outros botões do mesmo post
-        const otherButtons = postCard.querySelectorAll('.bible-action-btn:not(.btn-disagree)');
-        otherButtons.forEach(btn => btn.classList.remove('active'));
         
-        // Ativa botão atual
+        // 🔧 CORREÇÃO: Amém e Ops são mutuamente exclusivos
+        if (action === 'amen' || action === 'ops') {
+          // Remove a exclusiva anterior (amen OU ops)
+          const exclusiveTypes = ['amen', 'ops'];
+          exclusiveTypes.forEach(type => {
+            if (type !== action && userInteractionsForPost.has(type)) {
+              userInteractionsForPost.delete(type);
+              // Remove visual do botão exclusivo anterior
+              const exclusiveBtn = postCard.querySelector(`.btn-${type}`);
+              if (exclusiveBtn) exclusiveBtn.classList.remove('active');
+            }
+          });
+        }
+        
+        // ✅ LIKE é independente e pode coexistir com Amém/Ops
+        
+        // Ativa botão atual e adiciona ao Set
         actionBtn.classList.add('active');
-        this.userInteractions.set(postId, action);
+        userInteractionsForPost.add(action);
       }
       
       // Atualiza contadores localmente (otimização - sem chamada à API)

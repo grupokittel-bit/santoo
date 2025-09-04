@@ -429,6 +429,32 @@ router.post('/:id/interact', authMiddleware, async (req, res) => {
       });
 
     } else {
+      // 🔧 CORREÇÃO: Amém e Ops são mutuamente exclusivos
+      if (type === 'amen' || type === 'ops') {
+        // Remove a interação exclusiva anterior se existir
+        const exclusiveTypes = ['amen', 'ops'];
+        const exclusiveType = exclusiveTypes.find(t => t !== type);
+        
+        const exclusiveInteraction = await UserBibleInteraction.findOne({
+          where: {
+            user_id: userId,
+            bible_post_id: postId,
+            interaction_type: exclusiveType
+          }
+        });
+        
+        if (exclusiveInteraction) {
+          // Remove a interação exclusiva anterior
+          await exclusiveInteraction.destroy();
+          
+          // Decrementa o contador anterior
+          const exclusiveCounterField = `${exclusiveType}_count`;
+          await BiblePost.decrement(exclusiveCounterField, { where: { id: postId } });
+          
+          console.log(`🔄 Trocando ${exclusiveType} por ${type} para usuário ${userId} no post ${postId}`);
+        }
+      }
+      
       // Cria nova interação
       await UserBibleInteraction.create({
         user_id: userId,
