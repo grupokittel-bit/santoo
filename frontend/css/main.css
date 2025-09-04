@@ -1165,6 +1165,11 @@ body {
     gap: var(--space-4);
   }
   
+  .user-videos-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
   .feed-filters {
     overflow-x: auto;
     padding-bottom: var(--space-2);
@@ -1233,6 +1238,10 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
   
+  .user-videos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
   .upload-container {
     max-width: 500px;
   }
@@ -1249,6 +1258,10 @@ body {
   }
   
   .video-feed {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+  
+  .user-videos-grid {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
