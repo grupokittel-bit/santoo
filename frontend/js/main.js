@@ -2338,7 +2338,7 @@ class SantooApp {
     `;
     indicator.style.cssText = `
       position: absolute;
-      top: 20px;
+      top: 40px;
       right: 20px;
       background: rgba(0,0,0,0.8);
       color: white;
