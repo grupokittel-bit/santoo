@@ -59,7 +59,9 @@ class SantooVideoPlayer {
       background: #000;
     `;
     
-    if (this.options.muted) this.video.muted = true;
+    // Always unmuted with full volume - no muted option
+    this.video.muted = false;
+    this.video.volume = 1.0;
     if (this.options.loop) this.video.loop = true;
     
     this.container.appendChild(this.video);
@@ -154,8 +156,8 @@ class SantooVideoPlayer {
     this.playButton = this.createButton('⏸️', 'Pausar');
     this.playButton.innerHTML = '▶️';
     
-    // Volume button
-    this.volumeButton = this.createButton('🔊', 'Volume');
+    // Volume button disabled - always full volume
+    // this.volumeButton = this.createButton('🔊', 'Volume');
     
     // Time display
     this.timeDisplay = document.createElement('span');
@@ -167,7 +169,7 @@ class SantooVideoPlayer {
     this.timeDisplay.textContent = '0:00 / 0:00';
 
     leftButtons.appendChild(this.playButton);
-    leftButtons.appendChild(this.volumeButton);
+    // leftButtons.appendChild(this.volumeButton); // Volume control removed
     leftButtons.appendChild(this.timeDisplay);
 
     // Right buttons group
@@ -289,7 +291,7 @@ class SantooVideoPlayer {
     if (this.controls) {
       // Control button events
       this.playButton.addEventListener('click', () => this.togglePlay());
-      this.volumeButton.addEventListener('click', () => this.toggleMute());
+      // this.volumeButton.addEventListener('click', () => this.toggleMute()); // Volume control disabled
       
       if (this.speedButton) {
         this.speedButton.addEventListener('click', () => this.cycleSpeed());
@@ -555,15 +557,15 @@ class SantooVideoPlayer {
         break;
       case 'ArrowUp':
         e.preventDefault();
-        this.setVolume(this.volume + 0.1);
+        // Volume controls disabled - always full volume
         break;
       case 'ArrowDown':
         e.preventDefault();
-        this.setVolume(this.volume - 0.1);
+        // Volume controls disabled - always full volume
         break;
       case 'm':
         e.preventDefault();
-        this.toggleMute();
+        // Mute disabled - always full volume
         break;
       case 'f':
         e.preventDefault();

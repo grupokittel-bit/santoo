@@ -12,6 +12,9 @@ body {
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   overflow-x: hidden;
+  overflow-y: hidden; /* ✅ REMOVE SCROLL DA PÁGINA PRINCIPAL */
+  /* ✅ MELHORIA: Scrollbar suave sem duplicação */
+  scroll-behavior: smooth;
 }
 
 /* === LOADING SCREEN === */
@@ -226,6 +229,54 @@ body {
   margin: 0 auto;
   padding: var(--space-6) var(--space-4);
   width: 100%;
+  height: calc(100vh - var(--header-height)); /* ✅ ALTURA FIXA CONTROLADA */
+  overflow: hidden; /* ✅ PADRÃO SEM SCROLL (TikTok para home) */
+}
+
+/* ✅ PÁGINAS QUE PRECISAM DE SCROLL */
+#uploadPage,
+#bibleExplainedPage, 
+#profilePage,
+#bibleAdminPage,
+#bibleDisagreementsPage {
+  overflow-y: auto !important; /* ✅ RESTAURA SCROLL ESPECÍFICO */
+  height: 100% !important; /* ✅ ALTURA TOTAL DISPONÍVEL */
+  scroll-behavior: smooth !important; /* ✅ SCROLL SUAVE */
+  -webkit-overflow-scrolling: touch !important; /* ✅ SCROLL NATIVO MOBILE */
+}
+
+/* ✅ SCROLLBAR CUSTOMIZADA PARA ESSAS PÁGINAS */
+#uploadPage::-webkit-scrollbar,
+#bibleExplainedPage::-webkit-scrollbar, 
+#profilePage::-webkit-scrollbar,
+#bibleAdminPage::-webkit-scrollbar,
+#bibleDisagreementsPage::-webkit-scrollbar {
+  width: 6px;
+}
+
+#uploadPage::-webkit-scrollbar-track,
+#bibleExplainedPage::-webkit-scrollbar-track, 
+#profilePage::-webkit-scrollbar-track,
+#bibleAdminPage::-webkit-scrollbar-track,
+#bibleDisagreementsPage::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+#uploadPage::-webkit-scrollbar-thumb,
+#bibleExplainedPage::-webkit-scrollbar-thumb, 
+#profilePage::-webkit-scrollbar-thumb,
+#bibleAdminPage::-webkit-scrollbar-thumb,
+#bibleDisagreementsPage::-webkit-scrollbar-thumb {
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+}
+
+#uploadPage::-webkit-scrollbar-thumb:hover,
+#bibleExplainedPage::-webkit-scrollbar-thumb:hover, 
+#profilePage::-webkit-scrollbar-thumb:hover,
+#bibleAdminPage::-webkit-scrollbar-thumb:hover,
+#bibleDisagreementsPage::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
 }
 
 /* === PAGES === */
@@ -246,6 +297,31 @@ body {
   margin-bottom: var(--space-8);
   flex-wrap: wrap;
   gap: var(--space-4);
+}
+
+/* ✅ DESKTOP - FILTROS NORMAIS NO TOPO */
+@media (min-width: 769px) {
+  #homePage .page-header {
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+    z-index: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-top: none !important;
+    padding: 0 !important;
+    margin-bottom: var(--space-8) !important;
+    box-shadow: none !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+  }
+  
+  #homePage .feed-filters {
+    width: auto !important;
+  }
 }
 
 .page-header h2 {
@@ -276,16 +352,36 @@ body {
   flex-direction: column;
   height: calc(100vh - var(--header-height));
   overflow-y: auto;
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: y mandatory; /* ✅ SCROLL SNAP OBRIGATÓRIO */
   scroll-behavior: smooth;
   padding: 0;
   margin: 0;
+  /* ✅ SCROLLBAR OCULTA PARA VISUAL LIMPO */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE */
 }
 
-/* Fallback para telas menores */
+.video-feed::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+/* Fallback para telas menores - TIKTOK FULL HEIGHT */
 @media (max-width: 768px) {
   .video-feed {
-    height: calc(100vh - var(--header-height));
+    height: calc(100vh - var(--header-height-mobile) - 100px) !important; /* ✅ ESPAÇO PARA PROGRESS BAR */
+    margin-top: 80px !important; /* ✅ ESPAÇO PARA FILTROS FIXOS */
+    padding-bottom: 10px !important; /* ✅ PADDING PARA PROGRESS BAR */
+  }
+  
+  /* ✅ VÍDEOS TIKTOK-STYLE COM ESPAÇO PARA PROGRESS BAR */
+  .video-card {
+    height: calc(100vh - var(--header-height-mobile) - 110px) !important; /* ✅ ALTURA COM ESPAÇO PARA PROGRESS BAR */
+    min-height: calc(100vh - var(--header-height-mobile) - 110px) !important; /* ✅ ALTURA GARANTIDA */
+    max-height: calc(100vh - var(--header-height-mobile) - 110px) !important; /* ✅ ALTURA CONTROLADA */
+    width: 100% !important; /* ✅ LARGURA TOTAL DA TELA */
+    max-width: 100vw !important; /* ✅ LARGURA MÁXIMA DA VIEWPORT */
+    margin-bottom: 10px !important; /* ✅ ESPAÇO ENTRE VÍDEOS PARA PROGRESS BAR */
+    border-radius: 0 !important; /* ✅ SEM BORDAS ARREDONDADAS */
   }
 }
 
@@ -309,12 +405,27 @@ body {
   min-height: 600px;
   background-color: #000;
   border-radius: 0;
-  overflow: hidden;
-  scroll-snap-align: start;
+  overflow: visible; /* ✅ PERMITE PROGRESS BAR APARECER FORA */
+  scroll-snap-align: start; /* ✅ ALINHA VÍDEO COM O TOPO DOS FILTROS */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+/* ✅ MOBILE: VÍDEO ELEMENTO OTIMIZADO PARA TIKTOK */
+@media (max-width: 768px) {
+  .video-card {
+    overflow: visible !important; /* ✅ PERMITE PROGRESS BAR APARECER */
+    position: relative !important; /* ✅ GARANTE POSICIONAMENTO */
+  }
+  
+  .video-card .tiktok-video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important; /* ✅ MANTÉM PROPORÇÃO SEM DISTORCER */
+    object-position: center !important; /* ✅ CENTRALIZA CONTEÚDO */
+  }
 }
 
 .video-card:hover {
@@ -533,19 +644,54 @@ body {
 /* === TIKTOK PROGRESS BAR === */
 .tiktok-progress {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.3);
-  width: 100%;
-  z-index: 2;
+  bottom: 8px; /* ✅ DENTRO DO VÍDEO MAS VISÍVEL */
+  left: 8px; /* ✅ PEQUENA MARGEM LATERAL */
+  right: 8px; /* ✅ PEQUENA MARGEM LATERAL */
+  height: 4px; /* ✅ ALTURA BOA PARA VISIBILIDADE */
+  background: rgba(0, 0, 0, 0.7); /* ✅ FUNDO ESCURO PARA CONTRASTE */
+  width: calc(100% - 16px); /* ✅ LARGURA COM MARGENS */
+  z-index: 100; /* ✅ Z-INDEX MUITO ALTO */
+  border-radius: 2px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); /* ✅ SOMBRA FORTE */
 }
 
 .tiktok-progress-bar {
   height: 100%;
-  background: white;
+  background: linear-gradient(90deg, #ff4757, #2ed573); /* ✅ CORES MAIS VIBRANTES */
   width: 0%;
   transition: width 0.1s linear;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(255, 71, 87, 0.8); /* ✅ GLOW FORTE */
+}
+
+/* ✅ MOBILE: PROGRESS BAR GARANTIDA */
+@media (max-width: 768px) {
+  .tiktok-progress {
+    bottom: 12px !important; /* ✅ MAIS DENTRO DO VÍDEO */
+    left: 12px !important;
+    right: 12px !important;
+    height: 5px !important; /* ✅ MAIS ALTA NO MOBILE */
+    background: rgba(0, 0, 0, 0.8) !important;
+    width: calc(100% - 24px) !important;
+    z-index: 200 !important; /* ✅ Z-INDEX SUPREMO */
+  }
+  
+  .tiktok-progress-bar {
+    box-shadow: 0 0 12px rgba(255, 71, 87, 1) !important; /* ✅ GLOW MÁXIMO */
+  }
+  
+  /* ✅ DEBUG: PROGRESS BAR SEMPRE VISÍVEL PARA TESTE */
+  .tiktok-progress::before {
+    content: '' !important;
+    position: absolute !important;
+    top: -2px !important;
+    left: -2px !important;
+    right: -2px !important;
+    bottom: -2px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 4px !important;
+    z-index: -1 !important;
+  }
 }
 
 /* === RESPONSIVE ADJUSTMENTS === */
@@ -1589,20 +1735,58 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* 🎯 MOBILE NAV - ALWAYS HIDDEN ON DESKTOP */
+/* 🎯 MOBILE NAV - TIKTOK STYLE BOTTOM TAB BAR */
 .mobile-nav-bottom {
+  /* ✅ OCULTO NO DESKTOP */
   display: none;
 }
 
-/* Mobile Styles */
+/* ✅ MOBILE: SEMPRE VISÍVEL DESDE O CARREGAMENTO */
 @media (max-width: 768px) {
+  .mobile-nav-bottom {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 70px !important;
+    background: rgba(26, 26, 26, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid var(--color-border-secondary);
+    padding: var(--space-2) var(--space-1) calc(var(--space-2) + env(safe-area-inset-bottom));
+    z-index: 99999 !important; /* ✅ Z-INDEX SUPREMO GLOBAL */
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.8);
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    /* ✅ GARANTIAS TIKTOK-STYLE */
+    animation: none !important;
+    transition: none !important;
+  }
+  
   /* ✅ ESPAÇAMENTO PARA O MENU MOBILE BOTTOM */
   body {
-    padding-bottom: 80px; /* Espaço para o menu mobile bottom */
+    padding-bottom: 90px !important; /* ✅ Apenas menu mobile */
   }
   
   .main-content {
     padding-bottom: var(--space-6); /* Padding extra no conteúdo */
+    height: calc(100vh - var(--header-height-mobile) - 90px) !important; /* ✅ ALTURA CONSIDERANDO MENU MOBILE */
+  }
+  
+  /* ✅ MOBILE: PÁGINAS QUE PRECISAM DE SCROLL */
+  #uploadPage,
+  #bibleExplainedPage, 
+  #profilePage,
+  #bibleAdminPage,
+  #bibleDisagreementsPage {
+    overflow-y: auto !important; /* ✅ SCROLL ESPECÍFICO NO MOBILE */
+    height: calc(100vh - var(--header-height-mobile) - 90px) !important; /* ✅ ALTURA MOBILE CORRETA */
   }
   
   .header {
@@ -1617,85 +1801,65 @@ body {
     display: none; /* Hide desktop nav */
   }
   
-  /* 🎯 MOBILE NAV - TIKTOK STYLE BOTTOM NAVIGATION */
-  .mobile-nav-bottom {
-    display: flex !important; /* ✅ FORÇA EXIBIÇÃO NO MOBILE */
-    position: fixed !important; /* ✅ FORÇA POSIÇÃO FIXA */
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    background: rgba(26, 26, 26, 0.98) !important;
-    backdrop-filter: blur(20px) !important;
-    border-top: 1px solid var(--color-border-secondary);
-    padding: var(--space-2) var(--space-1) calc(var(--space-2) + env(safe-area-inset-bottom));
-    z-index: 9999 !important; /* ✅ Z-INDEX SUPREMO PARA GARANTIR */
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.4);
-    pointer-events: auto !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  
+  /* ✅ MOBILE NAV ITEMS - TIKTOK STYLE */
   .mobile-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: var(--space-1);
-    border-radius: var(--radius-md);
-    transition: all 0.2s ease;
-    text-decoration: none;
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    min-width: 42px;
-    flex: 1;
-    max-width: 60px;
-    position: relative;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
+    padding: var(--space-1) !important;
+    border-radius: var(--radius-md) !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    color: var(--color-text-secondary) !important;
+    font-size: var(--font-size-xs) !important;
+    font-weight: var(--font-weight-medium) !important;
+    min-width: 42px !important;
+    flex: 1 !important;
+    max-width: 60px !important;
+    position: relative !important;
   }
   
   .mobile-nav-item:hover,
   .mobile-nav-item.active {
-    color: var(--color-accent);
-    background-color: rgba(74, 144, 226, 0.1);
-    transform: translateY(-2px);
+    color: var(--color-accent) !important;
+    background-color: rgba(74, 144, 226, 0.1) !important;
+    transform: translateY(-2px) !important;
   }
   
   .mobile-nav-item.active::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 3px;
-    background: var(--color-accent);
-    border-radius: 2px;
+    content: '' !important;
+    position: absolute !important;
+    top: -2px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 20px !important;
+    height: 3px !important;
+    background: var(--color-accent) !important;
+    border-radius: 2px !important;
   }
   
   .mobile-nav-icon {
-    width: 24px;
-    height: 24px;
-    stroke-width: 2;
-    transition: all 0.2s ease;
+    width: 24px !important;
+    height: 24px !important;
+    stroke-width: 2 !important;
+    transition: all 0.2s ease !important;
   }
   
   .mobile-nav-item:hover .mobile-nav-icon,
   .mobile-nav-item.active .mobile-nav-icon {
-    transform: scale(1.1);
-    stroke-width: 2.5;
+    transform: scale(1.1) !important;
+    stroke-width: 2.5 !important;
   }
   
   .mobile-nav-text {
-    font-size: 9px;
-    font-weight: 500;
-    text-align: center;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 9px !important;
+    font-weight: 500 !important;
+    text-align: center !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   
   .app-logo {
@@ -1727,6 +1891,36 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-3);
+  }
+  
+  /* ✅ FILTROS FIXOS NO TOPO (POSIÇÃO ORIGINAL) */
+  #homePage .page-header {
+    position: fixed !important;
+    top: var(--header-height-mobile) !important; /* ✅ LOGO ABAIXO DO HEADER */
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 9998 !important; /* ✅ ACIMA DOS VÍDEOS */
+    background: rgba(26, 26, 26, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid var(--color-border-secondary);
+    padding: var(--space-3) var(--space-4) !important;
+    margin-bottom: 0 !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4); /* ✅ SOMBRA PARA BAIXO */
+    /* ✅ LAYOUT HORIZONTAL CENTRADO */
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+  
+  /* ✅ FILTROS ORGANIZADOS HORIZONTALMENTE */
+  #homePage .feed-filters {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: var(--space-3) !important;
+    width: 100% !important;
   }
   
   .page-header h2 {
@@ -1866,24 +2060,8 @@ body {
 
 /* === DARK THEME SPECIFIC === */
 
-/* Scrollbar Styling for Dark Theme */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-bg-tertiary);
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-bg-hover);
-}
+/* SCROLLBAR REMOVIDA - Causa barras duplas */
+/* Usando classe .hide-scrollbar do reset.css quando necessário */
 
 /* Selection Styling */
 ::selection {

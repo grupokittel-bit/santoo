@@ -47,13 +47,20 @@ class SantooApp {
       // Initialize profile submenu
       this.updateProfileSubmenu();
       
-      // 🎯 FIX F5 BUG: Verificar hash da URL ANTES de inicializar página
+      // ✅ URL ROUTING - Detectar página atual da URL
       const hash = window.location.hash.replace('#', '');
+      const pathname = window.location.pathname;
+      
       if (hash && this.isValidPage(hash)) {
+        // Hash válido detectado
         this.currentPage = hash;
         console.log('🔄 Hash da URL detectado:', hash, '- definindo como página atual');
+      } else if (pathname === '/' && !hash) {
+        // URL limpa = home
+        this.currentPage = 'home';
+        console.log('🏠 URL limpa detectada - definindo como home');
       } else {
-        console.log('📍 Nenhum hash válido - mantendo página padrão:', this.currentPage);
+        console.log('📍 Nenhuma rota válida - mantendo página padrão:', this.currentPage);
       }
       
       // Setup navigation AFTER setting currentPage
@@ -390,8 +397,14 @@ class SantooApp {
     // Update current page
     this.currentPage = page;
     
-    // Update URL
-    window.history.pushState({ page }, '', `#${page}`);
+    // ✅ UPDATE URL - HOME USA URL LIMPA
+    if (page === 'home') {
+      // Para home, usa URL limpa sem hash
+      window.history.pushState({ page }, '', '/');
+    } else {
+      // Para outras páginas, mantém hash
+      window.history.pushState({ page }, '', `#${page}`);
+    }
     
     // Update navigation
     this.updateNavigation();
@@ -2273,9 +2286,9 @@ class SantooApp {
     } catch (error) {
       console.warn('Autoplay pode estar bloqueado, tentando com mudo:', error);
       
-      // Fallback: Try with muted if autoplay fails
+      // Always try to play with sound first - no muted fallback
       try {
-        video.muted = true;
+        video.muted = false;
         await video.play();
         videoCard.classList.remove('paused');
         this.startProgressTracking(video);
@@ -2283,8 +2296,7 @@ class SantooApp {
         
         console.log('▶️ TikTok video playing (mudo):', video.dataset.videoId);
         
-        // Show professional sound notification
-        this.showSoundNotification();
+        // Sound notification removed - videos now start with sound automatically
         
       } catch (mutedError) {
         console.error('Erro ao reproduzir vídeo:', mutedError);
@@ -2427,7 +2439,7 @@ class SantooApp {
     if (currentVideo) {
       const prevVideo = currentVideo.previousElementSibling;
       if (prevVideo && prevVideo.classList.contains('video-card')) {
-        prevVideo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        prevVideo.scrollIntoView({ behavior: 'smooth', block: 'center' }); // ✅ MANTÉM FILTROS VISÍVEIS
       }
     }
   }
@@ -2543,11 +2555,11 @@ class SantooApp {
           await navigator.share({
             title: 'Vídeo do Santoo',
             text: 'Confira este vídeo incrível no Santoo!',
-            url: `${window.location.origin}#home?video=${videoId}`
+            url: `${window.location.origin}/?video=${videoId}` // ✅ URL LIMPA PARA HOME
           });
         } else {
           // Fallback to clipboard
-          await navigator.clipboard.writeText(`${window.location.origin}#home?video=${videoId}`);
+          await navigator.clipboard.writeText(`${window.location.origin}/?video=${videoId}`);
           this.showNotification('Link copiado para a área de transferência!', 'success');
         }
       } catch (error) {
@@ -2599,7 +2611,7 @@ class SantooApp {
       const nextVideo = currentVideo.nextElementSibling;
       if (nextVideo && nextVideo.classList.contains('video-card')) {
         // Scroll to next video
-        nextVideo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        nextVideo.scrollIntoView({ behavior: 'smooth', block: 'center' }); // ✅ MANTÉM FILTROS VISÍVEIS
         
         // Auto-play next video after scroll completes
         setTimeout(() => {

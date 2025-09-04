@@ -93,7 +93,7 @@
                 </div>
                 
                 <nav class="main-nav" role="navigation" aria-label="Navegação principal">
-                    <a href="#home" class="nav-link active" data-page="home" aria-label="Ir para página inicial" aria-current="page">
+                    <a href="/" class="nav-link active" data-page="home" aria-label="Ir para página inicial" aria-current="page">
                         <i class="nav-icon" data-lucide="home" aria-hidden="true"></i>
                         <span class="nav-text">Início</span>
                     </a>
@@ -147,7 +147,6 @@
             <!-- Home Page -->
             <section id="homePage" class="page active">
                 <div class="page-header">
-                    <h2>Para Você</h2>
                     <div class="feed-filters">
                         <button class="filter-btn active" data-filter="all">Todos</button>
                         <button class="filter-btn" data-filter="pregacao">Pregação</button>
@@ -179,7 +178,10 @@
                             <div class="upload-icon">📹</div>
                             <h3>Selecione ou arraste seu vídeo</h3>
                             <p>MP4, MOV ou WebM até 100MB</p>
-                            <button class="btn-primary" id="selectVideoBtn">Escolher Arquivo</button>
+                            <button class="nav-link" id="selectVideoBtn" style="background: none !important; border: none !important; box-shadow: none !important;">
+                                <i class="nav-icon" data-lucide="upload" aria-hidden="true"></i>
+                                <span class="nav-text">Escolher Arquivo</span>
+                            </button>
                             <input type="file" id="videoFileInput" accept="video/*" hidden>
                         </div>
                     </div>
@@ -809,39 +811,40 @@
 
         </main>
 
-        <!-- 🎯 MOBILE NAVIGATION - TIKTOK STYLE BOTTOM BAR -->
-        <nav class="mobile-nav-bottom" id="mobileNavBottom">
-            <a href="#home" class="mobile-nav-item active" data-page="home" aria-label="Ir para página inicial">
-                <i class="mobile-nav-icon" data-lucide="home"></i>
-                <span class="mobile-nav-text">Início</span>
-            </a>
-            <a href="#discover" class="mobile-nav-item" data-page="discover" aria-label="Descobrir conteúdos">
-                <i class="mobile-nav-icon" data-lucide="compass"></i>
-                <span class="mobile-nav-text">Descobrir</span>
-            </a>
-            <a href="#upload" class="mobile-nav-item" data-page="upload" aria-label="Publicar conteúdo">
-                <i class="mobile-nav-icon" data-lucide="plus-circle"></i>
-                <span class="mobile-nav-text">Publicar</span>
-            </a>
-            <a href="#live" class="mobile-nav-item" data-page="live" aria-label="Transmissões ao vivo">
-                <i class="mobile-nav-icon" data-lucide="radio"></i>
-                <span class="mobile-nav-text">Ao Vivo</span>
-            </a>
-            <a href="#bible-explained" class="mobile-nav-item" data-page="bible-explained" aria-label="Bíblia Explicada">
-                <i class="mobile-nav-icon" data-lucide="book-open"></i>
-                <span class="mobile-nav-text">Bíblia</span>
-            </a>
-            <a href="#bible-admin" class="mobile-nav-item" data-page="bible-admin" id="mobileAdminLink" style="display: none;">
-                <i class="mobile-nav-icon" data-lucide="settings"></i>
-                <span class="mobile-nav-text">Admin</span>
-            </a>
-            <a href="#profile" class="mobile-nav-item" data-page="profile" aria-label="Perfil do usuário">
-                <i class="mobile-nav-icon" data-lucide="user"></i>
-                <span class="mobile-nav-text">Perfil</span>
-            </a>
-        </nav>
-
     </div>
+
+    <!-- 🎯 MOBILE NAVIGATION - TIKTOK STYLE BOTTOM BAR -->
+    <!-- ✅ MOVIDO PARA FORA DO #app PARA SER SEMPRE VISÍVEL -->
+    <nav class="mobile-nav-bottom" id="mobileNavBottom">
+        <a href="/" class="mobile-nav-item active" data-page="home" aria-label="Ir para página inicial">
+            <i class="mobile-nav-icon" data-lucide="home"></i>
+            <span class="mobile-nav-text">Início</span>
+        </a>
+        <a href="#discover" class="mobile-nav-item" data-page="discover" aria-label="Descobrir conteúdos">
+            <i class="mobile-nav-icon" data-lucide="compass"></i>
+            <span class="mobile-nav-text">Descobrir</span>
+        </a>
+        <a href="#upload" class="mobile-nav-item" data-page="upload" aria-label="Publicar conteúdo">
+            <i class="mobile-nav-icon" data-lucide="plus-circle"></i>
+            <span class="mobile-nav-text">Publicar</span>
+        </a>
+        <a href="#live" class="mobile-nav-item" data-page="live" aria-label="Transmissões ao vivo">
+            <i class="mobile-nav-icon" data-lucide="radio"></i>
+            <span class="mobile-nav-text">Ao Vivo</span>
+        </a>
+        <a href="#bible-explained" class="mobile-nav-item" data-page="bible-explained" aria-label="Bíblia Explicada">
+            <i class="mobile-nav-icon" data-lucide="book-open"></i>
+            <span class="mobile-nav-text">Bíblia</span>
+        </a>
+        <a href="#bible-admin" class="mobile-nav-item" data-page="bible-admin" id="mobileAdminLink" style="display: none;">
+            <i class="mobile-nav-icon" data-lucide="settings"></i>
+            <span class="mobile-nav-text">Admin</span>
+        </a>
+        <a href="#profile" class="mobile-nav-item" data-page="profile" aria-label="Perfil do usuário">
+            <i class="mobile-nav-icon" data-lucide="user"></i>
+            <span class="mobile-nav-text">Perfil</span>
+        </a>
+    </nav>
 
     <!-- Modals -->
     <div id="modalOverlay" class="modal-overlay">
