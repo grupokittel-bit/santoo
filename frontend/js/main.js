@@ -837,14 +837,21 @@ class SantooApp {
   }
 
   /**
-   * Garantir que a aba de vídeos está ativa por padrão
+   * Garantir que a aba de vídeos está ativa por padrão - VERSÃO SUPER ROBUSTA
    */
   ensureVideosTabActive() {
-    console.log('🎯 Garantindo que aba de vídeos está ativa...');
+    console.log('🎯 SUPER ROBUSTA: Garantindo que aba de vídeos está ativa...');
     
     // Encontrar e ativar a aba de vídeos
     const videosTab = document.querySelector('[data-tab="videos"]');
     const videosContent = document.querySelector('.tab-content[data-tab="videos"]');
+    
+    console.log('🔧 DEBUGGING TABS:', {
+      videosTab: !!videosTab,
+      videosContent: !!videosContent,
+      videosTabClasses: videosTab?.className,
+      videosContentClasses: videosContent?.className
+    });
     
     if (videosTab) {
       // Remover active de todas as tabs
@@ -854,20 +861,50 @@ class SantooApp {
       
       // Ativar aba de vídeos
       videosTab.classList.add('active');
-      console.log('✅ Aba de vídeos ativada');
+      console.log('✅ Aba de vídeos ativada - classes:', videosTab.className);
+    } else {
+      console.error('❌ ERRO: videosTab não encontrado!');
     }
     
     if (videosContent) {
       // Esconder todos os conteúdos de tab
       document.querySelectorAll('.tab-content').forEach(content => {
         content.style.display = 'none';
+        content.classList.remove('active');
       });
       
-      // Mostrar conteúdo de vídeos
-      videosContent.style.display = 'block';
-      videosContent.style.visibility = 'visible';
-      videosContent.style.opacity = '1';
-      console.log('✅ Conteúdo de vídeos exibido');
+      // FORÇAR VISIBILIDADE MÁXIMA do conteúdo de vídeos
+      videosContent.classList.add('active');
+      videosContent.style.cssText = `
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        min-height: 500px !important;
+        overflow: visible !important;
+      `;
+      
+      console.log('✅ Conteúdo de vídeos FORÇADO - classes:', videosContent.className);
+      console.log('✅ Conteúdo de vídeos display:', getComputedStyle(videosContent).display);
+    } else {
+      console.error('❌ ERRO: videosContent não encontrado!');
+    }
+    
+    // ✅ EXTRA: Verificar se grid também precisa ser forçado
+    const videosGrid = document.getElementById('userVideosGrid');
+    if (videosGrid) {
+      videosGrid.style.cssText = `
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+        gap: 24px !important;
+        margin-top: 24px !important;
+        min-height: 400px !important;
+        width: 100% !important;
+        padding: 20px 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      `;
+      console.log('✅ videosGrid também foi forçado');
     }
   }
 
@@ -1874,13 +1911,39 @@ class SantooApp {
         console.log('✅ Ícones Lucide atualizados');
       }
       
-      // ✅ GARANTIR RENDERING COMPLETO
+      // ✅ GARANTIR RENDERING COMPLETO E DEBUGGING AVANÇADO
       await new Promise(resolve => {
         requestAnimationFrame(() => {
           // Forçar reflow
           void videosGrid.offsetHeight;
+          
+          // 🔧 DEBUGGING AVANÇADO - Verificar estados CSS
+          console.log('🔧 DEBUGGING AVANÇADO - Estados CSS:');
+          console.log(`videosGrid.offsetHeight: ${videosGrid.offsetHeight}px`);
+          console.log(`videosGrid.scrollHeight: ${videosGrid.scrollHeight}px`);
+          console.log(`videosGrid.style.display: ${videosGrid.style.display}`);
+          console.log(`videosGrid computed display: ${getComputedStyle(videosGrid).display}`);
+          console.log(`videosGrid computed visibility: ${getComputedStyle(videosGrid).visibility}`);
+          console.log(`videosGrid computed opacity: ${getComputedStyle(videosGrid).opacity}`);
+          
+          // Verificar container pai
+          const parentElement = videosGrid.parentElement;
+          console.log('🔧 PARENT ELEMENT:', parentElement?.className, parentElement?.id);
+          console.log(`Parent display: ${parentElement ? getComputedStyle(parentElement).display : 'no parent'}`);
+          console.log(`Parent height: ${parentElement ? parentElement.offsetHeight : 'no parent'}px`);
+          console.log(`Parent classes: ${parentElement ? parentElement.className : 'no parent'}`);
+          
+          // Verificar se aba está ativa
+          const videosSection = document.querySelector('.tab-content[data-tab="videos"]');
+          console.log('🔧 VIDEOS SECTION:', {
+            exists: !!videosSection,
+            display: videosSection ? getComputedStyle(videosSection).display : 'not found',
+            height: videosSection ? videosSection.offsetHeight + 'px' : 'not found',
+            classes: videosSection ? videosSection.className : 'not found',
+            hasActiveClass: videosSection ? videosSection.classList.contains('active') : false
+          });
+          
           console.log(`✅ RENDERING COMPLETO: ${videos.length} vídeos renderizados`);
-          console.log(`📊 videosGrid final height: ${videosGrid.offsetHeight}px`);
           resolve();
         });
       });
@@ -3163,36 +3226,65 @@ class SantooApp {
 
 // Toggle Picture in Picture for TikTok videos - IMPLEMENTAÇÃO SIMPLIFICADA
 window.toggleTikTokPiP = async (videoId) => {
+  console.log('📺 [PiP] DEBUG: Iniciando para videoId:', videoId);
+  
   try {
+    // 🔍 DEBUG: Mostrar estado da página
+    const allVideos = document.querySelectorAll('video');
+    const allTikTokVideos = document.querySelectorAll('.tiktok-video');
+    const videoCard = document.querySelector(`[data-video-id="${videoId}"]`);
+    
+    console.log('🔍 [DEBUG] Total videos:', allVideos.length);
+    console.log('🔍 [DEBUG] Total .tiktok-video:', allTikTokVideos.length);
+    console.log('🔍 [DEBUG] Card encontrado:', videoCard ? 'SIM' : 'NÃO');
+    
     // Buscar elemento de vídeo com seletores específicos
     let videoElement = null;
     
     // Estratégia 1: Buscar vídeo específico por videoId
-    if (videoId) {
-      const videoCard = document.querySelector(`[data-video-id="${videoId}"]`);
-      if (videoCard) {
-        videoElement = videoCard.querySelector('video.tiktok-video');
+    if (videoId && videoCard) {
+      videoElement = videoCard.querySelector('video.tiktok-video');
+      console.log('🎯 [DEBUG] Strategy 1 result:', videoElement);
+      
+      if (!videoElement) {
+        videoElement = videoCard.querySelector('video');
+        console.log('🎯 [DEBUG] Strategy 1b result:', videoElement);
       }
     }
     
     // Estratégia 2: Buscar vídeo ativo/não pausado
     if (!videoElement) {
-      videoElement = document.querySelector('video.tiktok-video:not([paused])');
+      videoElement = document.querySelector('video:not([paused])');
+      console.log('🎯 [DEBUG] Strategy 2 result:', videoElement);
     }
     
     // Estratégia 3: Buscar qualquer vídeo TikTok
     if (!videoElement) {
       videoElement = document.querySelector('video.tiktok-video');
+      console.log('🎯 [DEBUG] Strategy 3 result:', videoElement);
     }
     
     // Estratégia 4: Último recurso - qualquer elemento video
     if (!videoElement) {
       videoElement = document.querySelector('video');
+      console.log('🎯 [DEBUG] Strategy 4 result:', videoElement);
+    }
+    
+    // 🔍 DEBUG: Analisar elemento encontrado
+    if (videoElement) {
+      console.log('🔍 [DEBUG] Elemento encontrado:', {
+        tagName: videoElement.tagName,
+        className: videoElement.className,
+        isVideo: videoElement instanceof HTMLVideoElement,
+        hasRequestPiP: typeof videoElement.requestPictureInPicture,
+        src: videoElement.src,
+        currentSrc: videoElement.currentSrc
+      });
     }
     
     // Verificar se elemento foi encontrado e é HTMLVideoElement
     if (!videoElement || !(videoElement instanceof HTMLVideoElement)) {
-      console.error('Vídeo não encontrado para Picture in Picture');
+      console.error('❌ [DEBUG] Vídeo não encontrado ou inválido para Picture in Picture');
       return;
     }
     
