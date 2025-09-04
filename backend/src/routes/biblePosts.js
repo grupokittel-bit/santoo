@@ -63,17 +63,25 @@ async function getPersonalizedRecommendations(userId, limit = 10, excludeViewed 
       is_active: true
     };
 
-    // Priorizar categorias do usuário ou usar preferências do perfil
+    // 🔧 CORRIGIDO: Só filtrar por categorias se houver preferências
     const userCategories = user.preferred_bible_categories || topCategories;
-    if (userCategories.length > 0) {
+    if (userCategories && userCategories.length > 0) {
+      console.log('🔍 [DEBUG] Filtrando por categorias:', userCategories);
       whereConditions.category = { [Op.in]: userCategories };
+    } else {
+      console.log('🔍 [DEBUG] Sem preferências de categoria - mostrar todos os posts');
+      // Não filtrar por categoria se não há preferências
     }
 
-    // Incluir tags preferidas
-    if (topTags.length > 0) {
+    // 🔧 CORRIGIDO: Só filtrar por tags se houver preferências
+    if (topTags && topTags.length > 0) {
+      console.log('🔍 [DEBUG] Filtrando por tags:', topTags);
       whereConditions.tags = {
         [Op.overlap]: topTags
       };
+    } else {
+      console.log('🔍 [DEBUG] Sem tags preferidas - não filtrar por tags');
+      // Não filtrar por tags se não há preferências
     }
 
     // 5. Excluir posts que o usuário já viu recentemente (se habilitado)

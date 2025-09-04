@@ -1714,11 +1714,21 @@ class SantooApp {
     console.log('📖 Inicializando página Bible Explained pública...');
     
     try {
-      // Dispatch event to initialize BibleExplainedManager
-      const event = new CustomEvent('pageChanged', {
-        detail: { page: 'bible-explained' }
-      });
-      document.dispatchEvent(event);
+      // 🔧 CORRIGIDO: Carregar bible-explained.js primeiro
+      if (typeof window.loadBibleExplained === 'function') {
+        window.loadBibleExplained().then(() => {
+          console.log('✅ bible-explained.js carregado com sucesso!');
+          // Dispatch event to initialize BibleExplainedManager
+          const event = new CustomEvent('pageChanged', {
+            detail: { page: 'bible-explained' }
+          });
+          document.dispatchEvent(event);
+        }).catch(error => {
+          console.error('❌ Erro ao carregar bible-explained.js:', error);
+        });
+      } else {
+        console.error('❌ Função loadBibleExplained não encontrada!');
+      }
       
     } catch (error) {
       console.error('❌ Erro ao inicializar página Bible Explained:', error);
