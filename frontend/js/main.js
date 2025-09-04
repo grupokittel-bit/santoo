@@ -747,6 +747,11 @@ class SantooApp {
               <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.showVideoOptions('${video.id}')">
                 <i data-lucide="more-horizontal"></i>
               </div>
+              
+              <!-- Picture in Picture button -->
+              <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.toggleTikTokPiP('${video.id}')">
+                <i data-lucide="picture-in-picture-2"></i>
+              </div>
             </div>
           </div>
         </div>
@@ -2818,6 +2823,43 @@ class SantooApp {
       console.log('⚙️ Opções do vídeo TikTok:', videoId);
       // TODO: Implement options menu (report, not interested, etc.)
       this.showNotification('Opções em breve!', 'info');
+    };
+
+    // Toggle Picture in Picture for TikTok videos
+    window.toggleTikTokPiP = async (videoId) => {
+      console.log('📺 Toggling Picture in Picture para:', videoId);
+      
+      try {
+        // Find the video element
+        const videoCard = document.querySelector(`[data-video-id="${videoId}"]`).closest('.video-card');
+        const videoElement = videoCard ? videoCard.querySelector('.tiktok-video') : null;
+        
+        if (!videoElement) {
+          console.error('❌ Elemento de vídeo não encontrado');
+          return;
+        }
+
+        // Check if PiP is supported
+        if (!document.pictureInPictureEnabled) {
+          console.warn('⚠️ Picture in Picture não é suportado neste navegador');
+          this.showNotification('Picture in Picture não suportado', 'warning');
+          return;
+        }
+
+        // Toggle PiP
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+          console.log('📺 Picture in Picture desativado');
+          this.showNotification('Picture in Picture desativado', 'info');
+        } else {
+          await videoElement.requestPictureInPicture();
+          console.log('📺 Picture in Picture ativado para:', videoId);
+          this.showNotification('Vídeo em Picture in Picture', 'success');
+        }
+      } catch (error) {
+        console.error('❌ Erro no Picture in Picture:', error);
+        this.showNotification('Erro ao ativar Picture in Picture', 'error');
+      }
     };
   }
 
