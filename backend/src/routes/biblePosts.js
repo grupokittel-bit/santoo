@@ -29,7 +29,7 @@ async function getPersonalizedRecommendations(userId, limit = 10) {
     // 1. Buscar interações do usuário
     const userInteractions = await UserBibleInteraction.findAll({
       where: { user_id: userId },
-      include: [{ model: BiblePost, attributes: ['category', 'tags'] }]
+      include: [{ model: BiblePost, as: 'biblePost', attributes: ['category', 'tags'] }]
     });
 
     // 2. Extrair categorias preferidas das interações
@@ -37,8 +37,8 @@ async function getPersonalizedRecommendations(userId, limit = 10) {
     const preferredTags = {};
     
     userInteractions.forEach(interaction => {
-      const category = interaction.BiblePost?.category;
-      const tags = interaction.BiblePost?.tags || [];
+      const category = interaction.biblePost?.category;
+      const tags = interaction.biblePost?.tags || [];
       
       if (category) {
         preferredCategories[category] = (preferredCategories[category] || 0) + 1;
@@ -80,7 +80,7 @@ async function getPersonalizedRecommendations(userId, limit = 10) {
     const recentViews = await BiblePostView.findAll({
       where: { 
         user_id: userId,
-        created_at: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Últimas 24h
+        createdAt: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Últimas 24h
       },
       attributes: ['bible_post_id']
     });
@@ -96,7 +96,7 @@ async function getPersonalizedRecommendations(userId, limit = 10) {
       order: [
         ['amen_count', 'DESC'],  // Posts com mais "amém"
         ['views_count', 'ASC'],   // Posts menos vistos (diversidade)
-        ['created_at', 'DESC']    // Posts mais recentes
+        ['createdAt', 'DESC']    // Posts mais recentes
       ]
     });
 
@@ -106,7 +106,7 @@ async function getPersonalizedRecommendations(userId, limit = 10) {
     return await BiblePost.findAll({
       where: { is_active: true },
       limit: limit,
-      order: [['amen_count', 'DESC'], ['created_at', 'DESC']]
+      order: [['amen_count', 'DESC'], ['createdAt', 'DESC']]
     });
   }
 }
@@ -121,7 +121,7 @@ async function registerView(userId, postId) {
       where: {
         user_id: userId,
         bible_post_id: postId,
-        created_at: { [Op.gte]: new Date(Date.now() - 2 * 60 * 60 * 1000) }
+        createdAt: { [Op.gte]: new Date(Date.now() - 2 * 60 * 60 * 1000) }
       }
     });
 
@@ -176,12 +176,12 @@ router.get('/', authMiddleware, async (req, res) => {
         where: whereConditions,
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['created_at', 'DESC']],
+        order: [['createdAt', 'DESC']],
         include: [
           {
             model: User,
             as: 'author',
-            attributes: ['id', 'display_name', 'username', 'avatar_url']
+            attributes: ['id', 'displayName', 'username', 'avatar']
           }
         ]
       });
@@ -192,7 +192,7 @@ router.get('/', authMiddleware, async (req, res) => {
       // Incluir dados do autor
       for (let post of posts) {
         post.author = await User.findByPk(post.author_admin_id, {
-          attributes: ['id', 'display_name', 'username', 'avatar_url']
+          attributes: ['id', 'displayName', 'username', 'avatar']
         });
       }
     }
@@ -399,14 +399,14 @@ router.get('/my-interactions/:type', authMiddleware, async (req, res) => {
             {
               model: User,
               as: 'author',
-              attributes: ['id', 'display_name', 'username', 'avatar_url']
+              attributes: ['id', 'displayName', 'username', 'avatar']
             }
           ]
         }
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     // Para tipo "ops", buscar progresso do usuário
@@ -436,8 +436,8 @@ router.get('/my-interactions/:type', authMiddleware, async (req, res) => {
       success: true,
       data: interactions.map(interaction => ({
         id: interaction.id,
-        interaction_date: interaction.created_at,
-        post: interaction.BiblePost
+        interaction_date: interaction.createdAt,
+        post: interaction.biblePost
       })),
       progress: progressData,
       pagination: {
@@ -511,7 +511,7 @@ router.post('/:id/disagree', authMiddleware, async (req, res) => {
       where: {
         user_id: userId,
         bible_post_id: postId,
-        created_at: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+        createdAt: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) }
       }
     });
 
@@ -548,7 +548,7 @@ router.post('/:id/disagree', authMiddleware, async (req, res) => {
       data: {
         id: disagreement.id,
         status: 'pending',
-        created_at: disagreement.created_at
+        created_at: disagreement.createdAt
       }
     });
 
@@ -636,7 +636,7 @@ router.post('/', [authMiddleware, biblePostCreatorOnly], async (req, res) => {
         id: post.id,
         title: post.title,
         category: post.category,
-        created_at: post.created_at
+        created_at: post.createdAt
       }
     });
 
@@ -687,22 +687,23 @@ router.get('/admin/disagreements', [authMiddleware, bibleModeratorOnly], async (
         {
           model: User,
           as: 'user',
-          attributes: ['id', 'display_name', 'username', 'spiritual_level']
+          attributes: ['id', 'displayName', 'username', 'spiritual_level']
         },
         {
           model: BiblePost,
+          as: 'biblePost',
           attributes: ['id', 'title', 'verse_reference', 'category']
         },
         {
           model: User,
           as: 'reviewer',
-          attributes: ['id', 'display_name', 'username'],
+          attributes: ['id', 'displayName', 'username'],
           required: false
         }
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     // Estatísticas para o painel admin
@@ -775,7 +776,7 @@ router.put('/admin/disagreements/:id', [authMiddleware, bibleModeratorOnly], asy
     const disagreement = await BibleDisagreement.findByPk(id, {
       include: [
         { model: User, as: 'user' },
-        { model: BiblePost }
+        { model: BiblePost, as: 'biblePost' }
       ]
     });
 

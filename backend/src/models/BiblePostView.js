@@ -1,7 +1,7 @@
 // MODELO BIBLE POST VIEW
 // Define como as visualizações dos posts da Bíblia ficam salvos
 
-const { DataTypes } = require('sequelize');
+const { DataTypes, Op } = require('sequelize');
 const { sequelize } = require('../config/database');
 
 const BiblePostView = sequelize.define('BiblePostView', {
@@ -189,7 +189,7 @@ const BiblePostView = sequelize.define('BiblePostView', {
           where: {
             user_id: viewRecord.user_id,
             bible_post_id: viewRecord.bible_post_id,
-            id: { [sequelize.Op.ne]: viewRecord.id }
+            id: { [Op.ne]: viewRecord.id }
           }
         });
         viewRecord.return_visitor = !!previousView;
