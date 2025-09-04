@@ -981,14 +981,14 @@ router.get('/my-progress-stats', authMiddleware, async (req, res) => {
         where: { 
           user_id: userId,
           interaction_type: 'amen',
-          is_active: true
+          interaction_value: 1
         }
       }),
       UserBibleInteraction.count({
         where: { 
           user_id: userId,
           interaction_type: 'ops',
-          is_active: true
+          interaction_value: 1
         }
       })
     ]);
@@ -1005,7 +1005,7 @@ router.get('/my-progress-stats', authMiddleware, async (req, res) => {
         created_at: {
           [require('sequelize').Op.gte]: thirtyDaysAgo
         },
-        is_active: true
+        interaction_value: 1
       }
     });
 
@@ -1068,12 +1068,12 @@ router.get('/:id/week-progress', authMiddleware, async (req, res) => {
       where: {
         user_id: userId,
         bible_post_id: biblePostId,
-        created_at: {
+        createdAt: {
           [require('sequelize').Op.gte]: oneWeekAgo
         },
-        is_active: true
+        interaction_value: 1
       },
-      order: [['created_at', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     const today = new Date();
@@ -1160,20 +1160,20 @@ router.get('/week-chart-data', authMiddleware, async (req, res) => {
           where: {
             user_id: userId,
             interaction_type: 'amen',
-            created_at: {
+            createdAt: {
               [require('sequelize').Op.between]: [dayStart, dayEnd]
             },
-            is_active: true
+            interaction_value: 1
           }
         }),
         UserBibleInteraction.count({
           where: {
             user_id: userId,
             interaction_type: 'ops', 
-            created_at: {
+            createdAt: {
               [require('sequelize').Op.between]: [dayStart, dayEnd]
             },
-            is_active: true
+            interaction_value: 1
           }
         })
       ]);
@@ -1220,17 +1220,18 @@ router.get('/category-performance', authMiddleware, async (req, res) => {
     const categoryStats = await UserBibleInteraction.findAll({
       where: {
         user_id: userId,
-        is_active: true
+        interaction_value: 1
       },
       include: [{
         model: BiblePost,
+        as: 'biblePost',
         attributes: ['category', 'title']
       }],
       attributes: [
         [require('sequelize').fn('COUNT', require('sequelize').col('UserBibleInteraction.id')), 'totalInteractions'],
-        [require('sequelize').col('BiblePost.category'), 'category']
+        [require('sequelize').col('biblePost.category'), 'category']
       ],
-      group: ['BiblePost.category'],
+      group: ['biblePost.category'],
       order: [[require('sequelize').fn('COUNT', require('sequelize').col('UserBibleInteraction.id')), 'DESC']]
     });
 
@@ -1278,14 +1279,15 @@ router.get('/recent-activity', authMiddleware, async (req, res) => {
     const recentInteractions = await UserBibleInteraction.findAll({
       where: {
         user_id: userId,
-        is_active: true
+        interaction_value: 1
       },
       include: [{
         model: BiblePost,
+        as: 'biblePost',
         attributes: ['title', 'verse_reference', 'category']
       }],
-      attributes: ['interaction_type', 'created_at'],
-      order: [['created_at', 'DESC']],
+      attributes: ['interaction_type', 'createdAt'],
+      order: [['createdAt', 'DESC']],
       limit: limit
     });
 

@@ -3398,7 +3398,7 @@ class SantooApp {
             </span>
             <span style="display: flex; align-items: center; gap: 4px;">
               <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
-              ${this.formatDate(video.createdAt)}
+              ${this.formatVideoDate(video.createdAt)}
             </span>
           </div>
         </div>
@@ -3435,6 +3435,25 @@ class SantooApp {
     }
 
     console.log('✅ [RENDER-ALL] Renderização completa:', videos.length, 'vídeos');
+  }
+
+  /**
+   * Format video date for display
+   */
+  formatVideoDate(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoje';
+    if (diffDays === 1) return 'Ontem';
+    if (diffDays < 7) return `${diffDays} dias atrás`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} semanas atrás`;
+    
+    return date.toLocaleDateString('pt-BR');
   }
 }
 
