@@ -378,7 +378,7 @@ class UploadManager {
           window.santooApp.navigateTo('profile');
           // Reload user videos to show new video
           setTimeout(() => {
-            window.santooApp.loadUserVideos();
+            window.santooApp.loadUserVideosRobust();
           }, 500);
         }
         

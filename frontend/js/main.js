@@ -811,25 +811,102 @@ class SantooApp {
   }
 
   /**
-   * Initialize profile page
+   * Initialize profile page - CORREÇÃO ROBUSTA PARA VÍDEOS
    */
-  initProfilePage() {
-    console.log('👤 Inicializando página de perfil');
+  async initProfilePage() {
+    console.log('👤 Inicializando página de perfil - VERSÃO ROBUSTA');
+    
+    // ✅ STEP 1: Garantir que o DOM está pronto
+    await this.ensureProfileDOMReady();
+    
+    // ✅ STEP 2: Atualizar display básico do perfil
     this.updateProfileDisplay();
     
-    // Load user videos if authenticated
-    if (santooAuth.isAuthenticated()) {
-      this.loadUserVideos();
-    }
-    
-    // Setup tab switching for profile
+    // ✅ STEP 3: Setup de tabs (deve vir antes dos vídeos)
     this.setupProfileTabs();
     
-    // 🔧 [DEBUG FIX] Carregar sistema de hábitos espirituais
-    console.log('📖 [DEBUG] Carregando sistema de hábitos espirituais...');
+    // ✅ STEP 4: Carregar vídeos com retry robusto se autenticado
+    if (santooAuth.isAuthenticated()) {
+      // Aguardar um frame para garantir que tudo está renderizado
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await this.loadUserVideosRobust();
+    }
+    
+    // ✅ STEP 5: Sistema de hábitos espirituais (por último)
+    this.initSpiritualHabitsSystem();
+  }
+
+  /**
+   * Garantir que a aba de vídeos está ativa por padrão
+   */
+  ensureVideosTabActive() {
+    console.log('🎯 Garantindo que aba de vídeos está ativa...');
+    
+    // Encontrar e ativar a aba de vídeos
+    const videosTab = document.querySelector('[data-tab="videos"]');
+    const videosContent = document.querySelector('.tab-content[data-tab="videos"]');
+    
+    if (videosTab) {
+      // Remover active de todas as tabs
+      document.querySelectorAll('.spiritual-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Ativar aba de vídeos
+      videosTab.classList.add('active');
+      console.log('✅ Aba de vídeos ativada');
+    }
+    
+    if (videosContent) {
+      // Esconder todos os conteúdos de tab
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.style.display = 'none';
+      });
+      
+      // Mostrar conteúdo de vídeos
+      videosContent.style.display = 'block';
+      videosContent.style.visibility = 'visible';
+      videosContent.style.opacity = '1';
+      console.log('✅ Conteúdo de vídeos exibido');
+    }
+  }
+
+  /**
+   * Garantir que elementos DOM do perfil estão prontos
+   */
+  async ensureProfileDOMReady() {
+    const maxAttempts = 20;
+    let attempts = 0;
+    
+    const checkElements = () => {
+      const profilePage = document.getElementById('profilePage');
+      const userVideosGrid = document.getElementById('userVideosGrid');
+      const videosTabCount = document.getElementById('videosTabCount');
+      
+      return profilePage && userVideosGrid && videosTabCount;
+    };
+    
+    while (attempts < maxAttempts && !checkElements()) {
+      console.log(`🔄 Aguardando elementos DOM do perfil... (${attempts + 1}/${maxAttempts})`);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      attempts++;
+    }
+    
+    if (checkElements()) {
+      console.log('✅ Elementos DOM do perfil prontos!');
+    } else {
+      console.warn('⚠️ Alguns elementos DOM do perfil não foram encontrados após timeout');
+    }
+  }
+
+  /**
+   * Inicializar sistema de hábitos espirituais (separado para não interferir)
+   */
+  initSpiritualHabitsSystem() {
+    console.log('📖 Carregando sistema de hábitos espirituais...');
     if (window.loadSpiritualHabits) {
       window.loadSpiritualHabits().then(() => {
-        console.log('✅ [DEBUG] Sistema de hábitos carregado, disparando eventos...');
+        console.log('✅ Sistema de hábitos carregado, disparando eventos...');
         
         // Dispatch event to spiritual habits system for page change
         const pageEvent = new CustomEvent('pageChanged', {
@@ -837,7 +914,7 @@ class SantooApp {
         });
         document.dispatchEvent(pageEvent);
       }).catch(error => {
-        console.error('❌ [DEBUG] Erro ao carregar hábitos espirituais:', error);
+        console.error('❌ Erro ao carregar hábitos espirituais:', error);
         
         // Dispatch event anyway
         const pageEvent = new CustomEvent('pageChanged', {
@@ -846,7 +923,7 @@ class SantooApp {
         document.dispatchEvent(pageEvent);
       });
     } else {
-      console.error('❌ [DEBUG] window.loadSpiritualHabits não encontrado!');
+      console.error('❌ window.loadSpiritualHabits não encontrado!');
       
       // Dispatch event anyway
       const pageEvent = new CustomEvent('pageChanged', {
@@ -1589,7 +1666,7 @@ class SantooApp {
         console.log('✅ Upload concluído com sucesso');
         // Refresh user videos in profile if it's the current page
         if (this.currentPage === 'profile') {
-          this.loadUserVideos();
+          this.loadUserVideosRobust();
         }
       } else {
         console.error('❌ Falha no upload:', result?.error);
@@ -1601,20 +1678,79 @@ class SantooApp {
   }
 
   /**
-   * Load user videos for profile page
+   * Load user videos for profile page - VERSÃO ROBUSTA COM RETRY
    */
-  async loadUserVideos() {
-    console.log('🔧 DEBUG: loadUserVideos iniciado');
-    const videosGrid = document.getElementById('userVideosGrid');
-    const videosTabCount = document.getElementById('videosTabCount');
+  async loadUserVideosRobust() {
+    console.log('🎯 LOADING USER VIDEOS - VERSÃO ROBUSTA INICIADA');
     
-    console.log('🔧 DEBUG: videosGrid encontrado:', !!videosGrid, videosGrid);
-    console.log('🔧 DEBUG: videosTabCount encontrado:', !!videosTabCount, videosTabCount);
+    const maxRetries = 3;
+    let attempt = 1;
     
-    if (!videosGrid) {
-      console.error('❌ DEBUG: userVideosGrid não encontrado no DOM!');
-      return;
+    while (attempt <= maxRetries) {
+      try {
+        console.log(`🔄 Tentativa ${attempt}/${maxRetries} - Carregando vídeos do perfil`);
+        
+        // ✅ GARANTIR ELEMENTOS DOM EXISTEM
+        const videosGrid = document.getElementById('userVideosGrid');
+        const videosTabCount = document.getElementById('videosTabCount');
+        
+        if (!videosGrid) {
+          console.warn(`⚠️ Tentativa ${attempt}: userVideosGrid não encontrado, aguardando...`);
+          if (attempt === maxRetries) {
+            console.error('❌ FATAL: userVideosGrid não encontrado após todas as tentativas!');
+            return;
+          }
+          await new Promise(resolve => setTimeout(resolve, 200 * attempt));
+          attempt++;
+          continue;
+        }
+        
+        // ✅ SUCESSO - Elementos encontrados, prosseguir
+        console.log('✅ Elementos DOM encontrados, carregando vídeos...');
+        await this.executeUserVideosLoad(videosGrid, videosTabCount);
+        
+        // ✅ VERIFICAR SE REALMENTE FUNCIONOU
+        const hasVideos = videosGrid.children.length > 0 && 
+                         !videosGrid.innerHTML.includes('videos-loading');
+        
+        if (hasVideos) {
+          console.log('✅ SUCESSO: Vídeos carregados com sucesso na primeira tentativa!');
+          return;
+        } else if (attempt === maxRetries) {
+          console.warn('⚠️ Vídeos carregados mas podem estar com problemas de rendering');
+          return;
+        }
+        
+        attempt++;
+        
+      } catch (error) {
+        console.error(`❌ Erro na tentativa ${attempt}:`, error);
+        if (attempt === maxRetries) {
+          console.error('❌ FATAL: Todas as tentativas falharam!');
+          const videosGrid = document.getElementById('userVideosGrid');
+          if (videosGrid) {
+            videosGrid.innerHTML = `
+              <div class="error-videos">
+                <p>❌ Erro ao carregar vídeos. Tente recarregar a página.</p>
+                <button class="btn btn-secondary" onclick="location.reload()">
+                  <i data-lucide="refresh-cw"></i> Recarregar Página
+                </button>
+              </div>
+            `;
+          }
+          return;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+        attempt++;
+      }
     }
+  }
+
+  /**
+   * Executa o carregamento real dos vídeos do usuário
+   */
+  async executeUserVideosLoad(videosGrid, videosTabCount) {
     
     try {
       console.log('📹 Carregando vídeos do usuário...');
@@ -1720,80 +1856,58 @@ class SantooApp {
       
       videosGrid.innerHTML = videosHTML;
       
-      // ✅ INICIALIZA ÍCONES PARA PÁGINA DISCOVER
-      if (typeof lucide !== 'undefined' && lucide.createIcons) {
-        lucide.createIcons();
-        console.log('🎨 Ícones Lucide inicializados para página Discover');
+      // ✅ GARANTIR VISIBILIDADE TOTAL DA SEÇÃO DE VÍDEOS  
+      const videosSection = document.querySelector('.tab-content[data-tab="videos"]');
+      if (videosSection) {
+        videosSection.style.cssText = `
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          min-height: 500px !important;
+        `;
+        console.log('✅ Visibilidade da seção de vídeos forçada');
       }
       
-      console.log('🔧 DEBUG: HTML inserido. Conteúdo atual:', videosGrid.innerHTML.length, 'caracteres');
-      console.log('🔧 DEBUG: Primeiros 200 caracteres:', videosGrid.innerHTML.substring(0, 200));
-      
-      // Check visibility immediately
-      const videosSection = document.getElementById('videosSection');
-      console.log('🔧 DEBUG: videosSection encontrada:', !!videosSection, videosSection?.className);
-      console.log('🔧 DEBUG: videosSection display:', getComputedStyle(videosSection).display);
-      console.log('🔧 DEBUG: videosGrid está visível:', videosGrid.offsetHeight > 0, 'height:', videosGrid.offsetHeight);
-      console.log('🔧 DEBUG: videosGrid estilo display:', getComputedStyle(videosGrid).display);
-      console.log('🔧 DEBUG: videosGrid parent:', videosGrid.parentElement?.id, videosGrid.parentElement?.className);
-      
-      // Re-initialize Lucide icons in the new content
+      // ✅ RECARREGAR ÍCONES LUCIDE
       if (window.lucide) {
         window.lucide.createIcons();
+        console.log('✅ Ícones Lucide atualizados');
       }
       
-      // Check again after DOM settles
-      setTimeout(() => {
-        console.log('🔧 DEBUG DELAYED: videosGrid height após timeout:', videosGrid.offsetHeight);
-        console.log('🔧 DEBUG DELAYED: videosSection display:', getComputedStyle(videosSection).display);
-        console.log('🔧 DEBUG DELAYED: videosGrid computed style:', {
-          display: getComputedStyle(videosGrid).display,
-          visibility: getComputedStyle(videosGrid).visibility,
-          opacity: getComputedStyle(videosGrid).opacity,
-          height: getComputedStyle(videosGrid).height,
-          minHeight: getComputedStyle(videosGrid).minHeight
-        });
-        
-        // Check if videos section is actually visible
-        const profilePage = document.getElementById('profilePage');
-        const profileContent = document.querySelector('.profile-content');
-        console.log('🔧 DEBUG DELAYED: profilePage display:', profilePage ? getComputedStyle(profilePage).display : 'not found');
-        console.log('🔧 DEBUG DELAYED: profile-content display:', profileContent ? getComputedStyle(profileContent).display : 'not found');
-        
-        // Force visibility if needed
-        if (videosGrid.offsetHeight === 0) {
-          console.log('🚨 FORÇANDO VISIBILIDADE - height ainda é 0!');
-          videosSection.style.display = 'block';
-          videosSection.style.visibility = 'visible';
-          videosGrid.style.visibility = 'visible';
-          videosGrid.style.opacity = '1';
-          
-          // Force re-flow
+      // ✅ GARANTIR RENDERING COMPLETO
+      await new Promise(resolve => {
+        requestAnimationFrame(() => {
+          // Forçar reflow
           void videosGrid.offsetHeight;
-          
-          console.log('🔧 APÓS FORÇA: videosGrid height:', videosGrid.offsetHeight);
-        }
-      }, 100);
-      
-      console.log(`✅ Carregados ${videos.length} vídeos do usuário`);
+          console.log(`✅ RENDERING COMPLETO: ${videos.length} vídeos renderizados`);
+          console.log(`📊 videosGrid final height: ${videosGrid.offsetHeight}px`);
+          resolve();
+        });
+      });
       
     } catch (error) {
-      console.error('❌ Erro ao carregar vídeos do usuário:', error);
+      console.error('❌ Erro crítico ao executar carregamento dos vídeos:', error);
       videosGrid.innerHTML = `
         <div class="error-videos">
-          <p>Erro ao carregar vídeos. Tente novamente.</p>
-          <button class="btn btn-secondary" onclick="santooApp.loadUserVideos()">
+          <p>❌ Erro ao carregar vídeos: ${error.message}</p>
+          <button class="btn btn-secondary" onclick="santooApp.loadUserVideosRobust()">
             <i data-lucide="refresh-cw"></i> Tentar novamente
           </button>
         </div>
       `;
+      throw error; // Re-throw para o retry handler
     }
   }
 
   /**
-   * Setup profile tabs functionality
+   * Setup profile tabs functionality - VERSÃO ROBUSTA
    */
   setupProfileTabs() {
+    console.log('📋 Configurando tabs do perfil - VERSÃO ROBUSTA');
+    
+    // ✅ ATIVAR ABA DE VÍDEOS POR PADRÃO
+    this.ensureVideosTabActive();
+    
     const tabs = document.querySelectorAll('.spiritual-tab');
     const contents = document.querySelectorAll('.tab-content');
     
