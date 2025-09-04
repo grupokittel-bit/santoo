@@ -2439,7 +2439,7 @@ class SantooApp {
     if (currentVideo) {
       const prevVideo = currentVideo.previousElementSibling;
       if (prevVideo && prevVideo.classList.contains('video-card')) {
-        prevVideo.scrollIntoView({ behavior: 'smooth', block: 'center' }); // ✅ MANTÉM FILTROS VISÍVEIS
+        prevVideo.scrollIntoView({ behavior: 'smooth', block: 'start' }); // ✅ ALINHA COM O TOPO MANTENDO HEADER
       }
     }
   }
@@ -2611,7 +2611,7 @@ class SantooApp {
       const nextVideo = currentVideo.nextElementSibling;
       if (nextVideo && nextVideo.classList.contains('video-card')) {
         // Scroll to next video
-        nextVideo.scrollIntoView({ behavior: 'smooth', block: 'center' }); // ✅ MANTÉM FILTROS VISÍVEIS
+        nextVideo.scrollIntoView({ behavior: 'smooth', block: 'start' }); // ✅ ALINHA COM O TOPO MANTENDO HEADER
         
         // Auto-play next video after scroll completes
         setTimeout(() => {

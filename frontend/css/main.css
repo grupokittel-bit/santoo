@@ -368,20 +368,42 @@ body {
 /* Fallback para telas menores - TIKTOK FULL HEIGHT */
 @media (max-width: 768px) {
   .video-feed {
-    height: calc(100vh - var(--header-height-mobile) - 100px) !important; /* ✅ ESPAÇO PARA PROGRESS BAR */
+    height: calc(100vh - var(--header-height-mobile)) !important; 
     margin-top: 80px !important; /* ✅ ESPAÇO PARA FILTROS FIXOS */
-    padding-bottom: 10px !important; /* ✅ PADDING PARA PROGRESS BAR */
+    padding-bottom: 0 !important;
   }
   
-  /* ✅ VÍDEOS TIKTOK-STYLE COM ESPAÇO PARA PROGRESS BAR */
+  /* ✅ VÍDEOS TIKTOK-STYLE COM PROGRESS BAR EXTERNA */
   .video-card {
-    height: calc(100vh - var(--header-height-mobile) - 110px) !important; /* ✅ ALTURA COM ESPAÇO PARA PROGRESS BAR */
-    min-height: calc(100vh - var(--header-height-mobile) - 110px) !important; /* ✅ ALTURA GARANTIDA */
-    max-height: calc(100vh - var(--header-height-mobile) - 110px) !important; /* ✅ ALTURA CONTROLADA */
-    width: 100% !important; /* ✅ LARGURA TOTAL DA TELA */
-    max-width: 100vw !important; /* ✅ LARGURA MÁXIMA DA VIEWPORT */
-    margin-bottom: 10px !important; /* ✅ ESPAÇO ENTRE VÍDEOS PARA PROGRESS BAR */
-    border-radius: 0 !important; /* ✅ SEM BORDAS ARREDONDADAS */
+    height: calc(100vh - var(--header-height-mobile) - 80px) !important; /* ✅ ESPAÇO PARA HEADER + FILTROS */
+    min-height: calc(100vh - var(--header-height-mobile) - 80px) !important;
+    max-height: calc(100vh - var(--header-height-mobile) - 80px) !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin-bottom: 0 !important; /* ✅ SEM ESPAÇO ENTRE VÍDEOS */
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important; /* ✅ PROGRESS BAR NO TOPO */
+  }
+  
+  /* ✅ PROGRESS BAR EXTERNA SEMPRE NO TOPO */
+  .video-card .santoo-external-progress {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 100 !important;
+    background: var(--color-bg-secondary) !important;
+    padding: 8px 16px !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    flex-shrink: 0 !important; /* ✅ NÃO ENCOLHE */
+  }
+  
+  /* ✅ CONTAINER DO VÍDEO COM ALTURA REDUZIDA */
+  .video-card .santoo-video-container {
+    flex: 1 !important;
+    height: auto !important;
+    min-height: 0 !important; /* ✅ PERMITE FLEXBOX FUNCIONAR */
   }
 }
 
@@ -408,9 +430,28 @@ body {
   overflow: visible; /* ✅ PERMITE PROGRESS BAR APARECER FORA */
   scroll-snap-align: start; /* ✅ ALINHA VÍDEO COM O TOPO DOS FILTROS */
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column; /* ✅ PROGRESS BAR NO TOPO, VÍDEO EMBAIXO */
   cursor: pointer;
+}
+
+/* ✅ PROGRESS BAR EXTERNA SEMPRE VISÍVEL */
+.santoo-external-progress {
+  position: relative !important;
+  background: var(--color-bg-secondary) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  padding: 8px 16px !important;
+  z-index: 100 !important;
+  flex-shrink: 0 !important;
+}
+
+/* ✅ CONTAINER DO VÍDEO OCUPA RESTO DO ESPAÇO */
+.santoo-video-container {
+  flex: 1 !important;
+  position: relative !important;
+  background: #000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* ✅ MOBILE: VÍDEO ELEMENTO OTIMIZADO PARA TIKTOK */
@@ -641,18 +682,9 @@ body {
   opacity: 1;
 }
 
-/* === TIKTOK PROGRESS BAR === */
+/* === TIKTOK PROGRESS BAR ANTIGA - DESABILITADA === */
 .tiktok-progress {
-  position: absolute;
-  bottom: 8px; /* ✅ DENTRO DO VÍDEO MAS VISÍVEL */
-  left: 8px; /* ✅ PEQUENA MARGEM LATERAL */
-  right: 8px; /* ✅ PEQUENA MARGEM LATERAL */
-  height: 4px; /* ✅ ALTURA BOA PARA VISIBILIDADE */
-  background: rgba(0, 0, 0, 0.7); /* ✅ FUNDO ESCURO PARA CONTRASTE */
-  width: calc(100% - 16px); /* ✅ LARGURA COM MARGENS */
-  z-index: 100; /* ✅ Z-INDEX MUITO ALTO */
-  border-radius: 2px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); /* ✅ SOMBRA FORTE */
+  display: none !important; /* ✅ ESCONDE PROGRESS BAR ANTIGA */
 }
 
 .tiktok-progress-bar {
