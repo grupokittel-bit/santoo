@@ -370,16 +370,16 @@ class UploadManager {
       const result = await this.uploadToAPI(apiFormData);
       
       if (result && result.video) {
-        this.showSuccess('Vídeo publicado com sucesso! 🎉');
+        console.log('✅ Upload concluído com sucesso - redirecionando para perfil');
         this.resetUploadForm();
         
-        // Navigate to home to see new video
+        // Navigate to profile to see new video
         if (window.santooApp) {
-          window.santooApp.navigateTo('home');
-          // Reload feed to show new video
+          window.santooApp.navigateTo('profile');
+          // Reload user videos to show new video
           setTimeout(() => {
-            window.santooApp.loadVideoFeed();
-          }, 1000);
+            window.santooApp.loadUserVideos();
+          }, 500);
         }
         
         return { success: true, video: result.video };
