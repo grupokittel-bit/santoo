@@ -65,7 +65,7 @@ async function getPersonalizedRecommendations(userId, limit = 10, excludeViewed 
 
     // 🧠 ALGORITMO INTELIGENTE: Só aplicar filtros se há dados suficientes
     const userCategories = user.preferred_bible_categories || topCategories;
-    const hasEnoughData = userInteractions.length >= 3; // Pelo menos 3 interações
+    const hasEnoughData = userInteractions.length >= 200; // Pelo menos 200 interações
     
     if (hasEnoughData && userCategories && userCategories.length > 0) {
       console.log('🧠 [ALGORITMO] Aplicando filtro inteligente por categorias:', userCategories);
