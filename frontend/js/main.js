@@ -36,7 +36,6 @@ class SantooApp {
     try {
       // Initialize components
       this.setupEventListeners();
-      this.setupNavigation();
       this.setupModals();
       
       // Check for saved user session
@@ -48,7 +47,19 @@ class SantooApp {
       // Initialize profile submenu
       this.updateProfileSubmenu();
       
-      // Initialize current page
+      // 🎯 FIX F5 BUG: Verificar hash da URL ANTES de inicializar página
+      const hash = window.location.hash.replace('#', '');
+      if (hash && this.isValidPage(hash)) {
+        this.currentPage = hash;
+        console.log('🔄 Hash da URL detectado:', hash, '- definindo como página atual');
+      } else {
+        console.log('📍 Nenhum hash válido - mantendo página padrão:', this.currentPage);
+      }
+      
+      // Setup navigation AFTER setting currentPage
+      this.setupNavigation();
+      
+      // Initialize current page (now with correct currentPage from hash)
       this.initCurrentPage();
       
       // Hide loading screen
@@ -361,16 +372,10 @@ class SantooApp {
    * Setup navigation
    */
   setupNavigation() {
-    // Update nav link states
+    // Update nav link states based on currentPage (já definido no onDOMReady)
     this.updateNavigation();
     
-    // Handle hash changes
-    const hash = window.location.hash.replace('#', '');
-    if (hash && this.isValidPage(hash)) {
-      this.currentPage = hash;
-    }
-    
-    console.log('🧭 Navegação configurada');
+    console.log('🧭 Navegação configurada para página:', this.currentPage);
   }
 
   /**
