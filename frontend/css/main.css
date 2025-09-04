@@ -368,19 +368,23 @@ body {
 /* Fallback para telas menores - TIKTOK FULL HEIGHT */
 @media (max-width: 768px) {
   .video-feed {
-    height: calc(100vh - var(--header-height-mobile)) !important; 
-    margin-top: 80px !important; /* ✅ ESPAÇO PARA FILTROS FIXOS */
-    padding-bottom: 0 !important;
+    height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important; /* ✅ HEADER + MENU MOBILE + ESPAÇO */ 
+    margin-top: 20px !important; /* ✅ ESPAÇO MÍNIMO - VÍDEO COLADO AOS FILTROS */
+    padding: 0 !important; /* ✅ SEM PADDING ALGUM */
+    gap: 0 !important; /* ✅ SEM ESPAÇO ENTRE ELEMENTOS */
+    width: 100vw !important; /* ✅ LARGURA COMPLETA DA VIEWPORT */
+    margin-left: calc(-50vw + 50%) !important; /* ✅ CENTRALIZA E EXPANDE */
+    position: relative !important; /* ✅ GARANTE POSICIONAMENTO CORRETO */
   }
   
   /* ✅ VÍDEOS TIKTOK-STYLE COM PROGRESS BAR EXTERNA */
   .video-card {
-    height: calc(100vh - var(--header-height-mobile) - 80px) !important; /* ✅ ESPAÇO PARA HEADER + FILTROS */
-    min-height: calc(100vh - var(--header-height-mobile) - 80px) !important;
-    max-height: calc(100vh - var(--header-height-mobile) - 80px) !important;
+    height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important; /* ✅ HEADER + MENU MOBILE + ESPAÇO */
+    min-height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important;
+    max-height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important;
     width: 100% !important;
     max-width: 100vw !important;
-    margin-bottom: 0 !important; /* ✅ SEM ESPAÇO ENTRE VÍDEOS */
+    margin: 0 !important; /* ✅ SEM MARGEM ALGUMA */
     border-radius: 0 !important;
     display: flex !important;
     flex-direction: column !important; /* ✅ PROGRESS BAR NO TOPO */
@@ -428,7 +432,8 @@ body {
   background-color: #000;
   border-radius: 0;
   overflow: visible; /* ✅ PERMITE PROGRESS BAR APARECER FORA */
-  scroll-snap-align: start; /* ✅ ALINHA VÍDEO COM O TOPO DOS FILTROS */
+  scroll-snap-align: start; /* ✅ ALINHA VÍDEO COM O TOPO */
+  scroll-snap-stop: always; /* ✅ FORÇA PARADA COMPLETA EM CADA VÍDEO */
   display: flex;
   flex-direction: column; /* ✅ PROGRESS BAR NO TOPO, VÍDEO EMBAIXO */
   cursor: pointer;
@@ -459,6 +464,11 @@ body {
   .video-card {
     overflow: visible !important; /* ✅ PERMITE PROGRESS BAR APARECER */
     position: relative !important; /* ✅ GARANTE POSICIONAMENTO */
+    height: calc(100vh - var(--header-height-mobile) - 90px - 20px) !important; /* ✅ HEADER + MENU MOBILE + ESPAÇO */
+    margin: 0 !important; /* ✅ SEM MARGEM */
+    padding: 0 !important; /* ✅ SEM PADDING */
+    flex-shrink: 0 !important; /* ✅ IMPEDE COMPRESSÃO */
+    width: 100vw !important; /* ✅ LARGURA TOTAL EM MOBILE */
   }
   
   .video-card .tiktok-video {
@@ -477,6 +487,8 @@ body {
 
 /* === TIKTOK STYLE VIDEO CONTAINER === */
 .video-thumbnail {
+  height: 100% !important; /* ✅ OCUPA TODA ALTURA DO CARD */
+  width: 100% !important;
   position: absolute;
   top: 0;
   left: 0;
@@ -1806,6 +1818,12 @@ body {
     padding-bottom: 90px !important; /* ✅ Apenas menu mobile */
   }
   
+  /* ✅ PÁGINA HOME SEM PADDING PARA VÍDEOS FULL WIDTH */
+  #homePage .main-content,
+  .page.active#homePage {
+    padding: 0 !important; /* ✅ REMOVE PADDING LATERAL APENAS DA HOME */
+  }
+  
   .main-content {
     padding-bottom: var(--space-6); /* Padding extra no conteúdo */
     height: calc(100vh - var(--header-height-mobile) - 90px) !important; /* ✅ ALTURA CONSIDERANDO MENU MOBILE */
@@ -1937,7 +1955,7 @@ body {
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
     border-bottom: 1px solid var(--color-border-secondary);
-    padding: var(--space-3) var(--space-4) !important;
+    padding: var(--space-2) var(--space-4) !important;
     margin-bottom: 0 !important;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4); /* ✅ SOMBRA PARA BAIXO */
     /* ✅ LAYOUT HORIZONTAL CENTRADO */

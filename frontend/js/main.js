@@ -2231,8 +2231,8 @@ class SantooApp {
   setupVideoAutoPlay() {
     const observerOptions = {
       root: null,
-      threshold: 0.6, // 60% of video must be visible
-      rootMargin: '0px 0px -10% 0px'
+      threshold: 0.3, // ✅ REDUZIDO PARA 30% - MAIS SENSÍVEL
+      rootMargin: '0px 0px 0px 0px' // ✅ SEM MARGEM NEGATIVA
     };
 
     this.videoObserver = new IntersectionObserver((entries) => {
@@ -2257,6 +2257,18 @@ class SantooApp {
     document.querySelectorAll('.video-card').forEach(card => {
       this.videoObserver.observe(card);
     });
+    
+    // ✅ CORREÇÃO CRÍTICA: FORÇA AUTOPLAY DO PRIMEIRO VÍDEO IMEDIATAMENTE
+    setTimeout(() => {
+      const firstVideo = document.querySelector('.video-card:first-child');
+      if (firstVideo) {
+        const videoElement = firstVideo.querySelector('.tiktok-video');
+        if (videoElement) {
+          console.log('🎬 Forçando autoplay do primeiro vídeo...');
+          this.playTikTokVideo(videoElement, firstVideo);
+        }
+      }
+    }, 100); // ✅ DELAY MÍNIMO PARA GARANTIR DOM READY
   }
 
   /**
@@ -2269,7 +2281,7 @@ class SantooApp {
       // Pause all other videos first
       this.pauseAllVideos(video);
       
-      // Ensure video volume is on
+      // ✅ ESTRATÉGIA INTELIGENTE: Tenta com som primeiro, fallback para mudo
       video.volume = 1.0;
       video.muted = false;
       
@@ -2284,25 +2296,81 @@ class SantooApp {
       
       console.log('▶️ TikTok video playing com som:', video.dataset.videoId);
     } catch (error) {
-      console.warn('Autoplay pode estar bloqueado, tentando com mudo:', error);
+      console.warn('❌ Autoplay com som bloqueado, tentando mudo:', error);
       
-      // Always try to play with sound first - no muted fallback
+      // ✅ FALLBACK ESTRATÉGICO: Se som falha, tenta mudo
       try {
-        video.muted = false;
+        video.muted = true; // ✅ FORÇA MUDO PARA AUTOPLAY FUNCIONAR
         await video.play();
         videoCard.classList.remove('paused');
         this.startProgressTracking(video);
         this.setupVideoAutoAdvance(video);
         
-        console.log('▶️ TikTok video playing (mudo):', video.dataset.videoId);
+        console.log('🔇 TikTok video playing (mudo - política de autoplay):', video.dataset.videoId);
         
-        // Sound notification removed - videos now start with sound automatically
+        // ✅ ADICIONA INDICADOR VISUAL DE MUDO
+        this.showMutedIndicator(videoCard);
         
       } catch (mutedError) {
-        console.error('Erro ao reproduzir vídeo:', mutedError);
+        console.error('❌ Falha total no autoplay:', mutedError);
         videoCard.classList.add('paused');
+        // ✅ MOSTRA BOTÃO DE PLAY MANUAL
+        const playOverlay = videoCard.querySelector('.tiktok-play-overlay');
+        if (playOverlay) playOverlay.style.display = 'flex';
       }
     }
+  }
+
+  /**
+   * Show muted indicator for autoplay policy compliance
+   */
+  showMutedIndicator(videoCard) {
+    // Remove existing indicator
+    const existingIndicator = videoCard.querySelector('.muted-indicator');
+    if (existingIndicator) existingIndicator.remove();
+    
+    // Create muted indicator
+    const indicator = document.createElement('div');
+    indicator.className = 'muted-indicator';
+    indicator.innerHTML = `
+      <i data-lucide="volume-x"></i>
+      <span>Toque para ativar som</span>
+    `;
+    indicator.style.cssText = `
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 100;
+      animation: fadeIn 0.3s ease;
+      cursor: pointer;
+    `;
+    
+    // Add click handler to unmute
+    indicator.onclick = (e) => {
+      e.stopPropagation();
+      const video = videoCard.querySelector('.tiktok-video');
+      if (video) {
+        video.muted = false;
+        video.volume = 1.0;
+        indicator.remove();
+        console.log('🔊 Som ativado pelo usuário');
+      }
+    };
+    
+    videoCard.appendChild(indicator);
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      if (indicator.parentNode) indicator.remove();
+    }, 3000);
   }
 
   /**
@@ -2435,11 +2503,22 @@ class SantooApp {
    * Scroll to previous video
    */
   scrollToPrevVideo() {
+    const videoFeed = document.getElementById('videoFeed');
+    if (!videoFeed) return;
+    
     const currentVideo = this.getCurrentVisibleVideo();
     if (currentVideo) {
       const prevVideo = currentVideo.previousElementSibling;
       if (prevVideo && prevVideo.classList.contains('video-card')) {
-        prevVideo.scrollIntoView({ behavior: 'smooth', block: 'start' }); // ✅ ALINHA COM O TOPO MANTENDO HEADER
+        // ✅ SCROLL MANUAL CONSIDERANDO HEADER E FILTROS
+        const headerHeight = 56; // var(--header-height-mobile) 
+        const filtersHeight = 60; // Altura aproximada da barra de filtros
+        const targetPosition = prevVideo.offsetTop - headerHeight - filtersHeight;
+        
+        videoFeed.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
       }
     }
   }
@@ -2611,7 +2690,15 @@ class SantooApp {
       const nextVideo = currentVideo.nextElementSibling;
       if (nextVideo && nextVideo.classList.contains('video-card')) {
         // Scroll to next video
-        nextVideo.scrollIntoView({ behavior: 'smooth', block: 'start' }); // ✅ ALINHA COM O TOPO MANTENDO HEADER
+        // ✅ SCROLL MANUAL CONSIDERANDO HEADER E FILTROS
+        const headerHeight = 56; // var(--header-height-mobile) 
+        const filtersHeight = 60; // Altura aproximada da barra de filtros
+        const targetPosition = nextVideo.offsetTop - headerHeight - filtersHeight;
+        
+        videoFeed.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
         
         // Auto-play next video after scroll completes
         setTimeout(() => {
