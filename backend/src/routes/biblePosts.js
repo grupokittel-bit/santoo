@@ -21,7 +21,7 @@ const router = express.Router();
  * ALGORITMO DE RECOMENDAÇÃO PERSONALIZADO
  * Baseado em interações do usuário, categorias preferidas e hábitos
  */
-async function getPersonalizedRecommendations(userId, limit = 10) {
+async function getPersonalizedRecommendations(userId, limit = 10, excludeViewed = true) {
   try {
     const user = await User.findByPk(userId);
     if (!user) throw new Error('Usuário não encontrado');
@@ -76,18 +76,20 @@ async function getPersonalizedRecommendations(userId, limit = 10) {
       };
     }
 
-    // 5. Excluir posts que o usuário já viu recentemente
-    const recentViews = await BiblePostView.findAll({
-      where: { 
-        user_id: userId,
-        createdAt: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Últimas 24h
-      },
-      attributes: ['bible_post_id']
-    });
+    // 5. Excluir posts que o usuário já viu recentemente (se habilitado)
+    if (excludeViewed) {
+      const recentViews = await BiblePostView.findAll({
+        where: { 
+          user_id: userId,
+          createdAt: { [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Últimas 24h
+        },
+        attributes: ['bible_post_id']
+      });
 
-    const viewedPostIds = recentViews.map(view => view.bible_post_id);
-    if (viewedPostIds.length > 0) {
-      whereConditions.id = { [Op.notIn]: viewedPostIds };
+      const viewedPostIds = recentViews.map(view => view.bible_post_id);
+      if (viewedPostIds.length > 0) {
+        whereConditions.id = { [Op.notIn]: viewedPostIds };
+      }
     }
 
     return await BiblePost.findAll({
@@ -116,22 +118,24 @@ async function getPersonalizedRecommendations(userId, limit = 10) {
  */
 async function registerView(userId, postId) {
   try {
-    // Evitar duplicatas nas últimas 2 horas
-    const recentView = await BiblePostView.findOne({
+    // Usar upsert para evitar problemas de unique constraint
+    const [view, created] = await BiblePostView.findOrCreate({
       where: {
         user_id: userId,
+        bible_post_id: postId
+      },
+      defaults: {
+        user_id: userId,
         bible_post_id: postId,
-        createdAt: { [Op.gte]: new Date(Date.now() - 2 * 60 * 60 * 1000) }
+        viewed_at: new Date(),
+        view_source: 'feed',
+        completed_reading: false,
+        device_type: 'unknown'
       }
     });
 
-    if (!recentView) {
-      await BiblePostView.create({
-        user_id: userId,
-        bible_post_id: postId
-      });
-
-      // Incrementar contador no post
+    // Se foi criado um novo registro (não existia), incrementar contador
+    if (created) {
       await BiblePost.increment('views_count', { where: { id: postId } });
     }
   } catch (error) {
@@ -151,7 +155,8 @@ router.get('/', authMiddleware, async (req, res) => {
       page = 1,
       limit = 10,
       category,
-      search
+      search,
+      admin = false
     } = req.query;
 
     const offset = (page - 1) * limit;
@@ -159,7 +164,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
     let posts;
 
-    if (category || search) {
+    if (category || search || admin) {
       // Busca filtrada
       const whereConditions = { is_active: true };
       
@@ -187,7 +192,7 @@ router.get('/', authMiddleware, async (req, res) => {
       });
     } else {
       // Feed personalizado com algoritmo de recomendação
-      posts = await getPersonalizedRecommendations(userId, parseInt(limit));
+      posts = await getPersonalizedRecommendations(userId, parseInt(limit), false);
       
       // Incluir dados do autor
       for (let post of posts) {
@@ -394,6 +399,7 @@ router.get('/my-interactions/:type', authMiddleware, async (req, res) => {
       include: [
         {
           model: BiblePost,
+          as: 'biblePost',
           where: { is_active: true },
           include: [
             {

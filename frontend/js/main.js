@@ -344,6 +344,14 @@ class SantooApp {
       case 'upload':
         this.handleUpload(form);
         break;
+      case 'bible-post':
+        // Formulário da Bíblia é tratado pelo BibleAdminManager
+        if (window.bibleAdmin && window.bibleAdmin.handlePostSubmit) {
+          window.bibleAdmin.handlePostSubmit(e);
+        } else {
+          console.log('📖 BibleAdminManager não encontrado - formulário Bible Post');
+        }
+        break;
       default:
         console.log('Formulário não reconhecido:', formType);
     }
@@ -1583,8 +1591,20 @@ class SantooApp {
     
     console.log('✅ DEBUG - Acesso permitido para usuário:', this.user.displayName, 'role:', this.user.role);
     
-    // Initialize Bible Admin Manager if available
-    if (window.bibleAdmin) {
+    // Load Bible Admin script if not loaded yet
+    if (typeof window.loadBibleAdmin === 'function' && !window.bibleAdmin) {
+      console.log('🔄 Carregando bible-admin.js...');
+      window.loadBibleAdmin().then(() => {
+        console.log('✅ Bible Admin carregado com sucesso!');
+        if (window.bibleAdmin) {
+          window.bibleAdmin.updateStats();
+          window.bibleAdmin.loadPosts();
+        }
+      }).catch(error => {
+        console.error('❌ Erro ao carregar bible-admin.js:', error);
+      });
+    } else if (window.bibleAdmin) {
+      // Initialize Bible Admin Manager if already available
       window.bibleAdmin.updateStats();
       window.bibleAdmin.loadPosts();
     }
