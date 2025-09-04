@@ -103,9 +103,47 @@ function adminOnly(req, res, next) {
     });
   }
   
-  if (!req.user.isAdmin) {
+  if (req.user.role !== 'admin') {
     return res.status(403).json({
       error: 'Acesso negado. Apenas administradores.'
+    });
+  }
+  
+  next();
+}
+
+// === MIDDLEWARE PARA CRIADORES DE POSTS BÍBLICOS (admin/pastor) ===
+function biblePostCreatorOnly(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Login necessário'
+    });
+  }
+  
+  if (!req.user.canCreateBiblePosts()) {
+    return res.status(403).json({
+      success: false,
+      message: 'Acesso negado. Apenas administradores e pastores podem criar posts bíblicos.'
+    });
+  }
+  
+  next();
+}
+
+// === MIDDLEWARE PARA MODERADORES DE DISCORDÂNCIAS (admin/pastor) ===  
+function bibleModeratorOnly(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Login necessário'
+    });
+  }
+  
+  if (!req.user.canModerateBibleDisagreements()) {
+    return res.status(403).json({
+      success: false,
+      message: 'Acesso negado. Apenas administradores e pastores podem moderar discordâncias.'
     });
   }
   
@@ -130,12 +168,16 @@ function verifiedOnly(req, res, next) {
 }
 
 module.exports = {
-  authMiddleware,    // Obrigatório: precisa estar logado
-  optionalAuth,     // Opcional: pode ou não estar logado  
-  adminOnly,        // Obrigatório: precisa ser admin
-  verifiedOnly,     // Obrigatório: precisa ser verificado
+  authMiddleware,           // Obrigatório: precisa estar logado
+  optionalAuth,            // Opcional: pode ou não estar logado  
+  adminOnly,               // Obrigatório: precisa ser admin
+  verifiedOnly,            // Obrigatório: precisa ser verificado
+  biblePostCreatorOnly,    // Obrigatório: admin/pastor para criar posts bíblicos
+  bibleModeratorOnly,      // Obrigatório: admin/pastor para moderar discordâncias
   
   // Alias para facilitar uso
   required: authMiddleware,
-  optional: optionalAuth
+  optional: optionalAuth,
+  adminMiddleware: bibleModeratorOnly,  // Alias para compatibilidade
+  pastorMiddleware: biblePostCreatorOnly // Alias para compatibilidade
 };

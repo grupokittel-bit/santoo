@@ -104,6 +104,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/videos', require('./routes/videos'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/comments', require('./routes/comments'));
+app.use('/api/bible-posts', require('./routes/biblePosts'));
 
 // === MIDDLEWARE DE ERRO GLOBAL ===
 app.use((error, req, res, next) => {
@@ -179,6 +180,15 @@ async function startServer() {
       console.log('💬 COMENTÁRIOS:');
       console.log('   GET  /api/comments/video/:id - Comentários do vídeo');
       console.log('   POST /api/comments - Adicionar comentário');
+      console.log('');
+      console.log('📖 BÍBLIA EXPLICADA:');
+      console.log('   GET  /api/bible-posts - Feed personalizado');
+      console.log('   POST /api/bible-posts - Criar post (admin)');
+      console.log('   POST /api/bible-posts/:id/interact - Interagir (amém/ops)');
+      console.log('   GET  /api/bible-posts/my-interactions/:type - Minhas interações');
+      console.log('   POST /api/bible-posts/:id/disagree - Discordar do post');
+      console.log('   GET  /api/bible-posts/admin/disagreements - Painel admin');
+      console.log('   PUT  /api/bible-posts/admin/disagreements/:id - Analisar');
       console.log('');
     });
     
