@@ -9,6 +9,14 @@ class SantooApp {
     this.user = null;
     this.isLoading = true;
     
+    // 📊 Profile Videos Pagination State
+    this.profileVideos = {
+      currentPage: 1,
+      hasMorePages: true,
+      isLoading: false,
+      allVideos: []
+    };
+    
     this.init();
   }
 
@@ -1822,19 +1830,38 @@ class SantooApp {
       
       // Fetch user videos
       console.log('🔍 Buscando vídeos para user ID:', user.id);
+      
+      // 🚀 OTIMIZAÇÃO: Carregar inicialmente apenas 6 vídeos para UX rápida
       const response = await window.SantooAPI.videos.getFeed({
         userId: user.id,
-        limit: 20,
+        page: 1,
+        limit: 6,
         sortBy: 'recent'
       });
       
+      console.log('📊 [PROFILE-VIDEOS] Carregando inicialmente 6 vídeos para performance otimizada');
+      
       console.log('📡 Resposta da API:', response);
       const videos = response?.videos || [];
+      const pagination = response?.pagination || {};
       console.log('🎬 Vídeos encontrados:', videos.length, videos);
+      console.log('📄 Pagination:', pagination);
       
-      // Update tab count
+      // Reset profile videos state for fresh load
+      this.profileVideos.currentPage = 1;
+      this.profileVideos.allVideos = videos;
+      this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : videos.length >= 6;
+      
+      console.log('📊 [PROFILE-STATE] State updated:', {
+        currentPage: this.profileVideos.currentPage,
+        hasMorePages: this.profileVideos.hasMorePages,
+        totalVideos: this.profileVideos.allVideos.length
+      });
+      
+      // Update tab count with total from API (or current count)
+      const totalCount = pagination.totalItems || videos.length;
       if (videosTabCount) {
-        videosTabCount.textContent = videos.length;
+        videosTabCount.textContent = totalCount;
       }
       
       if (videos.length === 0) {
@@ -1904,7 +1931,25 @@ class SantooApp {
         padding: 20px 0 !important;
       `;
       
-      videosGrid.innerHTML = videosHTML;
+      // 🚀 RENDER: Videos + Load More button if needed
+      let finalHTML = videosHTML;
+      
+      if (this.profileVideos.hasMorePages) {
+        finalHTML += `
+          <div class="load-more-videos" style="grid-column: 1/-1; text-align: center; padding: 2rem; background: var(--color-bg-secondary); border-radius: var(--radius-lg); margin-top: 1rem;">
+            <button class="btn btn-primary load-more-btn" onclick="santooApp.loadMoreProfileVideos()" style="padding: 0.75rem 2rem; font-size: 1rem;">
+              <i data-lucide="plus-circle"></i>
+              Carregar Mais Vídeos
+            </button>
+            <p style="margin-top: 0.5rem; color: var(--color-text-secondary); font-size: 0.875rem;">
+              Mostrando ${videos.length} de ${totalCount} vídeos
+            </p>
+          </div>
+        `;
+        console.log('📊 [LOAD-MORE] Botão adicionado - hasMorePages:', this.profileVideos.hasMorePages);
+      }
+      
+      videosGrid.innerHTML = finalHTML;
       
       // ✅ GARANTIR VISIBILIDADE TOTAL DA SEÇÃO DE VÍDEOS  
       const videosSection = document.querySelector('.tab-content[data-tab="videos"]');
@@ -3240,6 +3285,156 @@ class SantooApp {
         toast.parentElement.removeChild(toast);
       }
     }, 300);
+  }
+  /**
+   * Load more profile videos (pagination)
+   */
+  async loadMoreProfileVideos() {
+    if (this.profileVideos.isLoading || !this.profileVideos.hasMorePages) {
+      console.log('📊 [LOAD-MORE] Ação ignorada:', {
+        isLoading: this.profileVideos.isLoading,
+        hasMorePages: this.profileVideos.hasMorePages
+      });
+      return;
+    }
+
+    console.log('📊 [LOAD-MORE] Carregando mais vídeos...');
+    this.profileVideos.isLoading = true;
+
+    try {
+      // Update button state to loading
+      const loadMoreBtn = document.querySelector('.load-more-btn');
+      if (loadMoreBtn) {
+        loadMoreBtn.innerHTML = `
+          <i data-lucide="loader" class="loading-spin"></i>
+          Carregando...
+        `;
+        loadMoreBtn.disabled = true;
+      }
+
+      const user = santooAuth.getCurrentUser();
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      const nextPage = this.profileVideos.currentPage + 1;
+      const response = await window.SantooAPI.videos.getFeed({
+        userId: user.id,
+        page: nextPage,
+        limit: 6,
+        sortBy: 'recent'
+      });
+
+      const newVideos = response?.videos || [];
+      const pagination = response?.pagination || {};
+
+      console.log('📊 [LOAD-MORE] Novos vídeos carregados:', newVideos.length);
+      console.log('📊 [LOAD-MORE] Pagination:', pagination);
+
+      if (newVideos.length > 0) {
+        // Add new videos to our state
+        this.profileVideos.allVideos = [...this.profileVideos.allVideos, ...newVideos];
+        this.profileVideos.currentPage = nextPage;
+        this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : newVideos.length >= 6;
+
+        // Re-render all videos
+        await this.renderAllProfileVideos();
+      } else {
+        this.profileVideos.hasMorePages = false;
+        await this.renderAllProfileVideos();
+      }
+
+    } catch (error) {
+      console.error('❌ Erro ao carregar mais vídeos:', error);
+      
+      // Show error state
+      const loadMoreBtn = document.querySelector('.load-more-btn');
+      if (loadMoreBtn) {
+        loadMoreBtn.innerHTML = `
+          <i data-lucide="alert-circle"></i>
+          Erro - Tentar Novamente
+        `;
+        loadMoreBtn.disabled = false;
+      }
+    } finally {
+      this.profileVideos.isLoading = false;
+    }
+  }
+
+  /**
+   * Re-render all profile videos with current state
+   */
+  async renderAllProfileVideos() {
+    const videosGrid = document.getElementById('userVideosGrid');
+    if (!videosGrid) return;
+
+    const videosTabCount = document.querySelector('.tab-count[data-tab="videos"]');
+    const videos = this.profileVideos.allVideos;
+
+    console.log('📊 [RENDER-ALL] Renderizando', videos.length, 'vídeos');
+
+    // Generate HTML for all videos
+    const videosHTML = videos.map(video => `
+      <div class="user-video-card" data-video-id="${video.id}" style="background-color: #2a2d3a; border-radius: 12px; overflow: hidden; cursor: pointer; min-height: 350px !important; height: auto !important; display: block !important;">
+        <div class="video-thumbnail" style="position: relative; width: 100%; height: 200px !important; background-color: #1a1d26; overflow: hidden;">
+          <div class="video-preview" style="width: 100%; height: 200px; background: linear-gradient(45deg, #1a1a2e, #16213e); display: flex; align-items: center; justify-content: center; border-radius: 8px; position: relative;">
+            <i data-lucide="play-circle" style="width: 48px; height: 48px; color: rgba(255,255,255,0.8);"></i>
+            <video style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 8px; opacity: 0.8;" preload="metadata">
+              <source src="${this.fixVideoUrl(video.videoUrl)}#t=1" type="video/mp4">
+            </video>
+          </div>
+          <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(transparent, rgba(0,0,0,0.3)); pointer-events: none;"></div>
+        </div>
+        <div class="video-info" style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <h4 style="color: #ffffff; margin: 0 0 8px 0; font-size: 14px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${video.title || 'Vídeo sem título'}</h4>
+          <div class="video-meta" style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: rgba(255,255,255,0.7);">
+            <span style="display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+              ${this.formatNumber(video.views || 0)}
+            </span>
+            <span style="display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="heart" style="width: 14px; height: 14px;"></i>
+              ${this.formatNumber(video.likes || 0)}
+            </span>
+            <span style="display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+              ${this.formatDate(video.createdAt)}
+            </span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Add Load More button if needed
+    let finalHTML = videosHTML;
+    if (this.profileVideos.hasMorePages) {
+      finalHTML += `
+        <div class="load-more-videos" style="grid-column: 1/-1; text-align: center; padding: 2rem; background: var(--color-bg-secondary); border-radius: var(--radius-lg); margin-top: 1rem;">
+          <button class="btn btn-primary load-more-btn" onclick="santooApp.loadMoreProfileVideos()" style="padding: 0.75rem 2rem; font-size: 1rem;">
+            <i data-lucide="plus-circle"></i>
+            Carregar Mais Vídeos
+          </button>
+          <p style="margin-top: 0.5rem; color: var(--color-text-secondary); font-size: 0.875rem;">
+            Mostrando ${videos.length} vídeos
+          </p>
+        </div>
+      `;
+    }
+
+    // Update DOM
+    videosGrid.innerHTML = finalHTML;
+
+    // Update tab count
+    if (videosTabCount) {
+      videosTabCount.textContent = videos.length;
+    }
+
+    // Reinitialize icons
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    console.log('✅ [RENDER-ALL] Renderização completa:', videos.length, 'vídeos');
   }
 }
 
