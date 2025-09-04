@@ -776,8 +776,8 @@ class SantooApp {
               </div>
               
               <!-- Picture in Picture button -->
-              <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.toggleTikTokPiP('${video.id}')">
-                <i data-lucide="picture-in-picture-2"></i>
+              <div class="tiktok-action-btn pip-btn" onclick="event.stopPropagation(); window.toggleTikTokPiP('${video.id}')">
+                <i data-lucide="monitor-speaker"></i>
               </div>
             </div>
           </div>
@@ -1509,7 +1509,8 @@ class SantooApp {
     if (!videoUrl) return '';
     
     if (videoUrl.startsWith('/uploads')) {
-      return `http://localhost:3001${videoUrl}`;
+      // ✅ USA O MESMO BASEURL DA API (dinâmico)
+      return `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${videoUrl}`;
     }
     
     return videoUrl;
@@ -2825,7 +2826,7 @@ class SantooApp {
     window.showComments = (videoId) => {
       console.log('💬 Mostrar comentários TikTok:', videoId);
       // TODO: Implement TikTok-style comments drawer
-      this.showNotification('Comentários em breve!', 'info');
+      alert('Comentários em breve!');
     };
 
     // Share video (placeholder)
@@ -2843,11 +2844,11 @@ class SantooApp {
         } else {
           // Fallback to clipboard
           await navigator.clipboard.writeText(`${window.location.origin}/?video=${videoId}`);
-          this.showNotification('Link copiado para a área de transferência!', 'success');
+          alert('Link copiado para a área de transferência!');
         }
       } catch (error) {
         console.error('Erro ao compartilhar:', error);
-        this.showNotification('Erro ao compartilhar vídeo', 'error');
+        alert('Erro ao compartilhar vídeo');
       }
     };
 
@@ -2855,45 +2856,9 @@ class SantooApp {
     window.showVideoOptions = (videoId) => {
       console.log('⚙️ Opções do vídeo TikTok:', videoId);
       // TODO: Implement options menu (report, not interested, etc.)
-      this.showNotification('Opções em breve!', 'info');
+      alert('Opções em breve!');
     };
 
-    // Toggle Picture in Picture for TikTok videos
-    window.toggleTikTokPiP = async (videoId) => {
-      console.log('📺 Toggling Picture in Picture para:', videoId);
-      
-      try {
-        // Find the video element
-        const videoCard = document.querySelector(`[data-video-id="${videoId}"]`).closest('.video-card');
-        const videoElement = videoCard ? videoCard.querySelector('.tiktok-video') : null;
-        
-        if (!videoElement) {
-          console.error('❌ Elemento de vídeo não encontrado');
-          return;
-        }
-
-        // Check if PiP is supported
-        if (!document.pictureInPictureEnabled) {
-          console.warn('⚠️ Picture in Picture não é suportado neste navegador');
-          this.showNotification('Picture in Picture não suportado', 'warning');
-          return;
-        }
-
-        // Toggle PiP
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-          console.log('📺 Picture in Picture desativado');
-          this.showNotification('Picture in Picture desativado', 'info');
-        } else {
-          await videoElement.requestPictureInPicture();
-          console.log('📺 Picture in Picture ativado para:', videoId);
-          this.showNotification('Vídeo em Picture in Picture', 'success');
-        }
-      } catch (error) {
-        console.error('❌ Erro no Picture in Picture:', error);
-        this.showNotification('Erro ao ativar Picture in Picture', 'error');
-      }
-    };
   }
 
   /**
@@ -3077,6 +3042,66 @@ class SantooApp {
     }, 300);
   }
 }
+
+// ============================================================================
+// GLOBAL FUNCTIONS - Picture in Picture
+// ============================================================================
+
+// Toggle Picture in Picture for TikTok videos - IMPLEMENTAÇÃO ROBUSTA
+window.toggleTikTokPiP = async (videoId) => {
+  console.log('📺 Toggling Picture in Picture para:', videoId);
+  
+  try {
+    // Find the video element - múltiplas estratégias
+    let videoElement = null;
+    
+    // Estratégia 1: Buscar por data-video-id
+    const videoCard = document.querySelector(`[data-video-id="${videoId}"]`).closest('.video-card');
+    if (videoCard) {
+      videoElement = videoCard.querySelector('.tiktok-video');
+    }
+    
+    // Estratégia 2: Se não encontrou, buscar vídeo ativo/visível
+    if (!videoElement) {
+      videoElement = document.querySelector('.tiktok-video:not([paused])');
+    }
+    
+    // Estratégia 3: Pegar qualquer vídeo TikTok
+    if (!videoElement) {
+      videoElement = document.querySelector('.tiktok-video');
+    }
+    
+    if (!videoElement) {
+      console.error('❌ Elemento de vídeo não encontrado para PiP');
+      console.log('🔍 Tentando buscar qualquer elemento video...');
+      videoElement = document.querySelector('video'); // Último recurso
+    }
+    
+    if (!videoElement) {
+      alert('Vídeo não encontrado para Picture in Picture');
+      return;
+    }
+
+    console.log('🎯 Elemento de vídeo encontrado:', videoElement);
+
+    // ✅ CÓDIGO SIMPLES QUE FUNCIONA - copiado do video-player.js
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
+      console.log('📺 Picture in Picture desativado');
+    } else {
+      await videoElement.requestPictureInPicture();
+      console.log('📺 Picture in Picture ativado para:', videoId);
+    }
+  } catch (error) {
+    console.error('❌ Erro no Picture in Picture:', error);
+    console.error('Detalhes:', error.message);
+    alert('Erro: ' + error.message);
+  }
+};
+
+// ============================================================================
+// APP INITIALIZATION  
+// ============================================================================
 
 // Initialize app when script loads
 const santooApp = new SantooApp();

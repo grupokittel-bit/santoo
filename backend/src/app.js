@@ -27,10 +27,11 @@ app.use(express.urlencoded({ extended: true })); // Parse formulários
 // === CORS - Permite frontend conversar com backend ===
 app.use(cors({
   origin: [
-    'http://localhost:8000',  // Frontend em desenvolvimento
-    'http://127.0.0.1:8000',  // Frontend alternativo
-    'http://localhost:3000',  // Preview do frontend
-    'https://santoo.app'      // Produção (futuro)
+    'http://localhost:8000',        // Frontend em desenvolvimento
+    'http://127.0.0.1:8000',        // Frontend alternativo
+    'http://localhost:3000',        // Preview do frontend
+    'http://192.168.3.63:8000',     // ✅ ACESSO PELO CELULAR/REDE LOCAL
+    'https://santoo.app'            // Produção (futuro)
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -143,10 +144,11 @@ async function startServer() {
     // 2. Sincroniza modelos com banco (quando criarmos)
     // await sequelize.sync({ alter: true });
     
-    // 3. Inicia o servidor
-    app.listen(PORT, () => {
+    // 3. Inicia o servidor (aceita conexões de qualquer IP)
+    app.listen(PORT, '0.0.0.0', () => {
       console.log('✅ SANTOO BACKEND ONLINE!');
-      console.log(`🌐 Servidor: http://localhost:${PORT}`);
+      console.log(`🌐 Servidor Local: http://localhost:${PORT}`);
+      console.log(`📱 Servidor Mobile: http://192.168.3.63:${PORT}`);
       console.log(`📊 Banco: santoo na porta ${process.env.DB_PORT}`);
       console.log(`🛡️  Ambiente: ${process.env.NODE_ENV}`);
       console.log(`⏰ Iniciado em: ${new Date().toLocaleString('pt-BR')}\n`);

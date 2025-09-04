@@ -709,8 +709,9 @@
 
 /* === FILTERS === */
 
+/* ✅ BOTÕES DE FILTRO RESPONSIVOS */
 .filter-btn {
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   background: transparent;
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border-secondary);
@@ -719,6 +720,39 @@
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: var(--transition-colors);
+  text-align: center;
+  white-space: nowrap;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile - botões mais compactos */
+@media (max-width: 767px) {
+  .filter-btn {
+    padding: var(--space-2);
+    font-size: 12px;
+    min-height: 32px;
+  }
+}
+
+/* Telas muito pequenas - ainda mais compacto */
+@media (max-width: 375px) {
+  .filter-btn {
+    padding: var(--space-1) var(--space-2);
+    font-size: 11px;
+    min-height: 28px;
+    border-radius: var(--radius-md);
+  }
+}
+
+/* Desktop - botões normais */
+@media (min-width: 768px) {
+  .filter-btn {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-sm);
+  }
 }
 
 .filter-btn:hover {

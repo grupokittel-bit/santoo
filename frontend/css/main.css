@@ -340,10 +340,23 @@ body {
 
 /* === FEED === */
 
+/* ✅ FILTROS RESPONSIVOS - 4 colunas mobile */
 .feed-filters {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-2);
-  flex-wrap: wrap;
+  width: 100%;
+  margin: var(--space-3) 0;
+}
+
+/* Desktop - pode usar flex normal */
+@media (min-width: 768px) {
+  .feed-filters {
+    display: flex;
+    justify-content: flex-start;
+    grid-template-columns: none;
+    width: auto;
+  }
 }
 
 /* === TIKTOK STYLE VIDEO FEED === */
@@ -609,6 +622,20 @@ body {
   background: rgba(255, 59, 92, 0.3);
   border-color: rgba(255, 59, 92, 0.5);
   color: #ff3b5c;
+}
+
+/* Picture in Picture button styling */
+.tiktok-action-btn.pip-btn {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: rgba(74, 144, 226, 0.2);
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+.tiktok-action-btn.pip-btn:hover {
+  background: rgba(74, 144, 226, 0.4);
+  transform: scale(1.1);
 }
 
 /* Action button counters */
@@ -2016,12 +2043,15 @@ body {
   }
   
   /* ✅ FILTROS ORGANIZADOS HORIZONTALMENTE */
+  /* ✅ HOMEPAGE MOBILE - 4 colunas grid */  
   #homePage .feed-filters {
-    display: flex !important;
-    justify-content: center !important;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    justify-content: stretch !important;
     align-items: center !important;
-    gap: var(--space-3) !important;
+    gap: var(--space-2) !important;
     width: 100% !important;
+    padding: 0 var(--space-3);
   }
   
   .page-header h2 {
@@ -2038,9 +2068,14 @@ body {
     gap: var(--space-4);
   }
   
+  /* ✅ MOBILE - 4 colunas fixas sem scroll */
   .feed-filters {
-    overflow-x: auto;
-    padding-bottom: var(--space-2);
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: var(--space-2) !important;
+    width: 100% !important;
+    overflow: visible;
+    padding: var(--space-2) 0;
   }
   
   .upload-zone {

@@ -41,7 +41,7 @@ const Video = sequelize.define('Video', {
   
   // === METADADOS ===
   duration: {
-    type: DataTypes.INTEGER,        // Duração em segundos
+    type: DataTypes.FLOAT,          // Duração em segundos (aceita decimais)
     allowNull: true,                // Opcional
     validate: { min: 0 }
   },

@@ -17,21 +17,21 @@ ffmpeg.setFfprobePath(ffprobePath);
 const VIDEO_CONFIG = {
   // Formato TikTok - 9:16 
   resolution: {
-    width: 720,
-    height: 1280,
+    width: 1080,              // ✅ ALTA RESOLUÇÃO (era 720)
+    height: 1920,             // ✅ FULL HD vertical (era 1280)
   },
   
-  // Qualidade e compressão
+  // ✅ QUALIDADE ALTA - Mantém fidelidade visual
   quality: {
-    videoBitrate: '1000k',    // 1Mbps - boa qualidade/tamanho
-    audioBitrate: '128k',     // Áudio MP3 padrão
-    crf: 23,                  // Constant Rate Factor (18-28 é bom)
-    preset: 'fast',           // Velocidade encoding: ultrafast,fast,medium,slow
+    videoBitrate: '4000k',    // ✅ 4Mbps - ALTA QUALIDADE (era 1000k)
+    audioBitrate: '192k',     // ✅ Áudio de alta qualidade (era 128k)
+    crf: 18,                  // ✅ QUALIDADE SUPERIOR (era 23)
+    preset: 'slower',         // ✅ Melhor qualidade (era 'fast')
   },
   
-  // Limites
+  // Limites ajustados para alta qualidade
   maxDuration: 60,            // Máximo 60 segundos
-  maxFileSize: 50 * 1024 * 1024, // 50MB após processamento
+  maxFileSize: 100 * 1024 * 1024, // ✅ 100MB - dobrado para acomodar qualidade (era 50MB)
   
   // Formatos
   outputFormat: 'mp4',
@@ -40,10 +40,10 @@ const VIDEO_CONFIG = {
 };
 
 const THUMBNAIL_CONFIG = {
-  width: 720,
-  height: 1280,
+  width: 1080,                // ✅ ALTA RESOLUÇÃO para thumbnails (era 720)
+  height: 1920,               // ✅ FULL HD vertical (era 1280)
   format: 'jpg',
-  quality: 85,
+  quality: 95,                // ✅ QUALIDADE MÁXIMA (era 85)
   timemarks: ['10%', '50%', '90%'] // 3 thumbnails em diferentes momentos
 };
 
@@ -260,12 +260,19 @@ async function processUploadedVideo(req, res, next) {
     console.log(`⏱️  Duração: ${metadata.duration}s`);
     console.log(`📺 Resolução: ${metadata.video.width}x${metadata.video.height}`);
     
-    // Verifica se precisa processar
-    const needsProcessing = 
+    // ✅ LÓGICA INTELIGENTE - Preserva qualidade alta, só processa quando necessário
+    const isGoodQuality = (
+      metadata.video.width >= 1080 && metadata.video.height >= 1920 && // Já está em boa resolução
+      originalSize <= VIDEO_CONFIG.maxFileSize && // Tamanho aceitável
+      metadata.duration <= VIDEO_CONFIG.maxDuration // Duração OK
+    );
+    
+    const needsProcessing = !isGoodQuality && (
       metadata.duration > VIDEO_CONFIG.maxDuration ||
-      metadata.video.width !== VIDEO_CONFIG.resolution.width ||
-      metadata.video.height !== VIDEO_CONFIG.resolution.height ||
-      originalSize > VIDEO_CONFIG.maxFileSize;
+      metadata.video.width < 720 || // Só processa se muito pequeno
+      metadata.video.height < 1280 ||
+      originalSize > VIDEO_CONFIG.maxFileSize
+    );
     
     if (!needsProcessing) {
       console.log(`✅ Vídeo já está otimizado, pulando processamento`);

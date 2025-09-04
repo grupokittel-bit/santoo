@@ -3,10 +3,23 @@
  * Comunicação completa com o backend
  */
 
-// === CONFIGURAÇÃO DA API ===
+// === CONFIGURAÇÃO DINÂMICA DA API ===
+
+// Detecta automaticamente se está sendo acessado via rede local
+function getApiBaseURL() {
+  const currentHost = window.location.hostname;
+  
+  // Se acessado via IP da rede (ex: 192.168.3.63), usa o mesmo IP para backend
+  if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+    return `http://${currentHost}:3001`;
+  }
+  
+  // Senão, usa localhost padrão
+  return 'http://localhost:3001';
+}
 
 const API_CONFIG = {
-  baseURL: 'http://localhost:3001',
+  baseURL: getApiBaseURL(),
   timeout: 30000, // 30 segundos
   maxRetries: 3
 };
