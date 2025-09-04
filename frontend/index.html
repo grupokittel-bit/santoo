@@ -269,6 +269,7 @@
                 </div>
                 
                 <div class="profile-content">
+                    <!-- Auth Prompt for Guests -->
                     <div class="auth-prompt">
                         <div class="auth-prompt-header">
                             <i class="auth-prompt-icon" data-lucide="users"></i>
@@ -298,6 +299,185 @@
                                 <i class="feature-icon" data-lucide="radio"></i>
                                 <span>Transmita ao vivo</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Spiritual Progress Dashboard for Authenticated Users -->
+                    <div class="spiritual-dashboard" id="spiritualDashboard" style="display: none;">
+                        
+                        <!-- Progress Overview -->
+                        <div class="dashboard-overview">
+                            <h3 class="dashboard-title">
+                                <i data-lucide="trending-up"></i>
+                                Minha Jornada Espiritual
+                            </h3>
+                            <div class="progress-stats">
+                                <div class="progress-stat">
+                                    <div class="stat-icon">
+                                        <i data-lucide="check-circle"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <strong id="amenCount">0</strong>
+                                        <span>Ensinamentos Praticados</span>
+                                    </div>
+                                </div>
+                                <div class="progress-stat">
+                                    <div class="stat-icon">
+                                        <i data-lucide="target"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <strong id="opsCount">0</strong>
+                                        <span>Próximos Desafios</span>
+                                    </div>
+                                </div>
+                                <div class="progress-stat">
+                                    <div class="stat-icon">
+                                        <i data-lucide="flame"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <strong id="streakCount">0</strong>
+                                        <span>dias de Sequência</span>
+                                    </div>
+                                </div>
+                                <div class="progress-stat">
+                                    <div class="stat-icon">
+                                        <i data-lucide="calendar"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <strong id="monthlyRate">0%</strong>
+                                        <span>Taxa Mensal</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Tabs -->
+                        <div class="spiritual-tabs">
+                            <button class="spiritual-tab active" data-tab="amen">
+                                <i data-lucide="check"></i>
+                                <span>Amém</span>
+                                <span class="tab-count" id="amenTabCount">0</span>
+                            </button>
+                            <button class="spiritual-tab" data-tab="ops">
+                                <i data-lucide="zap"></i>
+                                <span>Ops</span>
+                                <span class="tab-count" id="opsTabCount">0</span>
+                            </button>
+                            <button class="spiritual-tab" data-tab="progress">
+                                <i data-lucide="activity"></i>
+                                <span>Progresso</span>
+                            </button>
+                        </div>
+
+                        <!-- Tab Content -->
+                        <div class="spiritual-content">
+                            
+                            <!-- Amém Section - Already Practicing -->
+                            <div class="tab-content active" id="amenSection">
+                                <div class="section-header">
+                                    <div class="section-title">
+                                        <h4>
+                                            <i data-lucide="heart"></i>
+                                            Ensinamentos que Já Pratico
+                                        </h4>
+                                        <p>Continue mantendo esses hábitos espirituais em sua vida diária</p>
+                                    </div>
+                                </div>
+                                <div class="habits-grid" id="amenHabits">
+                                    <!-- Amém habits will be loaded here -->
+                                    <div class="habits-loading">
+                                        <i data-lucide="loader"></i>
+                                        <span>Carregando seus hábitos espirituais...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ops Section - Want to Start -->
+                            <div class="tab-content" id="opsSection">
+                                <div class="section-header">
+                                    <div class="section-title">
+                                        <h4>
+                                            <i data-lucide="target"></i>
+                                            Ensinamentos para Começar a Praticar
+                                        </h4>
+                                        <p>Transforme essas intenções em hábitos reais de crescimento espiritual</p>
+                                    </div>
+                                </div>
+                                <div class="habits-grid" id="opsHabits">
+                                    <!-- Ops habits will be loaded here -->
+                                    <div class="habits-loading">
+                                        <i data-lucide="loader"></i>
+                                        <span>Carregando seus próximos desafios...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Progress Section - Analytics -->
+                            <div class="tab-content" id="progressSection">
+                                <div class="section-header">
+                                    <div class="section-title">
+                                        <h4>
+                                            <i data-lucide="bar-chart-3"></i>
+                                            Dashboard de Crescimento
+                                        </h4>
+                                        <p>Visualize seu progresso espiritual ao longo do tempo</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="progress-charts">
+                                    <!-- Weekly Progress Chart -->
+                                    <div class="progress-chart">
+                                        <h5>Progresso da Semana</h5>
+                                        <div class="week-chart" id="weekChart">
+                                            <div class="week-day">
+                                                <span>D</span>
+                                                <div class="day-bar" data-success="0"></div>
+                                            </div>
+                                            <div class="week-day">
+                                                <span>S</span>
+                                                <div class="day-bar" data-success="0"></div>
+                                            </div>
+                                            <div class="week-day">
+                                                <span>T</span>
+                                                <div class="day-bar" data-success="0"></div>
+                                            </div>
+                                            <div class="week-day">
+                                                <span>Q</span>
+                                                <div class="day-bar" data-success="0"></div>
+                                            </div>
+                                            <div class="week-day">
+                                                <span>Q</span>
+                                                <div class="day-bar" data-success="0"></div>
+                                            </div>
+                                            <div class="week-day">
+                                                <span>S</span>
+                                                <div class="day-bar" data-success="0"></div>
+                                            </div>
+                                            <div class="week-day">
+                                                <span>S</span>
+                                                <div class="day-bar" data-success="0"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Category Performance -->
+                                    <div class="progress-chart">
+                                        <h5>Performance por Categoria</h5>
+                                        <div class="category-performance" id="categoryPerformance">
+                                            <!-- Categories will be loaded here -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Recent Activity -->
+                                    <div class="progress-chart">
+                                        <h5>Atividade Recente</h5>
+                                        <div class="recent-activity" id="recentActivity">
+                                            <!-- Recent activities will be loaded here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
