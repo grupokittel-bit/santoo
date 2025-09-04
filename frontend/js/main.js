@@ -582,8 +582,20 @@ class SantooApp {
       if (response && response.videos) {
         if (response.videos.length === 0) {
           videoFeed.innerHTML = this.getEmptyStateHTML();
+          
+          // ✅ INICIALIZA ÍCONES PARA ESTADO VAZIO
+          if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+          }
         } else {
           videoFeed.innerHTML = response.videos.map(video => this.createVideoCard(video)).join('');
+          
+          // ✅ INICIALIZA ÍCONES LUCIDE APÓS INSERIR CONTEÚDO DINÂMICO
+          if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+            console.log('🎨 Ícones Lucide inicializados para botões TikTok');
+          }
+          
           // TikTok interactions will be setup in initHomePage with delay
         }
         
@@ -595,6 +607,11 @@ class SantooApp {
     } catch (error) {
       console.error('❌ Erro ao carregar feed:', error);
       videoFeed.innerHTML = this.getErrorStateHTML(error.message);
+      
+      // ✅ INICIALIZA ÍCONES PARA ESTADO DE ERRO
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+      }
     }
   }
 
@@ -638,7 +655,17 @@ class SantooApp {
       }
     ];
     
-    return demoVideos.map(video => this.createVideoCard(video)).join('');
+    const demoHTML = demoVideos.map(video => this.createVideoCard(video)).join('');
+    
+    // ✅ INICIALIZA ÍCONES PARA VÍDEOS DEMO
+    setTimeout(() => {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+        console.log('🎨 Ícones Lucide inicializados para vídeos demo');
+      }
+    }, 100);
+    
+    return demoHTML;
   }
 
   /**
@@ -1691,6 +1718,12 @@ class SantooApp {
       `;
       
       videosGrid.innerHTML = videosHTML;
+      
+      // ✅ INICIALIZA ÍCONES PARA PÁGINA DISCOVER
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+        console.log('🎨 Ícones Lucide inicializados para página Discover');
+      }
       
       console.log('🔧 DEBUG: HTML inserido. Conteúdo atual:', videosGrid.innerHTML.length, 'caracteres');
       console.log('🔧 DEBUG: Primeiros 200 caracteres:', videosGrid.innerHTML.substring(0, 200));
