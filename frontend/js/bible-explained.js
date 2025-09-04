@@ -130,9 +130,9 @@ class BibleExplainedManager {
         category: this.currentCategory === 'all' ? undefined : this.currentCategory
       });
       
-      if (response?.posts?.length > 0) {
-        this.posts = response.posts;
-        this.hasMore = response.pagination?.hasMore || false;
+      if (response?.data?.length > 0) { // 🔧 CORRIGIDO: backend retorna 'data'
+        this.posts = response.data; // 🔧 CORRIGIDO: backend retorna 'data', não 'posts'
+        this.hasMore = response.pagination?.has_more || false; // 🔧 CORRIGIDO: has_more
         
         // Carrega interações do usuário se logado
         if (window.AuthManager?.isAuthenticated()) {
@@ -182,13 +182,13 @@ class BibleExplainedManager {
         category: this.currentCategory === 'all' ? undefined : this.currentCategory
       });
       
-      if (response?.posts?.length > 0) {
+      if (response?.data?.length > 0) { // 🔧 CORRIGIDO: backend retorna 'data'
         // Adiciona novos posts ao array existente
-        this.posts = [...this.posts, ...response.posts];
-        this.hasMore = response.pagination?.hasMore || false;
+        this.posts = [...this.posts, ...response.data]; // 🔧 CORRIGIDO: backend retorna 'data'
+        this.hasMore = response.pagination?.has_more || false; // 🔧 CORRIGIDO: has_more
         
         // Renderiza apenas os novos posts
-        this.renderNewPosts(response.posts);
+        this.renderNewPosts(response.data); // 🔧 CORRIGIDO: backend retorna 'data'
         this.updateLoadMoreButton();
       } else {
         this.hasMore = false;

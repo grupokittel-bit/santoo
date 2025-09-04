@@ -412,10 +412,11 @@ class BibleAdminManager {
       const response = await window.SantooAPI.get('/api/bible-posts?admin=true');
       
       if (response.success) {
-        this.posts = response.posts || [];
+        this.posts = response.data || []; // 🔧 CORRIGIDO: backend retorna 'data', não 'posts'
         console.log('✅ [DEBUG] Posts carregados:', { 
           total: this.posts.length,
-          active: this.posts.filter(p => p.is_active).length
+          active: this.posts.filter(p => p.is_active).length,
+          rawResponse: response
         });
         this.renderPostsList();
         this.updateStats(); // 🔧 SEMPRE atualiza stats após carregar posts
@@ -562,7 +563,7 @@ class BibleAdminManager {
       const response = await window.SantooAPI.get('/api/bible-posts/admin/disagreements');
       
       if (response.success) {
-        this.disagreements = response.disagreements || [];
+        this.disagreements = response.data || []; // 🔧 CORRIGIDO: backend retorna 'data', não 'disagreements'
         this.renderDisagreementsList();
         this.updateDisagreementsStats();
       } else {
