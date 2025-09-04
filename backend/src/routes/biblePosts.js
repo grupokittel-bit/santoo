@@ -553,6 +553,8 @@ router.get('/my-interactions/:type', authMiddleware, async (req, res) => {
       success: true,
       data: interactions.map(interaction => ({
         id: interaction.id,
+        bible_post_id: interaction.bible_post_id,  // ✅ CORREÇÃO: Frontend precisa deste campo
+        interaction_type: interaction.interaction_type,  // ✅ CORREÇÃO: Frontend precisa deste campo
         interaction_date: interaction.createdAt,
         post: interaction.biblePost
       })),

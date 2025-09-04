@@ -1371,6 +1371,19 @@ class SantooApp {
     return num.toString();
   }
 
+  /**
+   * Fix video URL to point to backend
+   */
+  fixVideoUrl(videoUrl) {
+    if (!videoUrl) return '';
+    
+    if (videoUrl.startsWith('/uploads')) {
+      return `http://localhost:3001${videoUrl}`;
+    }
+    
+    return videoUrl;
+  }
+
   isValidPage(page) {
     const validPages = ['home', 'discover', 'upload', 'live', 'profile', 'bible-explained', 'bible-admin', 'bibleDisagreements'];
     return validPages.includes(page);
@@ -1521,7 +1534,7 @@ class SantooApp {
         <div class="user-video-card" data-video-id="${video.id}">
           <div class="video-thumbnail">
             <video style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
-              <source src="${video.videoUrl}" type="video/mp4">
+              <source src="${this.fixVideoUrl(video.videoUrl)}" type="video/mp4">
             </video>
             <div class="video-overlay">
               <div class="video-stats">
@@ -1731,7 +1744,7 @@ class SantooApp {
    */
   openVideoModal(video) {
     // TODO: Implement full video player modal
-    const videoUrl = video.videoUrl ? `${window.SantooAPI?.baseURL || 'http://localhost:3001'}${video.videoUrl}` : null;
+    const videoUrl = this.fixVideoUrl(video.videoUrl);
     
     if (!videoUrl) {
       this.showError('URL do vídeo não encontrada');

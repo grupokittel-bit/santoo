@@ -487,17 +487,19 @@ class BibleExplainedManager {
     const postCard = actionBtn.closest('.bible-post-card');
     
     try {
+      // ✅ CORREÇÃO: A API usa sempre POST com lógica de toggle
+      // Se o usuário já tem a interação, o POST remove ela
+      // Se não tem, o POST adiciona ela
+      await window.SantooAPI.post(`/api/bible-posts/${postId}/interact`, {
+        type: action
+      });
+      
       if (isCurrentlyActive) {
-        // Remove interação
-        await window.SantooAPI.delete(`/api/bible-posts/${postId}/interact`);
+        // Estava ativo, foi removido
         actionBtn.classList.remove('active');
         this.userInteractions.delete(postId);
       } else {
-        // Adiciona interação
-        await window.SantooAPI.post(`/api/bible-posts/${postId}/interact`, {
-          type: action
-        });
-        
+        // Não estava ativo, foi adicionado
         // Remove active de outros botões do mesmo post
         const otherButtons = postCard.querySelectorAll('.bible-action-btn:not(.btn-disagree)');
         otherButtons.forEach(btn => btn.classList.remove('active'));
