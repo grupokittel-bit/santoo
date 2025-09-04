@@ -607,7 +607,6 @@ function showLoginModal() {
   
   // Show modal using CSS classes (consistent with main.js)  
   const overlay = document.getElementById('modalOverlay');
-  const modal = document.getElementById('authModal');
   
   // CRITICAL FIX: Ensure modal and overlay are properly reset before showing
   overlay.style.display = '';  // Clear any inline styles first
@@ -776,7 +775,6 @@ function showRegisterModal() {
   
   // Show modal using CSS classes (consistent with main.js)  
   const overlay = document.getElementById('modalOverlay');
-  const modal = document.getElementById('authModal');
   
   // CRITICAL FIX: Ensure modal and overlay are properly reset before showing
   overlay.style.display = '';  // Clear any inline styles first
@@ -841,7 +839,6 @@ function showPasswordResetModal() {
   
   // Show modal using CSS classes (consistent with main.js)  
   const overlay = document.getElementById('modalOverlay');
-  const modal = document.getElementById('authModal');
   
   // CRITICAL FIX: Ensure modal and overlay are properly reset before showing
   overlay.style.display = '';  // Clear any inline styles first
