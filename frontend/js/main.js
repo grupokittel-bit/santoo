@@ -700,6 +700,28 @@ class SantooApp {
               <source src="${videoUrl}" type="video/mp4">
               Seu navegador não suporta reprodução de vídeo.
             </video>
+            
+            <!-- 🔄 BOTÃO TESTE VERSÃO ANTIGA - CANTO SUPERIOR ESQUERDO (SEM CONFLITO) -->
+            <div style="position: absolute; top: 120px; left: 10px; z-index: 150;">
+              <button 
+                style="
+                  background: rgba(255,0,0,0.8); 
+                  border: 2px solid #fff; 
+                  color: white; 
+                  padding: 10px 14px; 
+                  border-radius: 8px; 
+                  font-size: 11px; 
+                  font-weight: bold;
+                  cursor: pointer;
+                  backdrop-filter: blur(4px);
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                "
+                onclick="event.stopPropagation(); window.toggleTikTokPiP_OLD('${video.id}')"
+                title="Testar PiP versão antiga"
+              >
+                🔄 OLD
+              </button>
+            </div>
           ` : `
             <div class="video-placeholder" style="width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center; color: white;">
               <span>Vídeo não disponível</span>
@@ -3224,7 +3246,36 @@ class SantooApp {
 // GLOBAL FUNCTIONS - Picture in Picture
 // ============================================================================
 
-// Toggle Picture in Picture for TikTok videos - IMPLEMENTAÇÃO SIMPLIFICADA
+// ✅ VERSÃO ANTIGA (que funcionava) - PARA TESTE
+window.toggleTikTokPiP_OLD = async (videoId) => {
+  console.log('🔄 [OLD] Usando implementação antiga para:', videoId);
+  
+  try {
+    // Busca simples como implementação antiga
+    const videoElement = document.querySelector(`[data-video-id="${videoId}"] video`) || 
+                        document.querySelector('video');
+    
+    if (!videoElement) {
+      console.error('🔄 [OLD] Vídeo não encontrado');
+      return;
+    }
+    
+    console.log('🔄 [OLD] Elemento encontrado:', videoElement);
+    
+    // Código EXATO da implementação antiga (video-player.js)
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
+      console.log('🔄 [OLD] PiP desativado');
+    } else {
+      await videoElement.requestPictureInPicture();
+      console.log('🔄 [OLD] PiP ativado');
+    }
+  } catch (error) {
+    console.error('🔄 [OLD] Erro:', error);
+  }
+};
+
+// Toggle Picture in Picture for TikTok videos - IMPLEMENTAÇÃO NOVA
 window.toggleTikTokPiP = async (videoId) => {
   console.log('📺 [PiP] DEBUG: Iniciando para videoId:', videoId);
   
@@ -3297,18 +3348,19 @@ window.toggleTikTokPiP = async (videoId) => {
     }
     
     console.log('✅ [DEBUG] Browser suporta Picture in Picture');
-      return;
-    }
     
     // Toggle Picture in Picture (implementação simples como antiga)
     if (document.pictureInPictureElement) {
       await document.exitPictureInPicture();
+      console.log('✅ [DEBUG] Picture in Picture DESATIVADO');
     } else {
       await videoElement.requestPictureInPicture();
+      console.log('✅ [DEBUG] Picture in Picture ATIVADO');
     }
     
   } catch (error) {
-    console.error('Erro no Picture in Picture:', error);
+    console.error('❌ [DEBUG] Erro no Picture in Picture:', error);
+    alert('Erro no Picture in Picture: ' + error.message);
   }
 };
 
