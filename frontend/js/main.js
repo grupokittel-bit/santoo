@@ -1010,23 +1010,75 @@ class SantooApp {
   }
 
   /**
-   * Sync this.user with window.authManager.user
+   * Sync this.user with window.santooAuth.user
    * CRITICAL for UI updates after login/register
    */
   syncUserFromAuthManager() {
-    if (window.authManager) {
-      const authUser = window.authManager.user;
-      const isAuthenticated = window.authManager.isAuthenticated();
+    if (window.santooAuth) {
+      const authUser = window.santooAuth.user;
+      const isAuthenticated = window.santooAuth.isAuthenticated();
       
       if (isAuthenticated && authUser) {
         this.user = authUser;
-        console.log('🔄 User sincronizado do AuthManager:', this.user.displayName || this.user.username);
+        console.log('🔄 User sincronizado do SantooAuth:', this.user.displayName || this.user.username);
+        
+        // CRITICAL FIX: Recarregar conteúdo dependente de auth após login
+        this.reloadAuthDependentContent();
       } else {
         this.user = null;
         console.log('🔄 User limpo (logout ou não autenticado)');
       }
     } else {
-      console.warn('⚠️ AuthManager não disponível para sincronização');
+      console.warn('⚠️ SantooAuth não disponível para sincronização');
+    }
+  }
+
+  /**
+   * Recarrega todo conteúdo que depende do estado de autenticação
+   * CRITICAL FIX: Garante que a UI seja completamente atualizada pós-login
+   */
+  reloadAuthDependentContent() {
+    console.log('🔄 Recarregando conteúdo dependente de auth...');
+    
+    try {
+      // 1. Atualizar visibilidade do Bible Admin link
+      this.updateBibleAdminVisibility();
+      
+      // 2. Recarregar o feed de vídeos (pode mostrar conteúdo personalizado se logado)
+      if (this.currentPage === 'home') {
+        console.log('🏠 Recarregando feed da homepage...');
+        this.loadVideoFeed();
+      }
+      
+      // 3. Se estiver na página Bible Explained, recarregar posts
+      if (this.currentPage === 'bible-explained') {
+        console.log('📖 Recarregando posts da Bible Explained...');
+        // Disparar evento para recarregar Bible Explained
+        const event = new CustomEvent('authStateChanged', {
+          detail: { 
+            isAuthenticated: true, 
+            user: this.user 
+          }
+        });
+        document.dispatchEvent(event);
+      }
+      
+      // 4. Atualizar página de perfil se estiver visualizando
+      if (this.currentPage === 'profile') {
+        console.log('👤 Atualizando página de perfil...');
+        this.updateProfileDisplay();
+      }
+      
+      // 5. Recarregar hábitos espirituais se disponível
+      if (window.spiritualHabits && typeof window.spiritualHabits.loadUserData === 'function') {
+        console.log('🙏 Recarregando hábitos espirituais...');
+        window.spiritualHabits.loadUserData();
+      }
+      
+      console.log('✅ Conteúdo dependente de auth recarregado com sucesso');
+      
+    } catch (error) {
+      console.error('❌ Erro ao recarregar conteúdo pós-login:', error);
     }
   }
 
@@ -1122,8 +1174,8 @@ class SantooApp {
       console.log('🔓 Fazendo logout...');
       
       // Call logout from auth manager (handles API + storage cleanup)
-      if (window.authManager && typeof window.authManager.logout === 'function') {
-        await window.authManager.logout();
+      if (window.santooAuth && typeof window.santooAuth.logout === 'function') {
+        await window.santooAuth.logout();
       }
       
       // Clear local user state IN MEMORY

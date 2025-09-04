@@ -464,15 +464,28 @@ class AuthManager {
       }
     }));
     
-    // Update app UI if available
-    if (window.santooApp && typeof window.santooApp.updateUserUI === 'function') {
-      window.santooApp.updateUserUI();
-    }
-
-    // Update video components if available
-    if (window.VideoComponents && typeof window.VideoComponents.updateAuthState === 'function') {
-      window.VideoComponents.updateAuthState(this.isAuthenticated(), this.user);
-    }
+    // CRITICAL FIX: Update app UI with small delay to ensure all DOM is ready
+    setTimeout(() => {
+      if (window.santooApp && typeof window.santooApp.updateUserUI === 'function') {
+        console.log('🔄 Atualizando UI via santooApp.updateUserUI()...');
+        window.santooApp.updateUserUI();
+      }
+      
+      // Update video components if available
+      if (window.VideoComponents && typeof window.VideoComponents.updateAuthState === 'function') {
+        window.VideoComponents.updateAuthState(this.isAuthenticated(), this.user);
+      }
+      
+      // NOVA FUNCIONALIDADE: Fechar modal após login/registro bem-sucedido
+      if (event === 'login' || event === 'register') {
+        console.log('✅ Login/Registro bem-sucedido - fechando modal e atualizando UI');
+        // Pequeno delay para mostrar mensagem de sucesso antes de fechar
+        setTimeout(() => {
+          hideAuthModal();
+        }, 1000);
+      }
+      
+    }, 100); // Pequeno delay para garantir que DOM esteja atualizado
   }
 
   /**
@@ -901,10 +914,7 @@ function bindLoginForm() {
         successDiv.textContent = result.message || 'Login realizado com sucesso!';
         successDiv.style.display = 'block';
         
-        // Close modal after delay
-        setTimeout(() => {
-          hideAuthModal();
-        }, 1500);
+        // Modal será fechado automaticamente via notifyAuthChange()
       } else {
         errorDiv.textContent = result.error;
         errorDiv.style.display = 'block';
@@ -965,10 +975,7 @@ function bindRegisterForm() {
         successDiv.textContent = result.message || 'Conta criada com sucesso!';
         successDiv.style.display = 'block';
         
-        // Close modal after delay
-        setTimeout(() => {
-          hideAuthModal();
-        }, 1500);
+        // Modal será fechado automaticamente via notifyAuthChange()
       } else {
         errorDiv.textContent = result.error;
         errorDiv.style.display = 'block';
