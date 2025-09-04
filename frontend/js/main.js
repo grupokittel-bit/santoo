@@ -14,7 +14,8 @@ class SantooApp {
       currentPage: 1,
       hasMorePages: true,
       isLoading: false,
-      allVideos: []
+      allVideos: [],
+      totalCount: 0  // FIX: Armazenar total real de vídeos
     };
     
     this.init();
@@ -1851,15 +1852,17 @@ class SantooApp {
       this.profileVideos.currentPage = 1;
       this.profileVideos.allVideos = videos;
       this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : videos.length >= 10;
+      this.profileVideos.totalCount = pagination.total || pagination.totalItems || videos.length;  // FIX: Salvar total real
       
       console.log('📊 [PROFILE-STATE] State updated:', {
         currentPage: this.profileVideos.currentPage,
         hasMorePages: this.profileVideos.hasMorePages,
-        totalVideos: this.profileVideos.allVideos.length
+        totalVideos: this.profileVideos.allVideos.length,
+        totalCount: this.profileVideos.totalCount  // FIX: Mostrar total real
       });
       
       // Update tab count with total from API (or current count)
-      const totalCount = pagination.totalItems || videos.length;
+      const totalCount = pagination.total || pagination.totalItems || videos.length;
       if (videosTabCount) {
         videosTabCount.textContent = totalCount;
       }
@@ -3336,6 +3339,8 @@ class SantooApp {
         this.profileVideos.allVideos = [...this.profileVideos.allVideos, ...newVideos];
         this.profileVideos.currentPage = nextPage;
         this.profileVideos.hasMorePages = pagination.totalPages ? (pagination.currentPage < pagination.totalPages) : newVideos.length >= 10;
+        // FIX: Manter totalCount atualizado mesmo após carregar mais vídeos
+        this.profileVideos.totalCount = pagination.total || pagination.totalItems || this.profileVideos.totalCount;
 
         // Re-render all videos
         await this.renderAllProfileVideos();
@@ -3424,9 +3429,9 @@ class SantooApp {
     // Update DOM
     videosGrid.innerHTML = finalHTML;
 
-    // Update tab count
+    // Update tab count - usar totalCount ao invés de videos.length para mostrar o total real
     if (videosTabCount) {
-      videosTabCount.textContent = videos.length;
+      videosTabCount.textContent = this.profileVideos.totalCount || videos.length;
     }
 
     // Reinitialize icons
