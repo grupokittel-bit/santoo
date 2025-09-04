@@ -3285,6 +3285,18 @@ window.toggleTikTokPiP = async (videoId) => {
     // Verificar se elemento foi encontrado e é HTMLVideoElement
     if (!videoElement || !(videoElement instanceof HTMLVideoElement)) {
       console.error('❌ [DEBUG] Vídeo não encontrado ou inválido para Picture in Picture');
+      alert('Vídeo não encontrado para Picture in Picture');
+      return;
+    }
+    
+    // ✅ VERIFICAR SE BROWSER/VÍDEO SUPORTA PiP
+    if (typeof videoElement.requestPictureInPicture !== 'function') {
+      console.error('❌ [DEBUG] Browser/vídeo não suporta Picture in Picture');
+      alert('Seu navegador não suporta Picture in Picture.\n\nPor favor:\n• Atualize para a versão mais recente\n• Use Chrome, Edge ou Firefox');
+      return;
+    }
+    
+    console.log('✅ [DEBUG] Browser suporta Picture in Picture');
       return;
     }
     
