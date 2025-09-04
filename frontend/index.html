@@ -88,6 +88,10 @@
                         <i class="nav-icon" data-lucide="radio"></i>
                         <span class="nav-text">Ao Vivo</span>
                     </a>
+                    <a href="#bible-admin" class="nav-link" data-page="bible-admin" id="bibleAdminLink" style="display: none;">
+                        <i class="nav-icon" data-lucide="book-open"></i>
+                        <span class="nav-text">Bíblia Explicada</span>
+                    </a>
                     <div class="dropdown" id="profileDropdown">
                         <a href="#profile" class="nav-link" data-page="profile" id="profileMenuBtn">
                             <i class="nav-icon" data-lucide="user"></i>
@@ -223,6 +227,286 @@
                 </div>
             </section>
 
+            <!-- Bible Admin Page - Gestão de Posts Bíblicos -->
+            <section id="bibleAdminPage" class="page">
+                <div class="profile-header">
+                    <div class="profile-cover" style="background: linear-gradient(135deg, var(--color-gospel-gold) 0%, var(--color-accent) 100%);"></div>
+                    <div class="profile-info">
+                        <div class="profile-avatar">
+                            <i data-lucide="book-open" style="width: 40px; height: 40px; color: var(--color-gospel-gold);"></i>
+                        </div>
+                        <h2 class="profile-name">Bíblia Explicada - Administração</h2>
+                        <p class="profile-bio">Painel administrativo para criação e gerenciamento de posts da Bíblia Explicada</p>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <strong id="adminStatsTotal">0</strong>
+                                <span>Posts Criados</span>
+                            </div>
+                            <div class="stat">
+                                <strong id="adminStatsActive">0</strong>
+                                <span>Publicados</span>
+                            </div>
+                            <div class="stat">
+                                <strong id="adminStatsDrafts">0</strong>
+                                <span>Rascunhos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-content">
+                    <!-- Admin Navigation -->
+                    <div class="admin-nav">
+                        <div class="auth-buttons" style="margin-bottom: var(--space-6);">
+                            <button class="nav-link active" id="adminCreatePostBtn">
+                                <i class="nav-icon" data-lucide="plus-circle"></i>
+                                <span class="nav-text">Criar Novo Post</span>
+                            </button>
+                            <button class="nav-link" id="adminManagePostsBtn">
+                                <i class="nav-icon" data-lucide="list"></i>
+                                <span class="nav-text">Gerenciar Posts</span>
+                            </button>
+                            <button class="nav-link" id="adminDisagreementsBtn">
+                                <i class="nav-icon" data-lucide="message-square"></i>
+                                <span class="nav-text">Discordâncias</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Create Post Section -->
+                    <div id="adminCreateSection" class="admin-section active">
+                        <div class="auth-prompt">
+                            <div class="auth-prompt-header">
+                                <i class="auth-prompt-icon" data-lucide="book-open"></i>
+                                <h3>Criar Post da Bíblia Explicada</h3>
+                            </div>
+                            <p class="auth-prompt-description">Crie um novo post com explicação detalhada de versículo bíblico</p>
+                            
+                            <form id="biblePostForm" class="bible-post-form">
+                                <!-- Título do Post -->
+                                <div class="form-group">
+                                    <label for="postTitle">Título do Post</label>
+                                    <input type="text" id="postTitle" name="title" 
+                                           placeholder="Ex: Salmos 119:105 - Lâmpada para os meus pés" 
+                                           maxlength="200" required>
+                                    <small>Título que aparecerá no feed (máx. 200 caracteres)</small>
+                                </div>
+
+                                <!-- Referência Bíblica -->
+                                <div class="form-group">
+                                    <label for="verseReference">Referência Bíblica</label>
+                                    <input type="text" id="verseReference" name="verse_reference" 
+                                           placeholder="Ex: Salmos 119:105" 
+                                           pattern="^[A-Za-zÀ-ÿ\s0-9]+\s\d+:\d+(-\d+)?$"
+                                           maxlength="50" required>
+                                    <small>Formato: Livro Capítulo:Versículo (ex: João 3:16)</small>
+                                </div>
+
+                                <!-- Versículo Original -->
+                                <div class="form-group">
+                                    <label for="originalText">Versículo Original Completo</label>
+                                    <textarea id="originalText" name="original_text" 
+                                              placeholder="Cole aqui o texto bíblico original completo..." 
+                                              rows="4" required></textarea>
+                                    <small>Texto original do versículo na tradução escolhida</small>
+                                </div>
+
+                                <!-- Contexto Histórico -->
+                                <div class="form-group">
+                                    <label for="historicalContext">📚 Contexto Histórico</label>
+                                    <textarea id="historicalContext" name="historical_context" 
+                                              placeholder="Explique o contexto da época, cultura, situação histórica..."
+                                              rows="5" required></textarea>
+                                    <small>Contextualize o versículo na época em que foi escrito</small>
+                                </div>
+
+                                <!-- Tradução Moderna -->
+                                <div class="form-group">
+                                    <label for="modernTranslation">🔄 Tradução para Linguagem Atual</label>
+                                    <textarea id="modernTranslation" name="modern_translation" 
+                                              placeholder="Como você explicaria este versículo usando palavras de hoje..."
+                                              rows="4" required></textarea>
+                                    <small>Traduza o versículo para linguagem contemporânea e acessível</small>
+                                </div>
+
+                                <!-- Significado Prático -->
+                                <div class="form-group">
+                                    <label for="practicalMeaning">💡 O Que o Texto Realmente Está Dizendo</label>
+                                    <textarea id="practicalMeaning" name="practical_meaning" 
+                                              placeholder="Qual é a mensagem central e prática deste versículo..."
+                                              rows="5" required></textarea>
+                                    <small>Explique a essência da mensagem de forma clara e objetiva</small>
+                                </div>
+
+                                <!-- Aplicação Moderna -->
+                                <div class="form-group">
+                                    <label for="modernApplication">🎯 Como Aplicar na Vida Hoje</label>
+                                    <textarea id="modernApplication" name="modern_application" 
+                                              placeholder="Como uma pessoa moderna pode aplicar este ensinamento no dia a dia..."
+                                              rows="5" required></textarea>
+                                    <small>Dê exemplos práticos e concretos para aplicação atual</small>
+                                </div>
+
+                                <!-- Curiosidades (Opcional) -->
+                                <div class="form-group">
+                                    <label for="curiosities">⭐ Curiosidades e Informações Extras (Opcional)</label>
+                                    <textarea id="curiosities" name="curiosities" 
+                                              placeholder="Informações interessantes, simbolismos, etimologia, curiosidades históricas..."
+                                              rows="4"></textarea>
+                                    <small>Adicione informações extras que enriqueçam a compreensão</small>
+                                </div>
+
+                                <!-- Categoria -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="postCategory">Categoria</label>
+                                        <select id="postCategory" name="category" required>
+                                            <option value="">Selecione uma categoria</option>
+                                            <option value="sabedoria">📚 Sabedoria</option>
+                                            <option value="amor">❤️ Amor</option>
+                                            <option value="fe">🙏 Fé</option>
+                                            <option value="oracao">🕊️ Oração</option>
+                                            <option value="relacionamentos">👥 Relacionamentos</option>
+                                            <option value="trabalho">💼 Trabalho</option>
+                                            <option value="familia">🏠 Família</option>
+                                            <option value="paz">☮️ Paz</option>
+                                            <option value="perdao">🤝 Perdão</option>
+                                            <option value="crescimento">🌱 Crescimento</option>
+                                            <option value="gratidao">🙏 Gratidão</option>
+                                            <option value="esperanca">✨ Esperança</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="postStatus">Status</label>
+                                        <select id="postStatus" name="status">
+                                            <option value="draft">📝 Rascunho</option>
+                                            <option value="published">✅ Publicar</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Tags -->
+                                <div class="form-group">
+                                    <label for="postTags">Tags (separadas por vírgula)</label>
+                                    <input type="text" id="postTags" name="tags" 
+                                           placeholder="Ex: paciência, perseverança, confiança">
+                                    <small>Palavras-chave para facilitar busca e recomendação</small>
+                                </div>
+
+                                <!-- Botões de Ação -->
+                                <div class="form-actions">
+                                    <button type="button" class="nav-link" id="previewPostBtn">
+                                        <i class="nav-icon" data-lucide="eye"></i>
+                                        <span class="nav-text">Visualizar</span>
+                                    </button>
+                                    <button type="button" class="nav-link" id="saveDraftBtn">
+                                        <i class="nav-icon" data-lucide="save"></i>
+                                        <span class="nav-text">Salvar Rascunho</span>
+                                    </button>
+                                    <button type="submit" class="nav-link active" id="publishPostBtn">
+                                        <i class="nav-icon" data-lucide="send"></i>
+                                        <span class="nav-text">Publicar Post</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Manage Posts Section -->
+                    <div id="adminManageSection" class="admin-section">
+                        <div class="auth-prompt">
+                            <div class="auth-prompt-header">
+                                <i class="auth-prompt-icon" data-lucide="list"></i>
+                                <h3>Gerenciar Posts da Bíblia</h3>
+                            </div>
+                            <p class="auth-prompt-description">Visualize, edite e gerencie todos os posts da Bíblia Explicada</p>
+                            
+                            <!-- Filtros -->
+                            <div class="manage-filters">
+                                <div class="auth-buttons" style="margin-bottom: var(--space-4);">
+                                    <button class="nav-link active" data-filter="all">
+                                        <span class="nav-text">Todos</span>
+                                    </button>
+                                    <button class="nav-link" data-filter="published">
+                                        <span class="nav-text">Publicados</span>
+                                    </button>
+                                    <button class="nav-link" data-filter="draft">
+                                        <span class="nav-text">Rascunhos</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Lista de Posts -->
+                            <div id="postsList" class="posts-list">
+                                <!-- Posts serão carregados aqui dinamicamente -->
+                                <div class="loading-posts" style="text-align: center; padding: var(--space-8);">
+                                    <i data-lucide="loader" class="loading-icon"></i>
+                                    <p>Carregando posts...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bible Disagreements Page - Moderação de Discordâncias -->
+            <section id="bibleDisagreementsPage" class="page">
+                <div class="profile-header">
+                    <div class="profile-cover" style="background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-error) 100%);"></div>
+                    <div class="profile-info">
+                        <div class="profile-avatar">
+                            <i data-lucide="message-square" style="width: 40px; height: 40px; color: var(--color-warning);"></i>
+                        </div>
+                        <h2 class="profile-name">Moderação de Discordâncias</h2>
+                        <p class="profile-bio">Painel para revisar e responder discordâncias dos usuários sobre explicações bíblicas</p>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <strong id="disagreementsPending">0</strong>
+                                <span>Pendentes</span>
+                            </div>
+                            <div class="stat">
+                                <strong id="disagreementsReviewed">0</strong>
+                                <span>Revisadas</span>
+                            </div>
+                            <div class="stat">
+                                <strong id="disagreementsAccepted">0</strong>
+                                <span>Aceitas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-content">
+                    <!-- Filtros de Discordâncias -->
+                    <div class="admin-nav">
+                        <div class="auth-buttons" style="margin-bottom: var(--space-6);">
+                            <button class="nav-link active" data-status="pending">
+                                <i class="nav-icon" data-lucide="clock"></i>
+                                <span class="nav-text">Pendentes</span>
+                            </button>
+                            <button class="nav-link" data-status="reviewed">
+                                <i class="nav-icon" data-lucide="check-circle"></i>
+                                <span class="nav-text">Revisadas</span>
+                            </button>
+                            <button class="nav-link" data-status="all">
+                                <i class="nav-icon" data-lucide="list"></i>
+                                <span class="nav-text">Todas</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Discordâncias -->
+                    <div id="disagreementsList" class="disagreements-list">
+                        <!-- Discordâncias serão carregadas aqui dinamicamente -->
+                        <div class="loading-disagreements" style="text-align: center; padding: var(--space-8);">
+                            <i data-lucide="loader" class="loading-icon"></i>
+                            <p>Carregando discordâncias...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
         </main>
 
     </div>
@@ -275,6 +559,7 @@
             'js/auth.js',
             'js/upload.js',
             'js/video-player.js',
+            'js/bible-admin.js',
             'js/main.js'
         ];
         

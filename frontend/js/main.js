@@ -423,6 +423,12 @@ class SantooApp {
       case 'profile':
         this.initProfilePage();
         break;
+      case 'bible-admin':
+        this.initBibleAdminPage();
+        break;
+      case 'bibleDisagreements':
+        this.initBibleDisagreementsPage();
+        break;
       default:
         this.initHomePage();
     }
@@ -948,6 +954,9 @@ class SantooApp {
     if (!profileSubmenu) return;
 
     console.log('📋 Atualizando submenu do perfil. User:', !!this.user);
+    
+    // Update Bible Admin link visibility based on user role
+    this.updateBibleAdminVisibility();
 
     if (this.user) {
       // User is logged in - show logout option
@@ -1183,7 +1192,7 @@ class SantooApp {
   }
 
   isValidPage(page) {
-    const validPages = ['home', 'discover', 'upload', 'live', 'profile'];
+    const validPages = ['home', 'discover', 'upload', 'live', 'profile', 'bible-admin', 'bibleDisagreements'];
     return validPages.includes(page);
   }
 
@@ -1481,6 +1490,39 @@ class SantooApp {
     console.log('🔴 Inicializando página de lives');
   }
 
+  initBibleAdminPage() {
+    console.log('📖 Inicializando página de administração da Bíblia');
+    
+    // Check permissions
+    if (!this.canAccessBibleAdmin()) {
+      this.showNotification('Acesso negado. Apenas administradores e pastores podem acessar esta área.', 'error');
+      this.navigateTo('home');
+      return;
+    }
+    
+    // Initialize Bible Admin Manager if available
+    if (window.bibleAdmin) {
+      window.bibleAdmin.updateStats();
+      window.bibleAdmin.loadPosts();
+    }
+  }
+
+  initBibleDisagreementsPage() {
+    console.log('💬 Inicializando página de moderação de discordâncias');
+    
+    // Check permissions
+    if (!this.canAccessBibleAdmin()) {
+      this.showNotification('Acesso negado. Apenas administradores e pastores podem moderar discordâncias.', 'error');
+      this.navigateTo('home');
+      return;
+    }
+    
+    // Initialize Bible Admin Manager if available
+    if (window.bibleAdmin) {
+      window.bibleAdmin.loadDisagreements();
+    }
+  }
+
   /**
    * Aguarda SantooAPI estar completamente disponível
    */
@@ -1505,6 +1547,54 @@ class SantooApp {
     
     console.error('❌ DEBUG: waitForSantooAPI FALHOU após', maxAttempts * delay, 'ms');
     throw new Error('❌ Timeout: SantooAPI não ficou disponível após ' + (maxAttempts * delay) + 'ms');
+  }
+
+  /**
+   * Update Bible Admin link visibility based on user permissions
+   */
+  updateBibleAdminVisibility() {
+    const bibleAdminLink = document.getElementById('bibleAdminLink');
+    if (!bibleAdminLink) return;
+
+    // Show Bible Admin link only for admin and pastor users
+    if (this.user && (this.user.role === 'admin' || this.user.role === 'pastor')) {
+      bibleAdminLink.style.display = 'flex';
+      console.log('📖 Bible Admin link mostrado para usuário:', this.user.role);
+    } else {
+      bibleAdminLink.style.display = 'none';
+      console.log('📖 Bible Admin link ocultado (usuário não é admin/pastor)');
+    }
+  }
+
+  /**
+   * Check if user can access Bible admin features
+   */
+  canAccessBibleAdmin() {
+    return this.user && (this.user.role === 'admin' || this.user.role === 'pastor');
+  }
+
+  /**
+   * Show Bible Admin page
+   */
+  showBibleAdmin() {
+    if (!this.canAccessBibleAdmin()) {
+      this.showNotification('Acesso negado. Apenas administradores e pastores podem acessar esta área.', 'error');
+      return;
+    }
+
+    this.navigateTo('bible-admin');
+  }
+
+  /**
+   * Show Bible Disagreements page  
+   */
+  showBibleDisagreements() {
+    if (!this.canAccessBibleAdmin()) {
+      this.showNotification('Acesso negado. Apenas administradores e pastores podem moderar discordâncias.', 'error');
+      return;
+    }
+
+    this.navigateTo('bibleDisagreements');
   }
 }
 
