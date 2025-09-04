@@ -718,11 +718,35 @@ class SantooApp {
     // Setup tab switching for profile
     this.setupProfileTabs();
     
-    // Dispatch event to spiritual habits system for page change
-    const pageEvent = new CustomEvent('pageChanged', {
-      detail: { page: 'profile' }
-    });
-    document.dispatchEvent(pageEvent);
+    // 🔧 [DEBUG FIX] Carregar sistema de hábitos espirituais
+    console.log('📖 [DEBUG] Carregando sistema de hábitos espirituais...');
+    if (window.loadSpiritualHabits) {
+      window.loadSpiritualHabits().then(() => {
+        console.log('✅ [DEBUG] Sistema de hábitos carregado, disparando eventos...');
+        
+        // Dispatch event to spiritual habits system for page change
+        const pageEvent = new CustomEvent('pageChanged', {
+          detail: { page: 'profile' }
+        });
+        document.dispatchEvent(pageEvent);
+      }).catch(error => {
+        console.error('❌ [DEBUG] Erro ao carregar hábitos espirituais:', error);
+        
+        // Dispatch event anyway
+        const pageEvent = new CustomEvent('pageChanged', {
+          detail: { page: 'profile' }
+        });
+        document.dispatchEvent(pageEvent);
+      });
+    } else {
+      console.error('❌ [DEBUG] window.loadSpiritualHabits não encontrado!');
+      
+      // Dispatch event anyway
+      const pageEvent = new CustomEvent('pageChanged', {
+        detail: { page: 'profile' }
+      });
+      document.dispatchEvent(pageEvent);
+    }
   }
 
   /**
@@ -1541,27 +1565,30 @@ class SantooApp {
       const videosHTML = videos.map(video => {
         console.log('🔧 DEBUG: Processando vídeo:', video.title, 'URL:', video.videoUrl);
         return `
-          <div class="user-video-card" data-video-id="${video.id}">
-            <div class="video-thumbnail">
-              <video style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
-                <source src="${this.fixVideoUrl(video.videoUrl)}" type="video/mp4">
-              </video>
-              <div class="video-overlay">
-                <div class="video-stats">
-                  <span><i data-lucide="eye"></i> ${this.formatNumber(video.viewsCount || 0)}</span>
-                  <span><i data-lucide="heart"></i> ${this.formatNumber(video.likesCount || 0)}</span>
+          <div class="user-video-card" data-video-id="${video.id}" style="background-color: #2a2d3a; border-radius: 12px; overflow: hidden; cursor: pointer; min-height: 350px !important; height: auto !important; display: block !important;">
+            <div class="video-thumbnail" style="position: relative; width: 100%; height: 200px !important; background-color: #1a1d26; overflow: hidden;">
+              <div class="video-preview" style="width: 100%; height: 200px; background: linear-gradient(45deg, #1a1a2e, #16213e); display: flex; align-items: center; justify-content: center; border-radius: 8px; position: relative;">
+                <i data-lucide="play-circle" style="width: 48px; height: 48px; color: rgba(255,255,255,0.8);"></i>
+                <video style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 8px; opacity: 0.8;" preload="metadata">
+                  <source src="${this.fixVideoUrl(video.videoUrl)}#t=1" type="video/mp4">
+                </video>
+              </div>
+              <div class="video-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(0,0,0,0.8) 100%); display: flex; align-items: flex-end; padding: 12px;">
+                <div class="video-stats" style="display: flex; align-items: center; gap: 16px; color: white; font-size: 14px; font-weight: 500;">
+                  <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="eye" style="width: 16px; height: 16px;"></i> ${this.formatNumber(video.viewsCount || 0)}</span>
+                  <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="heart" style="width: 16px; height: 16px;"></i> ${this.formatNumber(video.likesCount || 0)}</span>
                 </div>
               </div>
             </div>
-            <div class="video-info">
-              <h5 class="video-title">${video.title}</h5>
-              <p class="video-date">${new Date(video.createdAt).toLocaleDateString('pt-BR')}</p>
-              <div class="video-actions">
-                <button class="btn-small" onclick="santooApp.editVideo('${video.id}')">
-                  <i data-lucide="edit"></i> Editar
+            <div class="video-info" style="padding: 16px;">
+              <h5 class="video-title" style="font-size: 18px; font-weight: 600; color: #e2e8f0; margin: 0 0 8px 0; line-height: 1.4;">${video.title}</h5>
+              <p class="video-date" style="color: #94a3b8; font-size: 14px; margin-bottom: 12px;">${new Date(video.createdAt).toLocaleDateString('pt-BR')}</p>
+              <div class="video-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+                <button class="btn-small" onclick="santooApp.editVideo('${video.id}')" style="padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid #475569; background-color: #1e293b; color: #e2e8f0; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="edit" style="width: 16px; height: 16px;"></i> Editar
                 </button>
-                <button class="btn-small btn-danger" onclick="santooApp.deleteVideo('${video.id}')">
-                  <i data-lucide="trash"></i> Excluir
+                <button class="btn-small btn-danger" onclick="santooApp.deleteVideo('${video.id}')" style="padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid #ef4444; color: #ef4444; background-color: #1e293b; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="trash" style="width: 16px; height: 16px;"></i> Excluir
                 </button>
               </div>
             </div>
@@ -1572,21 +1599,67 @@ class SantooApp {
       console.log('🔧 DEBUG: HTML gerado:', videosHTML.length, 'caracteres');
       console.log('🔧 DEBUG: videosGrid elemento:', videosGrid, 'classes:', videosGrid?.className);
       
+      // Force grid styling inline
+      videosGrid.style.cssText = `
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+        gap: 24px !important;
+        margin-top: 24px !important;
+        min-height: 400px !important;
+        width: 100% !important;
+        padding: 20px 0 !important;
+      `;
+      
       videosGrid.innerHTML = videosHTML;
       
       console.log('🔧 DEBUG: HTML inserido. Conteúdo atual:', videosGrid.innerHTML.length, 'caracteres');
       console.log('🔧 DEBUG: Primeiros 200 caracteres:', videosGrid.innerHTML.substring(0, 200));
       
-      // Check visibility
+      // Check visibility immediately
       const videosSection = document.getElementById('videosSection');
       console.log('🔧 DEBUG: videosSection encontrada:', !!videosSection, videosSection?.className);
+      console.log('🔧 DEBUG: videosSection display:', getComputedStyle(videosSection).display);
       console.log('🔧 DEBUG: videosGrid está visível:', videosGrid.offsetHeight > 0, 'height:', videosGrid.offsetHeight);
       console.log('🔧 DEBUG: videosGrid estilo display:', getComputedStyle(videosGrid).display);
+      console.log('🔧 DEBUG: videosGrid parent:', videosGrid.parentElement?.id, videosGrid.parentElement?.className);
       
       // Re-initialize Lucide icons in the new content
       if (window.lucide) {
         window.lucide.createIcons();
       }
+      
+      // Check again after DOM settles
+      setTimeout(() => {
+        console.log('🔧 DEBUG DELAYED: videosGrid height após timeout:', videosGrid.offsetHeight);
+        console.log('🔧 DEBUG DELAYED: videosSection display:', getComputedStyle(videosSection).display);
+        console.log('🔧 DEBUG DELAYED: videosGrid computed style:', {
+          display: getComputedStyle(videosGrid).display,
+          visibility: getComputedStyle(videosGrid).visibility,
+          opacity: getComputedStyle(videosGrid).opacity,
+          height: getComputedStyle(videosGrid).height,
+          minHeight: getComputedStyle(videosGrid).minHeight
+        });
+        
+        // Check if videos section is actually visible
+        const profilePage = document.getElementById('profilePage');
+        const profileContent = document.querySelector('.profile-content');
+        console.log('🔧 DEBUG DELAYED: profilePage display:', profilePage ? getComputedStyle(profilePage).display : 'not found');
+        console.log('🔧 DEBUG DELAYED: profile-content display:', profileContent ? getComputedStyle(profileContent).display : 'not found');
+        
+        // Force visibility if needed
+        if (videosGrid.offsetHeight === 0) {
+          console.log('🚨 FORÇANDO VISIBILIDADE - height ainda é 0!');
+          videosSection.style.display = 'block';
+          videosSection.style.visibility = 'visible';
+          videosGrid.style.visibility = 'visible';
+          videosGrid.style.opacity = '1';
+          
+          // Force re-flow
+          void videosGrid.offsetHeight;
+          
+          console.log('🔧 APÓS FORÇA: videosGrid height:', videosGrid.offsetHeight);
+        }
+      }, 100);
       
       console.log(`✅ Carregados ${videos.length} vídeos do usuário`);
       

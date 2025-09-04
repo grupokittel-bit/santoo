@@ -14,7 +14,9 @@ class SpiritualHabitsManager {
     this.loading = false;
     this.initialized = false;
     
-    console.log('🙏 Inicializando Gerenciador de Hábitos Espirituais...');
+    console.log('🙏 [DEBUG] Inicializando Gerenciador de Hábitos Espirituais...');
+    console.log('🔧 [DEBUG] Constructor - currentTab:', this.currentTab);
+    console.log('🔧 [DEBUG] Constructor - Arrays vazios:', { amenHabits: this.amenHabits.length, opsHabits: this.opsHabits.length });
     this.init();
   }
 
@@ -22,14 +24,19 @@ class SpiritualHabitsManager {
    * Inicializar o sistema quando necessário
    */
   async init() {
-    if (this.initialized) return;
+    console.log('🔄 [DEBUG] init() chamado - initialized:', this.initialized);
+    if (this.initialized) {
+      console.log('⏭️ [DEBUG] Já inicializado, pulando...');
+      return;
+    }
     
     try {
+      console.log('🔧 [DEBUG] Chamando setupEventListeners()...');
       await this.setupEventListeners();
       this.initialized = true;
-      console.log('✅ Hábitos Espirituais inicializados com sucesso!');
+      console.log('✅ [DEBUG] Hábitos Espirituais inicializados com sucesso!');
     } catch (error) {
-      console.error('❌ Erro ao inicializar Hábitos Espirituais:', error);
+      console.error('❌ [DEBUG] Erro ao inicializar Hábitos Espirituais:', error);
     }
   }
 
@@ -37,30 +44,36 @@ class SpiritualHabitsManager {
    * Setup dos event listeners
    */
   setupEventListeners() {
+    console.log('🔧 [DEBUG] setupEventListeners() iniciado');
+    
     // Tab navigation
     const spiritualTabs = document.querySelectorAll('.spiritual-tab');
-    spiritualTabs.forEach(tab => {
+    console.log('🔍 [DEBUG] Tabs espirituais encontradas:', spiritualTabs.length);
+    spiritualTabs.forEach((tab, index) => {
+      console.log(`📑 [DEBUG] Tab ${index}:`, tab.getAttribute('data-tab'));
       tab.addEventListener('click', (e) => {
         const tabType = e.currentTarget.getAttribute('data-tab');
+        console.log('🖱️ [DEBUG] Tab clicada:', tabType);
         this.switchTab(tabType);
       });
     });
 
     // Auth change listener
     document.addEventListener('authStateChanged', (e) => {
-      console.log('🔄 Estado de auth mudou, atualizando hábitos...');
+      console.log('🔄 [DEBUG] Estado de auth mudou, atualizando hábitos...', e.detail);
       this.handleAuthChange(e.detail);
     });
 
     // Page change listener  
     document.addEventListener('pageChanged', (e) => {
+      console.log('📄 [DEBUG] Página mudou:', e.detail.page);
       if (e.detail.page === 'profile') {
-        console.log('📖 Página perfil carregada, inicializando hábitos...');
+        console.log('📖 [DEBUG] Página perfil carregada, inicializando hábitos...');
         this.handleProfilePageLoad();
       }
     });
 
-    console.log('🎯 Event listeners dos hábitos espirituais configurados');
+    console.log('🎯 [DEBUG] Event listeners dos hábitos espirituais configurados');
   }
 
   /**
@@ -89,17 +102,37 @@ class SpiritualHabitsManager {
    * Handle profile page load
    */
   async handleProfilePageLoad() {
+    console.log('👤 [DEBUG] handleProfilePageLoad() chamado');
+    
     // Check if user is authenticated
     const authManager = window.SantooAuth;
+    console.log('🔐 [DEBUG] authManager existe:', !!authManager);
+    
     if (authManager && authManager.isAuthenticated()) {
+      console.log('✅ [DEBUG] Usuário autenticado, procurando elementos...');
+      
       const spiritualDashboard = document.getElementById('spiritualDashboard');
       const authPrompt = document.querySelector('.auth-prompt');
 
-      if (authPrompt) authPrompt.style.display = 'none';
+      console.log('🎯 [DEBUG] Elementos encontrados:', {
+        spiritualDashboard: !!spiritualDashboard,
+        authPrompt: !!authPrompt
+      });
+
+      if (authPrompt) {
+        console.log('🔒 [DEBUG] Escondendo auth prompt');
+        authPrompt.style.display = 'none';
+      }
+      
       if (spiritualDashboard) {
+        console.log('📊 [DEBUG] Mostrando spiritual dashboard e carregando hábitos');
         spiritualDashboard.style.display = 'block';
         await this.loadUserHabits();
+      } else {
+        console.error('❌ [DEBUG] spiritualDashboard não encontrado!');
       }
+    } else {
+      console.log('🔒 [DEBUG] Usuário não autenticado');
     }
   }
 
@@ -140,12 +173,23 @@ class SpiritualHabitsManager {
    * Load user habits from API
    */
   async loadUserHabits() {
-    if (this.loading) return;
+    console.log('📊 [DEBUG] loadUserHabits() iniciado - loading:', this.loading);
+    if (this.loading) {
+      console.log('⏳ [DEBUG] Já carregando, saindo...');
+      return;
+    }
     
     this.loading = true;
+    console.log('🔄 [DEBUG] Definindo loading = true, chamando showLoadingState()');
     this.showLoadingState();
 
     try {
+      console.log('🌐 [DEBUG] Fazendo chamadas paralelas para APIs...');
+      console.log('🔗 [DEBUG] URLs que serão chamadas:', {
+        amen: '/api/bible-posts/my-interactions/amen',
+        ops: '/api/bible-posts/my-interactions/ops'
+      });
+      
       // Load both Amém and Ops habits in parallel
       const [amenResponse, opsResponse, statsResponse] = await Promise.all([
         window.SantooAPI.get('/api/bible-posts/my-interactions/amen'),
@@ -153,12 +197,24 @@ class SpiritualHabitsManager {
         this.loadProgressStats()
       ]);
 
+      console.log('📨 [DEBUG] Respostas recebidas:');
+      console.log('🙏 [DEBUG] amenResponse:', amenResponse);
+      console.log('😅 [DEBUG] opsResponse:', opsResponse);
+      console.log('📈 [DEBUG] statsResponse:', statsResponse);
+
       this.amenHabits = amenResponse.data || [];
       this.opsHabits = opsResponse.data || [];
       this.progressStats = statsResponse;
 
+      console.log('💾 [DEBUG] Dados salvos:');
+      console.log('🙏 [DEBUG] amenHabits length:', this.amenHabits.length);
+      console.log('😅 [DEBUG] opsHabits length:', this.opsHabits.length);
+      console.log('📊 [DEBUG] progressStats:', this.progressStats);
+
       // Update UI
+      console.log('🎨 [DEBUG] Chamando renderHabits()...');
       await this.renderHabits();
+      console.log('📈 [DEBUG] Chamando updateProgressStats()...');
       this.updateProgressStats();
       this.updateTabCounts();
 

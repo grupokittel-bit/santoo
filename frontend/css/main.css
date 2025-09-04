@@ -371,6 +371,7 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-6);
   margin-top: var(--space-6);
+  min-height: 300px; /* Ensure grid has minimum height */
 }
 
 .user-video-card {
@@ -379,6 +380,7 @@ body {
   overflow: hidden;
   transition: var(--transition-transform);
   cursor: pointer;
+  min-height: 300px; /* Force minimum height */
 }
 
 .user-video-card:hover {
