@@ -364,6 +364,169 @@ body {
   gap: var(--space-1);
 }
 
+/* === USER VIDEOS GRID (PROFILE PAGE) === */
+
+.user-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.user-video-card {
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: var(--transition-transform);
+  cursor: pointer;
+}
+
+.user-video-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-dark-lg);
+}
+
+.user-video-card .video-thumbnail {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background-color: var(--color-bg-tertiary);
+  overflow: hidden;
+}
+
+.user-video-card .video-info {
+  padding: var(--space-4);
+}
+
+.user-video-card .video-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--line-height-tight);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.user-video-card .video-date {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-3);
+}
+
+.user-video-card .video-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.user-video-card .video-actions .btn-small {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--color-border-primary);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.user-video-card .video-actions .btn-small:hover {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-accent);
+}
+
+.user-video-card .video-actions .btn-small.btn-danger {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.user-video-card .video-actions .btn-small.btn-danger:hover {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.user-video-card .video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(0,0,0,0.8) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-3);
+}
+
+.user-video-card .video-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.user-video-card .video-stats span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Empty state for user videos */
+.empty-videos {
+  text-align: center;
+  padding: var(--space-8);
+  grid-column: 1 / -1;
+}
+
+.empty-videos .empty-content {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.empty-videos h4 {
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.empty-videos p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-6);
+  line-height: var(--line-height-relaxed);
+}
+
+/* Loading state for user videos */
+.videos-loading {
+  text-align: center;
+  padding: var(--space-8);
+  grid-column: 1 / -1;
+  color: var(--color-text-secondary);
+}
+
+.videos-loading i {
+  font-size: 2rem;
+  margin-bottom: var(--space-4);
+  animation: var(--animation-spin);
+}
+
+/* Error state for user videos */
+.error-videos {
+  text-align: center;
+  padding: var(--space-8);
+  grid-column: 1 / -1;
+}
+
+.error-videos p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-4);
+}
+
 /* === UPLOAD === */
 
 .upload-container {
