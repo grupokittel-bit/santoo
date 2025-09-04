@@ -295,7 +295,7 @@ class BibleAdminManager {
       };
       
       // Send to API
-      const response = await API.post('/bible-posts', postData);
+      const response = await window.SantooAPI.post('/api/bible-posts', postData);
       
       if (response.success) {
         this.showAlert('Post criado com sucesso! 🎉', 'success');
@@ -372,7 +372,7 @@ class BibleAdminManager {
         is_active: false // Always save as draft
       };
       
-      const response = await API.post('/bible-posts', postData);
+      const response = await window.SantooAPI.post('/api/bible-posts', postData);
       
       if (response.success) {
         this.showAlert('Rascunho salvo com sucesso! 📝', 'success');
@@ -411,7 +411,7 @@ class BibleAdminManager {
     }
     
     try {
-      const response = await API.get('/bible-posts?admin=true');
+      const response = await window.SantooAPI.get('/api/bible-posts?admin=true');
       
       if (response.success) {
         this.posts = response.posts || [];
@@ -556,7 +556,7 @@ class BibleAdminManager {
     }
     
     try {
-      const response = await API.get('/bible-posts/admin/disagreements');
+      const response = await window.SantooAPI.get('/api/bible-posts/admin/disagreements');
       
       if (response.success) {
         this.disagreements = response.disagreements || [];
