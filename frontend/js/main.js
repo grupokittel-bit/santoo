@@ -404,16 +404,28 @@ class SantooApp {
 
   /**
    * Update navigation state
+   * 🔧 CORRIGIDO: Sincroniza desktop + mobile navigation
    */
   updateNavigation() {
+    // Update desktop navigation
     const navLinks = document.querySelectorAll('.nav-link');
-    
     navLinks.forEach(link => {
       const page = link.dataset.page;
       if (page === this.currentPage) {
         link.classList.add('active');
       } else {
         link.classList.remove('active');
+      }
+    });
+    
+    // 🎯 Update mobile navigation
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+    mobileNavItems.forEach(item => {
+      const page = item.dataset.page;
+      if (page === this.currentPage) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
       }
     });
   }
@@ -2261,8 +2273,8 @@ class SantooApp {
         
         console.log('▶️ TikTok video playing (mudo):', video.dataset.videoId);
         
-        // Show notification about muted playback
-        this.showNotification('Toque no vídeo para ativar o som 🔊', 'info');
+        // Show professional sound notification
+        this.showSoundNotification();
         
       } catch (mutedError) {
         console.error('Erro ao reproduzir vídeo:', mutedError);
@@ -2597,40 +2609,122 @@ class SantooApp {
   }
 
   /**
-   * Show notification (simple implementation)
+   * Professional notification system
    */
-  showNotification(message, type = 'info') {
+  showNotification(message, type = 'info', options = {}) {
     console.log(`🔔 ${type.toUpperCase()}: ${message}`);
     
-    // Create toast notification
+    // Ensure toast container exists
+    this.ensureToastContainer();
+    
+    // Create professional toast
+    const toast = this.createProfessionalToast(message, type, options);
+    
+    // Add to container
+    const container = document.querySelector('.toast-container');
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+      toast.style.animation = 'toastSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    }, 50);
+    
+    // Auto remove after duration
+    const duration = options.duration || (type === 'error' ? 5000 : 4000);
+    setTimeout(() => {
+      this.removeToast(toast);
+    }, duration);
+    
+    return toast;
+  }
+
+  /**
+   * Special sound notification with enhanced design
+   */
+  showSoundNotification() {
+    const soundToast = this.showNotification(
+      'Toque no vídeo para ativar o som',
+      'sound-notification',
+      {
+        title: 'Som Desabilitado',
+        icon: '<i data-lucide="volume-2"></i>',
+        duration: 5000,
+        dismissible: true
+      }
+    );
+    
+    // Add special pulsing effect
+    soundToast.classList.add('sound-notification');
+    
+    // Initialize Lucide icon
+    setTimeout(() => {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+      }
+    }, 100);
+    
+    return soundToast;
+  }
+
+  /**
+   * Ensure toast container exists
+   */
+  ensureToastContainer() {
+    if (!document.querySelector('.toast-container')) {
+      const container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+  }
+
+  /**
+   * Create professional toast element
+   */
+  createProfessionalToast(message, type, options = {}) {
     const toast = document.createElement('div');
-    toast.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: ${type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#3b82f6'};
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      z-index: 10000;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      animation: slideIn 0.3s ease;
+    toast.className = `santoo-toast ${type}`;
+    
+    const { title, icon, dismissible = true } = options;
+    
+    toast.innerHTML = `
+      ${icon ? `<div class="toast-icon">${icon}</div>` : ''}
+      <div class="toast-content">
+        ${title ? `<div class="toast-title">${title}</div>` : ''}
+        <div class="toast-message">${message}</div>
+      </div>
+      ${dismissible ? `
+        <button class="toast-close" onclick="event.preventDefault(); this.parentElement.parentElement.removeChild(this.parentElement);">
+          ×
+        </button>
+      ` : ''}
+      <div class="toast-progress">
+        <div class="toast-progress-bar"></div>
+      </div>
     `;
     
-    toast.textContent = message;
-    document.body.appendChild(toast);
+    // Add click to dismiss
+    if (dismissible) {
+      toast.addEventListener('click', () => {
+        this.removeToast(toast);
+      });
+    }
     
-    // Remove after 3 seconds
+    return toast;
+  }
+
+  /**
+   * Remove toast with animation
+   */
+  removeToast(toast) {
+    if (!toast || !toast.parentElement) return;
+    
+    toast.style.animation = 'toastSlideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    
     setTimeout(() => {
-      toast.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => {
-        if (document.body.contains(toast)) {
-          document.body.removeChild(toast);
-        }
-      }, 300);
-    }, 3000);
+      if (toast.parentElement) {
+        toast.parentElement.removeChild(toast);
+      }
+    }, 300);
   }
 }
 
