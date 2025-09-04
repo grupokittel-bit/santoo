@@ -2576,19 +2576,23 @@ class SantooApp {
     `;
     indicator.style.cssText = `
       position: absolute;
-      top: 40px;
+      top: 20px;
       right: 20px;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.9);
       color: white;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 25px;
+      font-size: 13px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      z-index: 100;
+      gap: 8px;
+      z-index: 1000;
       animation: fadeIn 0.3s ease;
       cursor: pointer;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-weight: 500;
     `;
     
     // Add click handler to unmute
@@ -2603,6 +2607,8 @@ class SantooApp {
       }
     };
     
+    // ✅ GARANTE POSICIONAMENTO CORRETO E ADICIONA AO CARD
+    videoCard.style.position = 'relative';
     videoCard.appendChild(indicator);
     
     // Auto-hide after 3 seconds
