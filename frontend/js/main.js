@@ -1472,10 +1472,17 @@ class SantooApp {
    * Load user videos for profile page
    */
   async loadUserVideos() {
+    console.log('🔧 DEBUG: loadUserVideos iniciado');
     const videosGrid = document.getElementById('userVideosGrid');
     const videosTabCount = document.getElementById('videosTabCount');
     
-    if (!videosGrid) return;
+    console.log('🔧 DEBUG: videosGrid encontrado:', !!videosGrid, videosGrid);
+    console.log('🔧 DEBUG: videosTabCount encontrado:', !!videosTabCount, videosTabCount);
+    
+    if (!videosGrid) {
+      console.error('❌ DEBUG: userVideosGrid não encontrado no DOM!');
+      return;
+    }
     
     try {
       console.log('📹 Carregando vídeos do usuário...');
@@ -1530,35 +1537,51 @@ class SantooApp {
       }
       
       // Generate videos grid
-      const videosHTML = videos.map(video => `
-        <div class="user-video-card" data-video-id="${video.id}">
-          <div class="video-thumbnail">
-            <video style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
-              <source src="${this.fixVideoUrl(video.videoUrl)}" type="video/mp4">
-            </video>
-            <div class="video-overlay">
-              <div class="video-stats">
-                <span><i data-lucide="eye"></i> ${this.formatNumber(video.viewsCount || 0)}</span>
-                <span><i data-lucide="heart"></i> ${this.formatNumber(video.likesCount || 0)}</span>
+      console.log('🔧 DEBUG: Gerando HTML para', videos.length, 'vídeos');
+      const videosHTML = videos.map(video => {
+        console.log('🔧 DEBUG: Processando vídeo:', video.title, 'URL:', video.videoUrl);
+        return `
+          <div class="user-video-card" data-video-id="${video.id}">
+            <div class="video-thumbnail">
+              <video style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+                <source src="${this.fixVideoUrl(video.videoUrl)}" type="video/mp4">
+              </video>
+              <div class="video-overlay">
+                <div class="video-stats">
+                  <span><i data-lucide="eye"></i> ${this.formatNumber(video.viewsCount || 0)}</span>
+                  <span><i data-lucide="heart"></i> ${this.formatNumber(video.likesCount || 0)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="video-info">
+              <h5 class="video-title">${video.title}</h5>
+              <p class="video-date">${new Date(video.createdAt).toLocaleDateString('pt-BR')}</p>
+              <div class="video-actions">
+                <button class="btn-small" onclick="santooApp.editVideo('${video.id}')">
+                  <i data-lucide="edit"></i> Editar
+                </button>
+                <button class="btn-small btn-danger" onclick="santooApp.deleteVideo('${video.id}')">
+                  <i data-lucide="trash"></i> Excluir
+                </button>
               </div>
             </div>
           </div>
-          <div class="video-info">
-            <h5 class="video-title">${video.title}</h5>
-            <p class="video-date">${new Date(video.createdAt).toLocaleDateString('pt-BR')}</p>
-            <div class="video-actions">
-              <button class="btn-small" onclick="santooApp.editVideo(${video.id})">
-                <i data-lucide="edit"></i> Editar
-              </button>
-              <button class="btn-small btn-danger" onclick="santooApp.deleteVideo(${video.id})">
-                <i data-lucide="trash"></i> Excluir
-              </button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+      
+      console.log('🔧 DEBUG: HTML gerado:', videosHTML.length, 'caracteres');
+      console.log('🔧 DEBUG: videosGrid elemento:', videosGrid, 'classes:', videosGrid?.className);
       
       videosGrid.innerHTML = videosHTML;
+      
+      console.log('🔧 DEBUG: HTML inserido. Conteúdo atual:', videosGrid.innerHTML.length, 'caracteres');
+      console.log('🔧 DEBUG: Primeiros 200 caracteres:', videosGrid.innerHTML.substring(0, 200));
+      
+      // Check visibility
+      const videosSection = document.getElementById('videosSection');
+      console.log('🔧 DEBUG: videosSection encontrada:', !!videosSection, videosSection?.className);
+      console.log('🔧 DEBUG: videosGrid está visível:', videosGrid.offsetHeight > 0, 'height:', videosGrid.offsetHeight);
+      console.log('🔧 DEBUG: videosGrid estilo display:', getComputedStyle(videosGrid).display);
       
       // Re-initialize Lucide icons in the new content
       if (window.lucide) {

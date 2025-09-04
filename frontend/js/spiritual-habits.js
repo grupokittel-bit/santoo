@@ -153,8 +153,8 @@ class SpiritualHabitsManager {
         this.loadProgressStats()
       ]);
 
-      this.amenHabits = amenResponse.habits || [];
-      this.opsHabits = opsResponse.habits || [];
+      this.amenHabits = amenResponse.data || [];
+      this.opsHabits = opsResponse.data || [];
       this.progressStats = statsResponse;
 
       // Update UI
