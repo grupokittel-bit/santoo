@@ -779,6 +779,12 @@ class SantooApp {
                 <div class="action-counter">Share</div>
               </div>
               
+              <!-- Picture-in-Picture button -->
+              <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.togglePictureInPicture('${video.id}')" title="Picture-in-Picture">
+                <i data-lucide="maximize-2"></i>
+                <div class="action-counter">PiP</div>
+              </div>
+              
               <!-- More options -->
               <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.showVideoOptions('${video.id}')">
                 <i data-lucide="more-horizontal"></i>
@@ -3107,6 +3113,58 @@ class SantooApp {
       alert('Opções em breve!');
     };
 
+    // Picture-in-Picture functionality
+    window.togglePictureInPicture = async (videoId) => {
+      console.log('📺 Ativando Picture-in-Picture para vídeo:', videoId);
+      
+      try {
+        // Find the video element for this specific video ID
+        const videoCard = document.querySelector(`[data-video-id="${videoId}"]`);
+        if (!videoCard) {
+          throw new Error('Card de vídeo não encontrado');
+        }
+        
+        const videoElement = videoCard.querySelector('.tiktok-video');
+        if (!videoElement) {
+          throw new Error('Elemento de vídeo não encontrado');
+        }
+        
+        // Check if PiP is supported
+        if (!document.pictureInPictureEnabled || !videoElement.requestPictureInPicture) {
+          throw new Error('Picture-in-Picture não é suportado neste navegador');
+        }
+        
+        // Check if video is already in PiP
+        if (document.pictureInPictureElement === videoElement) {
+          // Exit PiP
+          await document.exitPictureInPicture();
+          console.log('📺 Picture-in-Picture desabilitado');
+        } else {
+          // Enter PiP
+          await videoElement.requestPictureInPicture();
+          console.log('📺 Picture-in-Picture ativado com sucesso');
+          
+          // Ensure video is playing for better PiP experience
+          if (videoElement.paused) {
+            await videoElement.play();
+          }
+        }
+        
+      } catch (error) {
+        console.error('❌ Erro ao ativar Picture-in-Picture:', error);
+        
+        // User-friendly error messages
+        let message = 'Erro ao ativar Picture-in-Picture';
+        if (error.message.includes('não é suportado')) {
+          message = 'Picture-in-Picture não disponível neste navegador';
+        } else if (error.name === 'InvalidStateError') {
+          message = 'Vídeo precisa estar reproduzindo para usar PiP';
+        }
+        
+        this.showNotification(message, 'warning');
+      }
+    };
+
   }
 
   /**
@@ -3384,7 +3442,7 @@ class SantooApp {
         <div class="video-thumbnail" style="position: relative; width: 100%; height: 200px !important; background-color: #1a1d26; overflow: hidden;">
           <div class="video-preview" style="width: 100%; height: 200px; background: linear-gradient(45deg, #1a1a2e, #16213e); display: flex; align-items: center; justify-content: center; border-radius: 8px; position: relative;">
             <i data-lucide="play-circle" style="width: 48px; height: 48px; color: rgba(255,255,255,0.8);"></i>
-            <video style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 8px; opacity: 0.8;" preload="metadata">
+            <video style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; border-radius: 8px; opacity: 0.8;" preload="metadata" controls="false" disablePictureInPicture controlsList="nodownload nofullscreen nopictureinpicture noremoteplayback">
               <source src="${this.fixVideoUrl(video.videoUrl)}#t=1" type="video/mp4">
             </video>
           </div>
