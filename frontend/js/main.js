@@ -972,7 +972,18 @@ class SantooApp {
     const profilePage = document.getElementById('profilePage');
     if (!profilePage) return;
     
+    console.log('🔍 [PROFILE-DEBUG] updateProfileDisplay() chamado');
+    console.log('🔍 [PROFILE-DEBUG] this.user:', this.user);
+    console.log('🔍 [PROFILE-DEBUG] window.santooAuth.user:', window.santooAuth?.user);
+    console.log('🔍 [PROFILE-DEBUG] window.santooAuth.isAuthenticated():', window.santooAuth?.isAuthenticated());
+    
     const authPrompt = document.querySelector('.auth-prompt');
+    const spiritualDashboard = document.getElementById('spiritualDashboard');
+    
+    console.log('🔍 [PROFILE-DEBUG] Elementos DOM:', {
+      authPrompt: !!authPrompt,
+      spiritualDashboard: !!spiritualDashboard
+    });
     
     if (this.user) {
       // Show user profile
@@ -981,7 +992,13 @@ class SantooApp {
       
       // Hide auth prompt and show spiritual dashboard
       if (authPrompt) {
+        console.log('🔒 [PROFILE-DEBUG] Escondendo auth prompt');
         authPrompt.style.display = 'none';
+      }
+      
+      if (spiritualDashboard) {
+        console.log('📊 [PROFILE-DEBUG] Mostrando spiritual dashboard');
+        spiritualDashboard.style.display = 'block';
       }
       
       // Dispatch event to spiritual habits system
@@ -991,6 +1008,7 @@ class SantooApp {
           user: this.user 
         }
       });
+      console.log('📢 [PROFILE-DEBUG] Disparando evento authStateChanged');
       document.dispatchEvent(authEvent);
       
     } else {

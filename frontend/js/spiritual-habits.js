@@ -80,17 +80,32 @@ class SpiritualHabitsManager {
    * Handle auth state changes
    */
   async handleAuthChange(authData) {
+    console.log('🔍 [SPIRITUAL-DEBUG] handleAuthChange chamado:', authData);
+    console.log('🔍 [SPIRITUAL-DEBUG] window.santooAuth disponível:', !!window.santooAuth);
+    console.log('🔍 [SPIRITUAL-DEBUG] window.santooAuth.user:', window.santooAuth?.user);
+    
     const spiritualDashboard = document.getElementById('spiritualDashboard');
     const authPrompt = document.querySelector('.auth-prompt');
 
+    console.log('🔍 [SPIRITUAL-DEBUG] Elementos DOM:', {
+      spiritualDashboard: !!spiritualDashboard,
+      authPrompt: !!authPrompt
+    });
+
     if (authData.isAuthenticated && authData.user) {
+      console.log('✅ [SPIRITUAL-DEBUG] Usuário autenticado, configurando dashboard...');
       // User logged in - show dashboard
-      if (authPrompt) authPrompt.style.display = 'none';
+      if (authPrompt) {
+        console.log('🔒 [SPIRITUAL-DEBUG] Escondendo auth prompt');
+        authPrompt.style.display = 'none';
+      }
       if (spiritualDashboard) {
+        console.log('📊 [SPIRITUAL-DEBUG] Mostrando spiritual dashboard e carregando hábitos');
         spiritualDashboard.style.display = 'block';
         await this.loadUserHabits();
       }
     } else {
+      console.log('❌ [SPIRITUAL-DEBUG] Usuário não autenticado, escondendo dashboard');
       // User logged out - show auth prompt
       if (spiritualDashboard) spiritualDashboard.style.display = 'none';
       if (authPrompt) authPrompt.style.display = 'block';
@@ -104,9 +119,11 @@ class SpiritualHabitsManager {
   async handleProfilePageLoad() {
     console.log('👤 [DEBUG] handleProfilePageLoad() chamado');
     
-    // Check if user is authenticated
-    const authManager = window.SantooAuth;
+    // Check if user is authenticated - CORREÇÃO: usar santooAuth (minúsculo)
+    const authManager = window.santooAuth;
     console.log('🔐 [DEBUG] authManager existe:', !!authManager);
+    console.log('🔐 [DEBUG] window.santooAuth:', !!window.santooAuth);
+    console.log('🔐 [DEBUG] disponível:', Object.keys(window).filter(k => k.includes('santoo')));
     
     if (authManager && authManager.isAuthenticated()) {
       console.log('✅ [DEBUG] Usuário autenticado, procurando elementos...');

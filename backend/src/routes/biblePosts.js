@@ -979,16 +979,16 @@ router.get('/my-progress-stats', authMiddleware, async (req, res) => {
     const [amenCount, opsCount] = await Promise.all([
       UserBibleInteraction.count({
         where: { 
-          userId: userId,
-          type: 'amen',
-          isActive: true
+          user_id: userId,
+          interaction_type: 'amen',
+          is_active: true
         }
       }),
       UserBibleInteraction.count({
         where: { 
-          userId: userId,
-          type: 'ops',
-          isActive: true
+          user_id: userId,
+          interaction_type: 'ops',
+          is_active: true
         }
       })
     ]);
@@ -1001,11 +1001,11 @@ router.get('/my-progress-stats', authMiddleware, async (req, res) => {
 
     const monthlyInteractions = await UserBibleInteraction.count({
       where: {
-        userId: userId,
-        createdAt: {
+        user_id: userId,
+        created_at: {
           [require('sequelize').Op.gte]: thirtyDaysAgo
         },
-        isActive: true
+        is_active: true
       }
     });
 
@@ -1055,25 +1055,25 @@ router.get('/:id/week-progress', authMiddleware, async (req, res) => {
 
     const weekHabits = await UserHabitTracker.findAll({
       where: {
-        userId: userId,
-        biblePostId: biblePostId,
-        createdAt: {
+        user_id: userId,
+        bible_post_id: biblePostId,
+        created_at: {
           [require('sequelize').Op.gte]: oneWeekAgo
         }
       },
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     const weekInteractions = await UserBibleInteraction.findAll({
       where: {
-        userId: userId,
-        biblePostId: biblePostId,
-        createdAt: {
+        user_id: userId,
+        bible_post_id: biblePostId,
+        created_at: {
           [require('sequelize').Op.gte]: oneWeekAgo
         },
-        isActive: true
+        is_active: true
       },
-      order: [['createdAt', 'DESC']]
+      order: [['created_at', 'DESC']]
     });
 
     const today = new Date();
@@ -1134,6 +1134,216 @@ function calculateCurrentStreak(weekProgress) {
   }
   
   return currentStreak;
+}
+
+/**
+ * Get week chart data for progress visualization
+ * GET /api/bible-posts/week-chart-data
+ */
+router.get('/week-chart-data', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const weekData = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      const dayStart = new Date(date.setHours(0, 0, 0, 0));
+      const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+
+      const [amenCount, opsCount] = await Promise.all([
+        UserBibleInteraction.count({
+          where: {
+            user_id: userId,
+            interaction_type: 'amen',
+            created_at: {
+              [require('sequelize').Op.between]: [dayStart, dayEnd]
+            },
+            is_active: true
+          }
+        }),
+        UserBibleInteraction.count({
+          where: {
+            user_id: userId,
+            interaction_type: 'ops', 
+            created_at: {
+              [require('sequelize').Op.between]: [dayStart, dayEnd]
+            },
+            is_active: true
+          }
+        })
+      ]);
+
+      weekData.push({
+        date: dayStart.toISOString().split('T')[0],
+        dayName: dayStart.toLocaleDateString('pt-BR', { weekday: 'short' }),
+        amen: amenCount,
+        ops: opsCount,
+        total: amenCount + opsCount
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        weekData,
+        summary: {
+          totalAmen: weekData.reduce((sum, day) => sum + day.amen, 0),
+          totalOps: weekData.reduce((sum, day) => sum + day.ops, 0),
+          activeDays: weekData.filter(day => day.total > 0).length
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar dados do gráfico semanal:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao carregar dados do gráfico',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * Get category performance data
+ * GET /api/bible-posts/category-performance
+ */
+router.get('/category-performance', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const categoryStats = await UserBibleInteraction.findAll({
+      where: {
+        user_id: userId,
+        is_active: true
+      },
+      include: [{
+        model: BiblePost,
+        attributes: ['category', 'title']
+      }],
+      attributes: [
+        [require('sequelize').fn('COUNT', require('sequelize').col('UserBibleInteraction.id')), 'totalInteractions'],
+        [require('sequelize').col('BiblePost.category'), 'category']
+      ],
+      group: ['BiblePost.category'],
+      order: [[require('sequelize').fn('COUNT', require('sequelize').col('UserBibleInteraction.id')), 'DESC']]
+    });
+
+    const performance = categoryStats.map(stat => ({
+      category: stat.getDataValue('category') || 'Geral',
+      interactions: parseInt(stat.getDataValue('totalInteractions')) || 0,
+      percentage: 0 // Será calculado no frontend
+    }));
+
+    const totalInteractions = performance.reduce((sum, cat) => sum + cat.interactions, 0);
+    
+    performance.forEach(cat => {
+      cat.percentage = totalInteractions > 0 ? 
+        Math.round((cat.interactions / totalInteractions) * 100) : 0;
+    });
+
+    res.json({
+      success: true,
+      data: {
+        categories: performance,
+        totalInteractions,
+        topCategory: performance[0]?.category || 'Nenhuma'
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar performance por categoria:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao carregar performance das categorias',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
+ * Get recent activity data
+ * GET /api/bible-posts/recent-activity
+ */
+router.get('/recent-activity', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const recentInteractions = await UserBibleInteraction.findAll({
+      where: {
+        user_id: userId,
+        is_active: true
+      },
+      include: [{
+        model: BiblePost,
+        attributes: ['title', 'verse_reference', 'category']
+      }],
+      attributes: ['interaction_type', 'created_at'],
+      order: [['created_at', 'DESC']],
+      limit: limit
+    });
+
+    const activities = recentInteractions.map(interaction => ({
+      type: interaction.interaction_type,
+      post: {
+        title: interaction.BiblePost?.title || 'Post removido',
+        verse: interaction.BiblePost?.verse_reference || '',
+        category: interaction.BiblePost?.category || 'Geral'
+      },
+      timestamp: interaction.created_at,
+      timeAgo: getTimeAgo(interaction.created_at)
+    }));
+
+    const summary = {
+      total: activities.length,
+      byType: {
+        amen: activities.filter(a => a.type === 'amen').length,
+        ops: activities.filter(a => a.type === 'ops').length,
+        like: activities.filter(a => a.type === 'like').length
+      },
+      lastActivity: activities[0]?.timestamp || null
+    };
+
+    res.json({
+      success: true,
+      data: {
+        activities,
+        summary
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar atividades recentes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao carregar atividades recentes',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+function getTimeAgo(date) {
+  const now = new Date();
+  const diffMs = now - new Date(date);
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMinutes < 1) return 'Agora';
+  if (diffMinutes < 60) return `${diffMinutes}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+  
+  return new Date(date).toLocaleDateString('pt-BR', { 
+    day: '2-digit', 
+    month: 'short' 
+  });
 }
 
 module.exports = router;

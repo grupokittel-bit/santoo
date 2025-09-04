@@ -1,15 +1,12 @@
 /**
  * SANTOO - Configuração de Fontes Robusta
- * Solução para problemas de MIME type com Google Fonts
+ * Solução DEFINITIVA sem dependência externa para evitar MIME errors
  */
 
-/* Fallback fonts locais primeiro, Google Fonts como enhancement */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Georgia:ital,wght@0,400;1,400&display=swap');
-
-/* Definindo variáveis de fonte com fallbacks robustos */
+/* SOLUÇÃO DEFINITIVA: Usar apenas fonts do sistema para evitar bloqueios */
 :root {
-  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
   --font-serif: 'Georgia', 'Times New Roman', Times, serif;
 }
 
