@@ -720,7 +720,7 @@ body {
 /* ✅ MOBILE: PROGRESS BAR COLADA NO MENU INFERIOR */
 @media (max-width: 768px) {
   .tiktok-progress {
-    bottom: 70px !important; /* ✅ COLADA NO MENU INFERIOR (altura do menu = 70px) */
+    bottom: 2px !important; /* ✅ BEM PRÓXIMA DO FUNDO - COLADA NO MENU */
     left: 12px !important;
     right: 12px !important;
     height: 5px !important; /* ✅ MAIS ALTA NO MOBILE */
