@@ -63,25 +63,26 @@ async function getPersonalizedRecommendations(userId, limit = 10, excludeViewed 
       is_active: true
     };
 
-    // 🔧 CORRIGIDO: Só filtrar por categorias se houver preferências
+    // 🧠 ALGORITMO INTELIGENTE: Só aplicar filtros se há dados suficientes
     const userCategories = user.preferred_bible_categories || topCategories;
-    if (userCategories && userCategories.length > 0) {
-      console.log('🔍 [DEBUG] Filtrando por categorias:', userCategories);
+    const hasEnoughData = userInteractions.length >= 3; // Pelo menos 3 interações
+    
+    if (hasEnoughData && userCategories && userCategories.length > 0) {
+      console.log('🧠 [ALGORITMO] Aplicando filtro inteligente por categorias:', userCategories);
       whereConditions.category = { [Op.in]: userCategories };
     } else {
-      console.log('🔍 [DEBUG] Sem preferências de categoria - mostrar todos os posts');
-      // Não filtrar por categoria se não há preferências
+      console.log('🧠 [ALGORITMO] Fallback: Dados insuficientes, mostrando diversidade de posts');
+      // FALLBACK INTELIGENTE: Não filtrar para mostrar diversidade
     }
 
-    // 🔧 CORRIGIDO: Só filtrar por tags se houver preferências
-    if (topTags && topTags.length > 0) {
-      console.log('🔍 [DEBUG] Filtrando por tags:', topTags);
+    // Aplicar filtro de tags apenas se há muitas interações (dados robustos)
+    if (hasEnoughData && topTags && topTags.length >= 2) {
+      console.log('🧠 [ALGORITMO] Aplicando filtro por tags:', topTags);
       whereConditions.tags = {
         [Op.overlap]: topTags
       };
     } else {
-      console.log('🔍 [DEBUG] Sem tags preferidas - não filtrar por tags');
-      // Não filtrar por tags se não há preferências
+      console.log('🧠 [ALGORITMO] Fallback: Sem filtro de tags para maior diversidade');
     }
 
     // 5. Excluir posts que o usuário já viu recentemente (se habilitado)
@@ -100,23 +101,46 @@ async function getPersonalizedRecommendations(userId, limit = 10, excludeViewed 
       }
     }
 
-    return await BiblePost.findAll({
-      where: whereConditions,
-      limit: limit,
-      order: [
+    // 🧠 ORDENAÇÃO ADAPTATIVA baseada na quantidade de dados
+    let orderStrategy;
+    
+    if (hasEnoughData) {
+      // Usuário experiente: priorizar engajamento e diversidade
+      orderStrategy = [
         ['amen_count', 'DESC'],  // Posts com mais "amém"
         ['views_count', 'ASC'],   // Posts menos vistos (diversidade)
         ['createdAt', 'DESC']    // Posts mais recentes
-      ]
+      ];
+      console.log('🧠 [ALGORITMO] Usando ordenação para usuário experiente');
+    } else {
+      // Usuário novo: mostrar diversidade de categorias e posts populares
+      orderStrategy = [
+        ['createdAt', 'DESC'],   // Posts mais recentes primeiro
+        ['amen_count', 'DESC'],  // Posts populares
+        ['likes_count', 'DESC']  // Posts curtidos
+      ];
+      console.log('🧠 [ALGORITMO] Usando ordenação para usuário novo (diversidade)');
+    }
+
+    return await BiblePost.findAll({
+      where: whereConditions,
+      limit: limit,
+      order: orderStrategy
     });
 
   } catch (error) {
-    console.error('Erro no algoritmo de recomendação:', error);
-    // Fallback: posts populares recentes
+    console.error('🚨 Erro no algoritmo de recomendação:', error);
+    console.log('🛟 Ativando fallback de emergência - posts diversos e populares');
+    
+    // 🛟 FALLBACK DE EMERGÊNCIA: Garantir que sempre mostre conteúdo
     return await BiblePost.findAll({
       where: { is_active: true },
       limit: limit,
-      order: [['amen_count', 'DESC'], ['createdAt', 'DESC']]
+      order: [
+        ['createdAt', 'DESC'],   // Novos primeiro (diversidade)
+        ['amen_count', 'DESC'],  // Populares depois
+        ['likes_count', 'DESC']  // Curtidos por último
+      ]
     });
   }
 }
@@ -214,8 +238,15 @@ router.get('/', authMiddleware, async (req, res) => {
       console.log('🔍 [DEBUG] Posts encontrados na busca filtrada:', posts.length);
     } else {
       // Feed personalizado com algoritmo de recomendação
-      console.log('🔍 [DEBUG] Usando algoritmo de recomendação, excludeViewed:', !isAdmin);
+      console.log('🧠 [ALGORITMO] Iniciando recomendação personalizada para usuário:', userId);
+      console.log('🔍 [DEBUG] Parâmetros: excludeViewed:', !isAdmin, 'limit:', limit);
+      
       posts = await getPersonalizedRecommendations(userId, parseInt(limit), !isAdmin);
+      
+      console.log('🧠 [ALGORITMO] Posts retornados pelo algoritmo:', posts.length);
+      if (posts.length === 0) {
+        console.log('🚨 [ALERTA] Algoritmo retornou 0 posts - pode indicar problema!');
+      }
       
       // Incluir dados do autor
       for (let post of posts) {
