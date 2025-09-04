@@ -710,11 +710,11 @@ body {
 
 .tiktok-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ff4757, #2ed573); /* ✅ CORES MAIS VIBRANTES */
+  background: linear-gradient(90deg, #1a1a1a, #4a90e2); /* ✅ CORES DO PROJETO: PRETO → AZUL */
   width: 0%;
   transition: width 0.1s linear;
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(255, 71, 87, 0.8); /* ✅ GLOW FORTE */
+  border-radius: 1px; /* ✅ 30% MENOS ARREDONDADO (2px → 1px) */
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.6); /* ✅ GLOW AZUL SUAVE */
 }
 
 /* ✅ MOBILE: PROGRESS BAR COLADA NO MENU INFERIOR */
@@ -730,7 +730,7 @@ body {
   }
   
   .tiktok-progress-bar {
-    box-shadow: 0 0 12px rgba(255, 71, 87, 1) !important; /* ✅ GLOW MÁXIMO */
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.8) !important; /* ✅ GLOW AZUL MOBILE */
   }
   
   /* ✅ DEBUG: PROGRESS BAR SEMPRE VISÍVEL PARA TESTE */
