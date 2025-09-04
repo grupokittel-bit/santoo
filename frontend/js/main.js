@@ -774,11 +774,6 @@ class SantooApp {
               <div class="tiktok-action-btn" onclick="event.stopPropagation(); window.showVideoOptions('${video.id}')">
                 <i data-lucide="more-horizontal"></i>
               </div>
-              
-              <!-- Picture in Picture button -->
-              <div class="tiktok-action-btn pip-btn" onclick="event.stopPropagation(); window.toggleTikTokPiP('${video.id}')">
-                <i data-lucide="monitor-speaker"></i>
-              </div>
             </div>
           </div>
         </div>
@@ -3230,99 +3225,7 @@ class SantooApp {
   }
 }
 
-// ============================================================================
-// GLOBAL FUNCTIONS - Picture in Picture
-// ============================================================================
-
-
-// Toggle Picture in Picture for TikTok videos - IMPLEMENTAÇÃO NOVA
-window.toggleTikTokPiP = async (videoId) => {
-  console.log('📺 [PiP] DEBUG: Iniciando para videoId:', videoId);
-  
-  try {
-    // 🔍 DEBUG: Mostrar estado da página
-    const allVideos = document.querySelectorAll('video');
-    const allTikTokVideos = document.querySelectorAll('.tiktok-video');
-    const videoCard = document.querySelector(`[data-video-id="${videoId}"]`);
-    
-    console.log('🔍 [DEBUG] Total videos:', allVideos.length);
-    console.log('🔍 [DEBUG] Total .tiktok-video:', allTikTokVideos.length);
-    console.log('🔍 [DEBUG] Card encontrado:', videoCard ? 'SIM' : 'NÃO');
-    
-    // Buscar elemento de vídeo com seletores específicos
-    let videoElement = null;
-    
-    // Estratégia 1: Buscar vídeo específico por videoId
-    if (videoId && videoCard) {
-      videoElement = videoCard.querySelector('video.tiktok-video');
-      console.log('🎯 [DEBUG] Strategy 1 result:', videoElement);
-      
-      if (!videoElement) {
-        videoElement = videoCard.querySelector('video');
-        console.log('🎯 [DEBUG] Strategy 1b result:', videoElement);
-      }
-    }
-    
-    // Estratégia 2: Buscar vídeo ativo/não pausado
-    if (!videoElement) {
-      videoElement = document.querySelector('video:not([paused])');
-      console.log('🎯 [DEBUG] Strategy 2 result:', videoElement);
-    }
-    
-    // Estratégia 3: Buscar qualquer vídeo TikTok
-    if (!videoElement) {
-      videoElement = document.querySelector('video.tiktok-video');
-      console.log('🎯 [DEBUG] Strategy 3 result:', videoElement);
-    }
-    
-    // Estratégia 4: Último recurso - qualquer elemento video
-    if (!videoElement) {
-      videoElement = document.querySelector('video');
-      console.log('🎯 [DEBUG] Strategy 4 result:', videoElement);
-    }
-    
-    // 🔍 DEBUG: Analisar elemento encontrado
-    if (videoElement) {
-      console.log('🔍 [DEBUG] Elemento encontrado:', {
-        tagName: videoElement.tagName,
-        className: videoElement.className,
-        isVideo: videoElement instanceof HTMLVideoElement,
-        hasRequestPiP: typeof videoElement.requestPictureInPicture,
-        src: videoElement.src,
-        currentSrc: videoElement.currentSrc
-      });
-    }
-    
-    // Verificar se elemento foi encontrado e é HTMLVideoElement
-    if (!videoElement || !(videoElement instanceof HTMLVideoElement)) {
-      console.error('❌ [DEBUG] Vídeo não encontrado ou inválido para Picture in Picture');
-      alert('Vídeo não encontrado para Picture in Picture');
-      return;
-    }
-    
-    // ✅ VERIFICAR SE BROWSER/VÍDEO SUPORTA PiP
-    if (typeof videoElement.requestPictureInPicture !== 'function') {
-      console.error('❌ [DEBUG] Browser/vídeo não suporta Picture in Picture');
-      alert('Seu navegador não suporta Picture in Picture.\n\nPor favor:\n• Atualize para a versão mais recente\n• Use Chrome, Edge ou Firefox');
-      return;
-    }
-    
-    console.log('✅ [DEBUG] Browser suporta Picture in Picture');
-    
-    // Toggle Picture in Picture (implementação simples como antiga)
-    if (document.pictureInPictureElement) {
-      await document.exitPictureInPicture();
-      console.log('✅ [DEBUG] Picture in Picture DESATIVADO');
-    } else {
-      await videoElement.requestPictureInPicture();
-      console.log('✅ [DEBUG] Picture in Picture ATIVADO');
-    }
-    
-  } catch (error) {
-    console.error('❌ [DEBUG] Erro no Picture in Picture:', error);
-    alert('Erro no Picture in Picture: ' + error.message);
-  }
-};
+// Picture in Picture functionality removed - no longer needed
 
 // ============================================================================
 // APP INITIALIZATION  

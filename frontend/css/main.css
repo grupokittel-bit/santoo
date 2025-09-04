@@ -581,7 +581,7 @@ body {
   flex-direction: column;
   gap: var(--space-6); /* ✅ MAIS ESPAÇO ENTRE BOTÕES (para acomodar números) */
   align-items: center;
-  margin-bottom: var(--space-2); /* ✅ BOTÕES MAIS PRÓXIMOS DA BARRA DE REPRODUÇÃO */
+  margin-bottom: var(--space-8); /* ✅ BOTÕES POSICIONADOS MAIS ABAIXO */
 }
 
 /* === TIKTOK ACTION BUTTONS === */
@@ -624,19 +624,6 @@ body {
   color: #ff3b5c;
 }
 
-/* Picture in Picture button styling */
-.tiktok-action-btn.pip-btn {
-  display: flex !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  background: rgba(74, 144, 226, 0.2);
-  border-color: rgba(74, 144, 226, 0.3);
-}
-
-.tiktok-action-btn.pip-btn:hover {
-  background: rgba(74, 144, 226, 0.4);
-  transform: scale(1.1);
-}
 
 /* Action button counters */
 .action-counter {
@@ -807,7 +794,7 @@ body {
 @media (max-width: 768px) {
   .tiktok-actions {
     gap: var(--space-5); /* ✅ MAIS ESPAÇO EM MOBILE TAMBÉM */
-    margin-bottom: var(--space-3); /* ✅ BOTÕES PRÓXIMOS À BARRA NO MOBILE */
+    margin-bottom: var(--space-8); /* ✅ BOTÕES POSICIONADOS MAIS ABAIXO NO MOBILE */
   }
   
   .tiktok-action-btn {

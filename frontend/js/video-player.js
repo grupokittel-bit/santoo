@@ -11,7 +11,6 @@ class SantooVideoPlayer {
       muted: false,
       loop: false,
       controls: true,
-      pip: true, // Picture in Picture
       fullscreen: true,
       playbackSpeeds: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
       ...options
@@ -168,7 +167,7 @@ class SantooVideoPlayer {
       left: 0;
       right: 0;
       background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-      padding: 1rem;
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
@@ -228,12 +227,6 @@ class SantooVideoPlayer {
 
     // Speed button
     this.speedButton = this.createButton('1x', 'Velocidade');
-    
-    // Picture in Picture button
-    if (this.options.pip && document.pictureInPictureEnabled) {
-      this.pipButton = this.createButton('📺', 'Picture in Picture');
-      rightButtons.appendChild(this.pipButton);
-    }
     
     // Fullscreen button
     if (this.options.fullscreen) {
@@ -341,10 +334,6 @@ class SantooVideoPlayer {
       
       if (this.speedButton) {
         this.speedButton.addEventListener('click', () => this.cycleSpeed());
-      }
-      
-      if (this.pipButton) {
-        this.pipButton.addEventListener('click', () => this.togglePictureInPicture());
       }
       
       if (this.fullscreenButton) {
@@ -474,18 +463,6 @@ class SantooVideoPlayer {
     this.playbackSpeed = this.options.playbackSpeeds[nextIndex];
     this.video.playbackRate = this.playbackSpeed;
     this.speedButton.textContent = `${this.playbackSpeed}x`;
-  }
-
-  async togglePictureInPicture() {
-    try {
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else {
-        await this.video.requestPictureInPicture();
-      }
-    } catch (error) {
-      console.error('Erro no Picture in Picture:', error);
-    }
   }
 
   toggleFullscreen() {
